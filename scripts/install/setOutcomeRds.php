@@ -35,30 +35,26 @@ $tableResults->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::TEST_TAK
 $tableResults->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::DELIVERY_COLUMN,"string",array("length" => 255));
 $tableResults->setPrimaryKey(array(taoOutcomeRds_models_classes_RdsResultStorage::RESULTS_TABLE_ID));
 
-$tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID,"string",array("notnull" => false, "length" => 255));
+$tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID,"integer",array("autoincrement" => true));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::CALL_ID_TEST_COLUMN,"string",array("length" => 255));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::CALL_ID_ITEM_COLUMN,"string",array("length" => 255));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::TEST_COLUMN,"string",array("notnull" => false,"length" => 255));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_FK_COLUMN,"string",array("length" => 255));
-$tableVariables->setPrimaryKey(array(
-        taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID,
-        taoOutcomeRds_models_classes_RdsResultStorage::CALL_ID_ITEM_COLUMN,
-        taoOutcomeRds_models_classes_RdsResultStorage::CALL_ID_TEST_COLUMN,
-        taoOutcomeRds_models_classes_RdsResultStorage::TEST_COLUMN));
+$tableVariables->setPrimaryKey(array(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID));
 $tableVariables->addForeignKeyConstraint($tableResults,
     array(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_FK_COLUMN),
     array(taoOutcomeRds_models_classes_RdsResultStorage::RESULTS_TABLE_ID),
     array(),
     taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_FK_NAME);
 
-$tableKvResults->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID,"string",array("notnull" => false, "length" => 255));
+$tableKvResults->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::RESULTSKV_FK_COLUMN,"integer",array("notnull" => false));
 $tableKvResults->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::KEY_COLUMN,"string",array("notnull" => false,"length" => 255));
 $tableKvResults->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VALUE_COLUMN,"string",array("notnull" => false,"length" => 255));
 $tableKvResults->setPrimaryKey(array(
-        taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID,
+        taoOutcomeRds_models_classes_RdsResultStorage::RESULTSKV_FK_COLUMN,
         taoOutcomeRds_models_classes_RdsResultStorage::KEY_COLUMN));
 $tableKvResults->addForeignKeyConstraint($tableVariables,
-    array(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID),
+    array(taoOutcomeRds_models_classes_RdsResultStorage::RESULTSKV_FK_COLUMN),
     array(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID),
     array(),
     taoOutcomeRds_models_classes_RdsResultStorage::RESULTSKV_FK_NAME);

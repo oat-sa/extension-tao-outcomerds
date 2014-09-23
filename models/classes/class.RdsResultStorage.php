@@ -42,10 +42,15 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     const RESULT_KEY_VALUE_TABLE_NAME = "results_kv_storage";
     const KEY_COLUMN = "result_key";
     const VALUE_COLUMN = "result_value";
+    const RESULTSKV_FK_COLUMN = "variables_variable_id";
     const RESULTSKV_FK_NAME = "fk_resultsKv_variables";
 
-    
+
+    static $PrefixResultsId = "taoRdsResultStorage:id";
+
+
     private $persistence;
+    private $lastInsertId;
 
     public function __construct()
     {
@@ -60,25 +65,24 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     }
 
     private function storeKeysValues(taoResultServer_models_classes_Variable $variable){
-
         foreach((array)$variable as $key => $value){
-            if($key != 'identifier'){
-                try{
-                    $this->persistence->insert(
-                        self::RESULT_KEY_VALUE_TABLE_NAME,
-                        array(self::KEY_COLUMN => $key,
-                            self::VALUE_COLUMN => $value,
-                            self::VARIABLES_TABLE_ID => $variable->getIdentifier())
-                    );
-                }
-                catch(PDOException $e){
-                    echo 'STORE : '.$e->getMessage();
-                }
+            try{
+
+                $this->persistence->insert(
+                    self::RESULT_KEY_VALUE_TABLE_NAME,
+                    array(self::RESULTSKV_FK_COLUMN => $this->lastInsertId,
+                        self::KEY_COLUMN => $key,
+                        self::VALUE_COLUMN => $value)
+                );
+            }
+            catch(PDOException $e){
+                var_dump(array(self::RESULTSKV_FK_COLUMN => $this->lastInsertId,
+                        self::KEY_COLUMN => $key,
+                        self::VALUE_COLUMN => $value));
+                echo 'STORE : '.$e->getMessage();
             }
         }
     }
-
-
 
     public function spawnResult(){
 
@@ -96,25 +100,11 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
      */
     public function storeTestVariable($deliveryResultIdentifier, $test, taoResultServer_models_classes_Variable $testVariable, $callIdTest)
     {
-        // If the line already exist we create it else we update it
-        $sql = 'SELECT COUNT(*) FROM ' .self::VARIABLES_TABLENAME.
-            ' WHERE ' .self::VARIABLES_TABLE_ID.' = ? AND' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::TEST_COLUMN. ' = ?';
-        $params = array($testVariable->getIdentifier(), $deliveryResultIdentifier, $test);
-        if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] == 0){
-            $this->persistence->insert(self::VARIABLES_TABLENAME,
-                array(self::VARIABLES_TABLE_ID => $testVariable->getIdentifier(),
-                    self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                    self::TEST_COLUMN => $test,
-                    self::CALL_ID_TEST_COLUMN => $callIdTest));
 
-        }
-        else{
-            $sqlUpdate = 'UPDATE ' .self::VARIABLES_TABLENAME. ' SET ' .self::CALL_ID_TEST_COLUMN. ' = ?
-            WHERE ' .self::VARIABLES_TABLE_ID. ' = ? AND ' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::TEST_COLUMN. ' = ?';
-            $paramsUpdate = array($callIdTest, $testVariable->getIdentifier(), $deliveryResultIdentifier, $test);
-            $this->persistence->exec($sqlUpdate,$paramsUpdate);
-
-        }
+        $sqlUpdate = 'UPDATE ' .self::VARIABLES_TABLENAME. ' SET ' .self::CALL_ID_TEST_COLUMN. ' = ?
+        WHERE ' .self::VARIABLES_TABLE_ID. ' = ?';
+        $paramsUpdate = array($callIdTest, $this->lastInsertId);
+        $this->persistence->exec($sqlUpdate,$paramsUpdate);
 
         // In all case we add the key values
         $this->storeKeysValues($testVariable);
@@ -123,26 +113,14 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
     public function storeItemVariable($deliveryResultIdentifier, $test, $item, taoResultServer_models_classes_Variable $itemVariable, $callIdItem)
     {
-        // If the line already exist we create it else we update it
-        $sql = 'SELECT COUNT(*) FROM ' .self::VARIABLES_TABLENAME.
-            ' WHERE ' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::TEST_COLUMN. ' = ?';
-        $params = array($deliveryResultIdentifier, $test);
 
-        if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] == 0){
+         $this->persistence->insert(self::VARIABLES_TABLENAME,
+            array(self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+                self::TEST_COLUMN => $test,
+                self::CALL_ID_ITEM_COLUMN => $callIdItem));
 
-                $this->persistence->insert(self::VARIABLES_TABLENAME,
-                    array(self::VARIABLES_TABLE_ID => $itemVariable->getIdentifier(),
-                        self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                        self::TEST_COLUMN => $test,
-                        self::CALL_ID_ITEM_COLUMN => $callIdItem));
-        }
-        else{
-            $sqlUpdate = 'UPDATE ' .self::VARIABLES_TABLENAME. ' SET ' .self::CALL_ID_ITEM_COLUMN. ' = ?
-            WHERE ' .self::VARIABLES_TABLE_ID. ' = ? AND ' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::TEST_COLUMN. ' = ?';
-            $paramsUpdate = array($callIdItem, $itemVariable->getIdentifier(), $deliveryResultIdentifier, $test);
-            $this->persistence->exec($sqlUpdate,$paramsUpdate);
+        $this->lastInsertId = $this->persistence->lastInsertId();
 
-        }
         // In all case we add the key values
         $this->storeKeysValues($itemVariable);
 

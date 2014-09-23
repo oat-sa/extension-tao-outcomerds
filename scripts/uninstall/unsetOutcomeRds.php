@@ -24,7 +24,7 @@ $persistence = common_persistence_Manager::getPersistence('default');
 $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
 $fromSchema = clone $schema;
 try{
-    $tableVariables = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
+    $tableResultsKv = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
     $tableVariables = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLENAME);
     $tableResults = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULTS_TABLENAME);
     $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
