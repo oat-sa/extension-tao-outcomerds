@@ -31,6 +31,8 @@ try{
     foreach ($queries as $query){
         $persistence->exec($query);
     }
+
+    // remove statement entries for object = taoOutcomeRds_models_classes_RdsResultStorage
 }
 catch (PDOException $e){
     echo $e->getMessage();
