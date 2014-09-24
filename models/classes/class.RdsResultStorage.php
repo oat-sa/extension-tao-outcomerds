@@ -33,8 +33,8 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
     const VARIABLES_TABLENAME = "variables_storage";
     const VARIABLES_TABLE_ID = "variable_id";
-    const CALL_ID_TEST_COLUMN = "call_id_test";
     const CALL_ID_ITEM_COLUMN = "call_id_item";
+    const CALL_ID_TEST_COLUMN = "call_id_test";
     const TEST_COLUMN = "test";
     const VARIABLE_IDENTIFIER = "identifier";
     const VARIABLES_FK_COLUMN = "results_result_id";
@@ -234,20 +234,27 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $lastVariableId = 0;
         foreach($variables as $variable){
 
-            $variableId = $variable[self::VARIABLES_TABLE_ID];
-            if($lastVariableId != $variableId){
+            if(empty($lastVariable)){
+                $lastVariable = $variable;
                 $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
-                $returnValue[$variableId]['deliveryResultIdentifier'] = $variable[self::VARIABLES_FK_COLUMN];
-                $returnValue[$variableId]['callIdTest'] = $variable[self::CALL_ID_TEST_COLUMN];
-                $returnValue[$variableId]['test'] = $variable[self::TEST_COLUMN];
-                $returnValue[$variableId]['variable'] = clone $resultVariable;
+            }
+            if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
+                $object = new stdClass();
+                $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
+                $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
+                $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
+                $object->test = $lastVariable[self::TEST_COLUMN];
+                $object->variable = clone $resultVariable;
+                $returnValue[] = $object;
 
+                $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                $lastVariable = $variable;
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
-            $resultVariable->$setter($variable[self::VALUE_COLUMN]);
-
-        }
+            if(method_exists($resultVariable, $setter)){
+                $resultVariable->$setter($variable[self::VALUE_COLUMN]);
+            }
 
         }
 
@@ -266,23 +273,31 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $returnValue = array();
 
         // for each variable we construct the array
-        $lastVariableId = 0;
+        $lastVariable = array();
         foreach($variables as $variable){
-            $variableId = $variable[self::VARIABLES_TABLE_ID];
-            if($lastVariableId != $variableId){
+            if(empty($lastVariable)){
+                $lastVariable = $variable;
                 $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
-                $returnValue[$variableId]['deliveryResultIdentifier'] = $variable[self::VARIABLES_FK_COLUMN];
-                $returnValue[$variableId]['callIdTest'] = $variable[self::CALL_ID_TEST_COLUMN];
-                $returnValue[$variableId]['test'] = $variable[self::TEST_COLUMN];
-                $returnValue[$variableId]['variable'] = clone $resultVariable;
+            }
+            if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
+                $object = new stdClass();
+                $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
+                $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
+                $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
+                $object->test = $lastVariable[self::TEST_COLUMN];
+                $object->variable = clone $resultVariable;
+                $returnValue[] = $object;
 
+                $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                $lastVariable = $variable;
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
-            $resultVariable->$setter($variable[self::VALUE_COLUMN]);
+            if(method_exists($resultVariable, $setter)){
+                $resultVariable->$setter($variable[self::VALUE_COLUMN]);
+            }
 
         }
-
         return $returnValue;
         
     }
