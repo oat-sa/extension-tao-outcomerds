@@ -39,6 +39,7 @@ $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIAB
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::CALL_ID_TEST_COLUMN,"string",array("length" => 255));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::CALL_ID_ITEM_COLUMN,"string",array("length" => 255));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::TEST_COLUMN,"string",array("notnull" => false,"length" => 255));
+$tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLE_IDENTIFIER,"string",array("notnull" => false,"length" => 255));
 $tableVariables->addColumn(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_FK_COLUMN,"string",array("length" => 255));
 $tableVariables->setPrimaryKey(array(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLE_ID));
 $tableVariables->addForeignKeyConstraint($tableResults,
