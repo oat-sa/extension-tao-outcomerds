@@ -36,6 +36,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     const CALL_ID_ITEM_COLUMN = "call_id_item";
     const CALL_ID_TEST_COLUMN = "call_id_test";
     const TEST_COLUMN = "test";
+    const ITEM_COLUMN = "item";
     const VARIABLE_IDENTIFIER = "identifier";
     const VARIABLES_FK_COLUMN = "results_result_id";
     const VARIABLES_FK_NAME = "fk_variables_results";
@@ -47,7 +48,6 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     const RESULTSKV_FK_NAME = "fk_resultsKv_variables";
 
 
-    static $PrefixResultsId = "taoRdsResultStorage:id";
 
 
     private $persistence;
@@ -66,8 +66,12 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     }
 
     private function storeKeysValues(taoResultServer_models_classes_Variable $variable){
-        foreach((array)$variable as $key => $value){
-            try{
+        foreach(array_keys((array)$variable) as $key){
+                $getter = 'get'.ucfirst($key);
+                $value = null;
+                if(method_exists($variable, $getter)){
+                    $value = $variable->$getter();
+                }
 
                 $this->persistence->insert(
                     self::RESULT_KEY_VALUE_TABLE_NAME,
@@ -75,10 +79,6 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                         self::KEY_COLUMN => $key,
                         self::VALUE_COLUMN => $value)
                 );
-            }
-            catch(PDOException $e){
-                echo 'STORE : '.$e->getMessage();
-            }
         }
     }
 
@@ -136,6 +136,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
             $this->persistence->insert(self::VARIABLES_TABLENAME,
                 array(self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
                     self::TEST_COLUMN => $test,
+                    self::ITEM_COLUMN => $item,
                     self::CALL_ID_ITEM_COLUMN => $callIdItem,
                     self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()));
 
@@ -223,27 +224,29 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     public function getVariables($callId)
     {
         $sql = 'SELECT * FROM ' .self::VARIABLES_TABLENAME. ', ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
-        WHERE ' .self::CALL_ID_ITEM_COLUMN. ' = ? AND ' .self::VARIABLES_TABLE_ID. ' = ' .self::RESULTSKV_FK_COLUMN;
-        $params = array($callId);
-
+        WHERE (' .self::CALL_ID_ITEM_COLUMN. ' = ? OR ' .self::CALL_ID_TEST_COLUMN. ' = ?) AND ' .self::VARIABLES_TABLE_ID. ' = ' .self::RESULTSKV_FK_COLUMN;
+        $params = array($callId,$callId);
         $variables = $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_ASSOC);
 
         $returnValue = array();
 
         // for each variable we construct the array
-        $lastVariableId = 0;
+        $lastVariable = array();
         foreach($variables as $variable){
 
             if(empty($lastVariable)){
                 $lastVariable = $variable;
                 $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
             }
+
+            // store variable from 0 to n-1
             if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
                 $object = new stdClass();
                 $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
                 $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
                 $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
                 $object->test = $lastVariable[self::TEST_COLUMN];
+                $object->item = $lastVariable[self::ITEM_COLUMN];
                 $object->variable = clone $resultVariable;
                 $returnValue[] = $object;
 
@@ -252,11 +255,24 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
+            if($variable[self::KEY_COLUMN] == 'candidateResponse'){
+                $setter = 'setValue';
+            }
             if(method_exists($resultVariable, $setter)){
                 $resultVariable->$setter($variable[self::VALUE_COLUMN]);
             }
 
         }
+
+        // store the variable n
+        $object = new stdClass();
+        $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
+        $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
+        $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
+        $object->test = $lastVariable[self::TEST_COLUMN];
+        $object->item = $lastVariable[self::ITEM_COLUMN];
+        $object->variable = clone $resultVariable;
+        $returnValue[] = $object;
 
         return $returnValue;
     }
@@ -264,10 +280,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     public function getVariable($callId, $variableIdentifier)
     {
         $sql = 'SELECT * FROM ' .self::VARIABLES_TABLENAME. ', ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
-        WHERE ' .self::CALL_ID_ITEM_COLUMN. ' = ? AND ' .self::VARIABLES_TABLE_ID. ' = ' .self::RESULTSKV_FK_COLUMN. '
-        AND ' .self::VARIABLE_IDENTIFIER. ' = ?';
+        WHERE (' .self::CALL_ID_ITEM_COLUMN. ' = ? OR ' .self::CALL_ID_TEST_COLUMN. ' = ?)
+        AND ' .self::VARIABLES_TABLE_ID. ' = ' .self::RESULTSKV_FK_COLUMN. ' AND ' .self::VARIABLE_IDENTIFIER. ' = ?';
 
-        $params = array($callId,$variableIdentifier);
+        $params = array($callId,$callId,$variableIdentifier);
         $variables = $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_ASSOC);
 
         $returnValue = array();
@@ -285,6 +301,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                 $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
                 $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
                 $object->test = $lastVariable[self::TEST_COLUMN];
+                $object->item = $lastVariable[self::ITEM_COLUMN];
                 $object->variable = clone $resultVariable;
                 $returnValue[] = $object;
 
@@ -293,11 +310,25 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
+            if($variable[self::KEY_COLUMN] == 'candidateResponse'){
+                $setter = 'setValue';
+            }
             if(method_exists($resultVariable, $setter)){
                 $resultVariable->$setter($variable[self::VALUE_COLUMN]);
             }
 
         }
+
+        // store the variable n
+        $object = new stdClass();
+        $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
+        $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
+        $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
+        $object->test = $lastVariable[self::TEST_COLUMN];
+        $object->item = $lastVariable[self::ITEM_COLUMN];
+        $object->variable = clone $resultVariable;
+        $returnValue[] = $object;
+
         return $returnValue;
         
     }
@@ -323,24 +354,37 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
     public function getAllCallIds()
     {
-        $sql = 'SELECT ' .self::CALL_ID_ITEM_COLUMN. ' FROM ' .self::VARIABLES_TABLENAME;
-        return $this->persistence->query($sql)->fetchAll(PDO::FETCH_COLUMN);
+        $returnValue = array();
+        $sql = 'SELECT ' .self::CALL_ID_ITEM_COLUMN. ', ' .self::CALL_ID_TEST_COLUMN. ' FROM ' .self::VARIABLES_TABLENAME;
+        foreach($this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "")?$value[self::CALL_ID_ITEM_COLUMN]:$value[self::CALL_ID_TEST_COLUMN];
+        }
+
+        return $returnValue;
     }
     /**
      * @return array each element is a two fields array deliveryResultIdentifier, testTakerIdentifier
      */
     public function getAllTestTakerIds()
     {
+        $returnValue = array();
         $sql = 'SELECT ' .self::RESULTS_TABLE_ID. ', ' .self::TEST_TAKER_COLUMN. ' FROM ' .self::RESULTS_TABLENAME;
-        return $this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        foreach($this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = array($value[self::RESULTS_TABLE_ID], $value[self::TEST_TAKER_COLUMN]);
+        }
+        return $returnValue;
     }
     /**
      * @return array each element is a two fields array deliveryResultIdentifier, deliveryIdentifier
      */
     public function getAllDeliveryIds()
     {
+        $returnValue = array();
         $sql = 'SELECT ' .self::RESULTS_TABLE_ID. ', ' .self::DELIVERY_COLUMN. ' FROM ' .self::RESULTS_TABLENAME;
-        return $this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        foreach($this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = array($value[self::RESULTS_TABLE_ID], $value[self::DELIVERY_COLUMN]);
+        }
+        return $returnValue;
     }
 
 }
