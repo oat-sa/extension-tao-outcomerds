@@ -25,6 +25,10 @@
 class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_GenerisService
     implements taoResultServer_models_classes_WritableResultStorage, taoResultServer_models_classes_ReadableResultStorage
 {
+    /**
+     * Constantes for the database creation and data access
+     *
+     */
     const RESULTS_TABLENAME = "results_storage";
     const RESULTS_TABLE_ID = 'result_id';
     const TEST_TAKER_COLUMN = 'test_taker';
@@ -65,6 +69,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         return $this->persistence;
     }
 
+    /**
+     * Store in the table all value corresponding to a key
+     * @param taoResultServer_models_classes_Variable $variable
+     */
     private function storeKeysValues(taoResultServer_models_classes_Variable $variable){
         foreach(array_keys((array)$variable) as $key){
                 $getter = 'get'.ucfirst($key);
@@ -87,6 +95,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     }   
     
     /**
+     * Store the test variable in table and its value in key/value storage
      *
      * @param type $deliveryResultIdentifier
      *            lis_result_sourcedid
@@ -123,6 +132,14 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         }
     }
 
+    /**
+     * Store the item in table and its value in key/value storage
+     * @param $deliveryResultIdentifier
+     * @param $test
+     * @param $item
+     * @param taoResultServer_models_classes_Variable $itemVariable
+     * @param $callIdItem
+     */
     public function storeItemVariable($deliveryResultIdentifier, $test, $item, taoResultServer_models_classes_Variable $itemVariable, $callIdItem)
     {
 
@@ -158,6 +175,11 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
     }
 
+    /**
+     * Store test-taker doing the test
+     * @param $deliveryResultIdentifier
+     * @param $testTakerIdentifier
+     */
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
     {
         $sql = 'SELECT COUNT(*) FROM ' .self::RESULTS_TABLENAME.
@@ -174,6 +196,11 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         }
     }
 
+    /**
+     * Store Delivery corresponding to the current test
+     * @param $deliveryResultIdentifier
+     * @param $deliveryIdentifier
+     */
     public function storeRelatedDelivery($deliveryResultIdentifier, $deliveryIdentifier)
     {
         $sql = 'SELECT COUNT(*) FROM ' .self::RESULTS_TABLENAME.
@@ -204,6 +231,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                 (
                     [deliveryResultIdentifier] => con-777:::rlid-777:::777777
                     [test] => http://tao26/tao26.rdf#i1402389674744647
+                    [item] => http://tao26/tao26.rdf#i1402334674744890
                     [variable] => taoResultServer_models_classes_OutcomeVariable Object
                         (
                             [normalMaximum] => 
@@ -215,6 +243,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                             [epoch] => 0.10037600 1402390997
                         )
                     [callIdTest] => http://tao26/tao26.rdf#i14023907995907103
+                    [callIdItem] => http://tao26/tao26.rdf#i14023907995907110
                 )
 
         )
@@ -248,7 +277,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                 $object->test = $lastVariable[self::TEST_COLUMN];
                 $object->item = $lastVariable[self::ITEM_COLUMN];
                 $object->variable = clone $resultVariable;
-                $returnValue[] = $object;
+                $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
 
                 $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
                 $lastVariable = $variable;
@@ -272,11 +301,17 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $object->test = $lastVariable[self::TEST_COLUMN];
         $object->item = $lastVariable[self::ITEM_COLUMN];
         $object->variable = clone $resultVariable;
-        $returnValue[] = $object;
+        $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
 
         return $returnValue;
     }
 
+    /**
+     * Get a variable from callId and Variable identifier
+     * @param $callId
+     * @param $variableIdentifier
+     * @return array
+     */
     public function getVariable($callId, $variableIdentifier)
     {
         $sql = 'SELECT * FROM ' .self::VARIABLES_TABLENAME. ', ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
@@ -303,7 +338,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                 $object->test = $lastVariable[self::TEST_COLUMN];
                 $object->item = $lastVariable[self::ITEM_COLUMN];
                 $object->variable = clone $resultVariable;
-                $returnValue[] = $object;
+                $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
 
                 $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
                 $lastVariable = $variable;
@@ -327,12 +362,17 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $object->test = $lastVariable[self::TEST_COLUMN];
         $object->item = $lastVariable[self::ITEM_COLUMN];
         $object->variable = clone $resultVariable;
-        $returnValue[] = $object;
+        $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
 
         return $returnValue;
         
     }
 
+    /**
+     * get test-taker corresponding to a result
+     * @param $deliveryResultIdentifier
+     * @return mixed
+     */
     public function getTestTaker($deliveryResultIdentifier)
     {
         $sql = 'SELECT ' .self::TEST_TAKER_COLUMN. ' FROM ' .self::RESULTS_TABLENAME. ' WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
@@ -340,6 +380,11 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         return $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0];
     }
 
+    /**
+     * get delivery corresponding to a result
+     * @param $deliveryResultIdentifier
+     * @return mixed
+     */
     public function getDelivery($deliveryResultIdentifier)
     {
         $sql = 'SELECT ' .self::DELIVERY_COLUMN. ' FROM ' .self::RESULTS_TABLENAME. ' WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
