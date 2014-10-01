@@ -42,6 +42,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     const TEST_COLUMN = "test";
     const ITEM_COLUMN = "item";
     const VARIABLE_IDENTIFIER = "identifier";
+    const VARIABLE_CLASS = "class";
     const VARIABLES_FK_COLUMN = "results_result_id";
     const VARIABLES_FK_NAME = "fk_variables_results";
 
@@ -120,10 +121,13 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
             $this->persistence->exec($sqlUpdate,$paramsUpdate);
         }
         else{
+            $variableClass = get_class($testVariable);
+
             $this->persistence->insert(self::VARIABLES_TABLENAME,
                 array(self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
                     self::TEST_COLUMN => $test,
                     self::CALL_ID_TEST_COLUMN => $callIdTest,
+                    self::VARIABLE_CLASS => $variableClass,
                     self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier()));
 
             $this->lastInsertId = $this->persistence->lastInsertId();
@@ -150,11 +154,15 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
         // if there is already a record for this item we skip saving
         if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] == 0){
+
+            $variableClass = get_class($itemVariable);
+
             $this->persistence->insert(self::VARIABLES_TABLENAME,
                 array(self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
                     self::TEST_COLUMN => $test,
                     self::ITEM_COLUMN => $item,
                     self::CALL_ID_ITEM_COLUMN => $callIdItem,
+                    self::VARIABLE_CLASS => $variableClass,
                     self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()));
 
             $this->lastInsertId = $this->persistence->lastInsertId();
@@ -261,11 +269,20 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
         // for each variable we construct the array
         $lastVariable = array();
+
+
+
+
         foreach($variables as $variable){
 
             if(empty($lastVariable)){
                 $lastVariable = $variable;
-                $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                if (class_exists($lastVariable[self::VARIABLE_CLASS])){
+                    $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
+                }
+                else{
+                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                }
             }
 
             // store variable from 0 to n-1
@@ -278,15 +295,17 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                 $object->item = $lastVariable[self::ITEM_COLUMN];
                 $object->variable = clone $resultVariable;
                 $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
-
-                $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
                 $lastVariable = $variable;
+                if (class_exists($lastVariable[self::VARIABLE_CLASS])){
+                    $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
+                }
+                else{
+                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                }
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
-            if($variable[self::KEY_COLUMN] == 'candidateResponse'){
-                $setter = 'setValue';
-            }
+
             if(method_exists($resultVariable, $setter)){
                 $resultVariable->$setter($variable[self::VALUE_COLUMN]);
             }
@@ -328,7 +347,12 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         foreach($variables as $variable){
             if(empty($lastVariable)){
                 $lastVariable = $variable;
-                $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                if (class_exists($lastVariable[self::VARIABLE_CLASS])){
+                    $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
+                }
+                else{
+                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                }
             }
             if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
                 $object = new stdClass();
@@ -340,8 +364,13 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                 $object->variable = clone $resultVariable;
                 $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
 
-                $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
                 $lastVariable = $variable;
+                if (class_exists($lastVariable[self::VARIABLE_CLASS])){
+                    $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
+                }
+                else{
+                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                }
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
