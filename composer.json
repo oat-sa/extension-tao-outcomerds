@@ -1,7 +1,7 @@
 {
 
-    "name": "oat/taoOutcomeRds",
-    "description" : "extension that allows a storage in relational database",
+    "name": "oat-sa/extension-tao-outcomerds",
+    "description" : "extension that allows outcome storage in relational database",
     "type" : "tao-extension",
     "authors" : [
         {
