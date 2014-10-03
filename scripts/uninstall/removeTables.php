@@ -24,7 +24,6 @@ use oat\taoOutcomeRds\model\RdsResultStorage;
 $persistence = common_persistence_Manager::getPersistence('default');
 $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
 $fromSchema = clone $schema;
-
 /**
  * @throws PDOException
  */
@@ -37,7 +36,7 @@ foreach ($queries as $query){
 }
 
 // remove statement entries for this extension
-Joel: core_kernel_persistence_smoothsql_SmoothModel::forceUpdatableModelIds(core_kernel_persistence_smoothsql_SmoothModel::getReadableModelIds());
+core_kernel_persistence_smoothsql_SmoothModel::forceUpdatableModelIds(core_kernel_persistence_smoothsql_SmoothModel::getReadableModelIds());
 $storage = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage');
 $storage->delete();
 $model = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel');
