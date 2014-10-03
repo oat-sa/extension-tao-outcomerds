@@ -18,12 +18,13 @@
  *
  */
 
+namespace oat\taoOutcomeRds\models\classes;
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
  *
  */
-class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_GenerisService
-    implements taoResultServer_models_classes_WritableResultStorage, taoResultServer_models_classes_ReadableResultStorage
+class RdsResultStorage extends \tao_models_classes_GenerisService
+    implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage
 {
     /**
      * Constantes for the database creation and data access
@@ -74,9 +75,9 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
     /**
      * Store in the table all value corresponding to a key
-     * @param taoResultServer_models_classes_Variable $variable
+     * @param \taoResultServer_models_classes_Variable $variable
      */
-    private function storeKeysValues($variableId, taoResultServer_models_classes_Variable $variable){
+    private function storeKeysValues($variableId, \taoResultServer_models_classes_Variable $variable){
         foreach(array_keys((array)$variable) as $key){
                 $getter = 'get'.ucfirst($key);
                 $value = null;
@@ -105,11 +106,11 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
      *            lis_result_sourcedid
      * @param type $test
      *            ignored
-     * @param taoResultServer_models_classes_Variable $testVariable            
+     * @param \taoResultServer_models_classes_Variable $testVariable
      * @param type $callIdTest
      *            ignored
      */
-    public function storeTestVariable($deliveryResultIdentifier, $test, taoResultServer_models_classes_Variable $testVariable, $callIdTest)
+    public function storeTestVariable($deliveryResultIdentifier, $test, \taoResultServer_models_classes_Variable $testVariable, $callIdTest)
     {
         $sql = 'SELECT COUNT(*) FROM ' .self::VARIABLES_TABLENAME.
             ' WHERE ' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::TEST_COLUMN. ' = ?
@@ -117,7 +118,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $params = array($deliveryResultIdentifier, $test, $testVariable->getIdentifier());
 
         // if there is already a record for this item we update it
-        if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] > 0){
+        if($this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0] > 0){
             $sqlUpdate = 'UPDATE ' .self::VARIABLES_TABLENAME. ' SET ' .self::CALL_ID_TEST_COLUMN. ' = ?
             WHERE ' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::TEST_COLUMN. ' = ? AND ' .self::VARIABLE_IDENTIFIER. ' = ?';
             $paramsUpdate = array($callIdTest, $deliveryResultIdentifier, $test, $testVariable->getIdentifier());
@@ -144,10 +145,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
      * @param $deliveryResultIdentifier
      * @param $test
      * @param $item
-     * @param taoResultServer_models_classes_Variable $itemVariable
+     * @param \taoResultServer_models_classes_Variable $itemVariable
      * @param $callIdItem
      */
-    public function storeItemVariable($deliveryResultIdentifier, $test, $item, taoResultServer_models_classes_Variable $itemVariable, $callIdItem)
+    public function storeItemVariable($deliveryResultIdentifier, $test, $item, \taoResultServer_models_classes_Variable $itemVariable, $callIdItem)
     {
 
         $sql = 'SELECT COUNT(*) FROM ' .self::VARIABLES_TABLENAME.
@@ -156,7 +157,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $params = array($deliveryResultIdentifier, $test, $callIdItem, $itemVariable->getIdentifier());
 
         // if there is already a record for this item we skip saving
-        if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] == 0){
+        if($this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0] == 0){
 
             $variableClass = get_class($itemVariable);
 
@@ -179,11 +180,9 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     /*
      * retrieve specific parameters from the resultserver to configure the storage
      */
-    /*sic*/
-    public function configure(core_kernel_classes_Resource $resultserver, $callOptions = array())
+    public function configure(\core_kernel_classes_Resource $resultserver, $callOptions = array())
     {
-        common_Logger::w('Unsupported function');
-
+        throw new \Exception('Unsupported function');
     }
 
     /**
@@ -196,7 +195,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $sql = 'SELECT COUNT(*) FROM ' .self::RESULTS_TABLENAME.
             ' WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
         $params = array($deliveryResultIdentifier);
-        if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] == 0){
+        if($this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0] == 0){
             $this->persistence->insert(self::RESULTS_TABLENAME,
                 array(self::TEST_TAKER_COLUMN => $testTakerIdentifier, self::RESULTS_TABLE_ID => $deliveryResultIdentifier));
         }
@@ -217,7 +216,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         $sql = 'SELECT COUNT(*) FROM ' .self::RESULTS_TABLENAME.
             ' WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
         $params = array($deliveryResultIdentifier);
-        if($this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0] == 0){
+        if($this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0] == 0){
             $this->persistence->insert(self::RESULTS_TABLENAME,
                 array(self::DELIVERY_COLUMN => $deliveryIdentifier, self::RESULTS_TABLE_ID => $deliveryResultIdentifier));
         }
@@ -282,13 +281,13 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                     $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
                 }
                 else{
-                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                    $resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
                 }
             }
 
             // store variable from 0 to n-1
             if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
-                $object = new stdClass();
+                $object = new \stdClass();
                 $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
                 $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
                 $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
@@ -301,7 +300,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                     $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
                 }
                 else{
-                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                    $resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
                 }
             }
 
@@ -314,7 +313,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         }
 
         // store the variable n
-        $object = new stdClass();
+        $object = new \stdClass();
         $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
         $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
         $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
@@ -339,7 +338,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         AND ' .self::VARIABLES_TABLE_ID. ' = ' .self::RESULTSKV_FK_COLUMN. ' AND ' .self::VARIABLE_IDENTIFIER. ' = ?';
 
         $params = array($callId,$callId,$variableIdentifier);
-        $variables = $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_ASSOC);
+        $variables = $this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_ASSOC);
 
         $returnValue = array();
 
@@ -352,11 +351,11 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                     $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
                 }
                 else{
-                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                    $resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
                 }
             }
             if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
-                $object = new stdClass();
+                $object = new \stdClass();
                 $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
                 $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
                 $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
@@ -370,7 +369,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                     $resultVariable = new $lastVariable[self::VARIABLE_CLASS]();
                 }
                 else{
-                    $resultVariable = new taoResultServer_models_classes_OutcomeVariable();
+                    $resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
                 }
             }
 
@@ -385,7 +384,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         }
 
         // store the variable n
-        $object = new stdClass();
+        $object = new \stdClass();
         $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
         $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
         $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
@@ -407,7 +406,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     {
         $sql = 'SELECT ' .self::TEST_TAKER_COLUMN. ' FROM ' .self::RESULTS_TABLENAME. ' WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
         $params = array($deliveryResultIdentifier);
-        return $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0];
+        return $this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0];
     }
 
     /**
@@ -419,7 +418,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     {
         $sql = 'SELECT ' .self::DELIVERY_COLUMN. ' FROM ' .self::RESULTS_TABLENAME. ' WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
         $params = array($deliveryResultIdentifier);
-        return $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_COLUMN)[0];
+        return $this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0];
     }
 
     /**
@@ -445,8 +444,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     {
         $returnValue = array();
         $sql = 'SELECT ' .self::RESULTS_TABLE_ID. ', ' .self::TEST_TAKER_COLUMN. ' FROM ' .self::RESULTS_TABLENAME;
-        foreach($this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $value){
-            $returnValue[] = array($value[self::RESULTS_TABLE_ID], $value[self::TEST_TAKER_COLUMN]);
+        foreach($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = array(
+                "deliveryResultIdentifier"  =>  $value[self::RESULTS_TABLE_ID],
+                "testTakerIdentifier"        =>  $value[self::TEST_TAKER_COLUMN]);
         }
         return $returnValue;
     }
@@ -459,8 +460,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     {
         $returnValue = array();
         $sql = 'SELECT ' .self::RESULTS_TABLE_ID. ', ' .self::DELIVERY_COLUMN. ' FROM ' .self::RESULTS_TABLENAME;
-        foreach($this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $value){
-            $returnValue[] = array($value[self::RESULTS_TABLE_ID], $value[self::DELIVERY_COLUMN]);
+        foreach($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = array(
+                "deliveryResultIdentifier"  =>  $value[self::RESULTS_TABLE_ID],
+                "deliveryIdentifier"        =>  $value[self::DELIVERY_COLUMN]);
         }
         return $returnValue;
     }

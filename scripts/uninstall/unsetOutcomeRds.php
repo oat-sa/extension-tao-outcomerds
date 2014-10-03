@@ -19,6 +19,7 @@
  *
  */
 
+use oat\taoOutcomeRds\models\classes\RdsResultStorage;
 
 $persistence = common_persistence_Manager::getPersistence('default');
 $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
@@ -27,9 +28,9 @@ $fromSchema = clone $schema;
 /**
  * @throws PDOException 
  */
-$tableResultsKv = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
-$tableVariables = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLENAME);
-$tableResults = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULTS_TABLENAME);
+$tableResultsKv = $schema->dropTable(RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
+$tableVariables = $schema->dropTable(RdsResultStorage::VARIABLES_TABLENAME);
+$tableResults = $schema->dropTable(RdsResultStorage::RESULTS_TABLENAME);
 $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
 foreach ($queries as $query){
     $persistence->exec($query);
