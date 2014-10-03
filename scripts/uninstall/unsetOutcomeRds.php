@@ -23,18 +23,20 @@
 $persistence = common_persistence_Manager::getPersistence('default');
 $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
 $fromSchema = clone $schema;
-try{
-    $tableResultsKv = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
-    $tableVariables = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLENAME);
-    $tableResults = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULTS_TABLENAME);
-    $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-    foreach ($queries as $query){
-        $persistence->exec($query);
-    }
 
-    // remove statement entries for object = taoOutcomeRds_models_classes_RdsResultStorage
-    $persistence->exec('DELETE FROM statements WHERE object LIKE \'%taoOutcomeRds_models_classes_RdsResultStorage%\'');
+/**
+ * @throws PDOException 
+ */
+$tableResultsKv = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
+$tableVariables = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::VARIABLES_TABLENAME);
+$tableResults = $schema->dropTable(taoOutcomeRds_models_classes_RdsResultStorage::RESULTS_TABLENAME);
+$queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
+foreach ($queries as $query){
+    $persistence->exec($query);
 }
-catch (PDOException $e){
-    echo $e->getMessage();
-}
+
+// remove statement entries for object = taoOutcomeRds_models_classes_RdsResultStorage
+$storage = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage');
+$storage->delete();
+$model = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel');
+$model->delete();

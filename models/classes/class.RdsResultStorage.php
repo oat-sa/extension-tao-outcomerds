@@ -54,9 +54,12 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
 
 
-
+    /**
+     * SQL persistence to use
+     * 
+     * @var common_persistence_SqlPersistence
+     */
     private $persistence;
-    private $lastInsertId;
 
     public function __construct()
     {
@@ -66,15 +69,14 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
     private function getPersistence()
     {
-        $this->persistence = common_persistence_Manager::getPersistence('default');
-        return $this->persistence;
+        return common_persistence_Manager::getPersistence('default');
     }
 
     /**
      * Store in the table all value corresponding to a key
      * @param taoResultServer_models_classes_Variable $variable
      */
-    private function storeKeysValues(taoResultServer_models_classes_Variable $variable){
+    private function storeKeysValues($variableId, taoResultServer_models_classes_Variable $variable){
         foreach(array_keys((array)$variable) as $key){
                 $getter = 'get'.ucfirst($key);
                 $value = null;
@@ -84,15 +86,16 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
                 $this->persistence->insert(
                     self::RESULT_KEY_VALUE_TABLE_NAME,
-                    array(self::RESULTSKV_FK_COLUMN => $this->lastInsertId,
+                    array(self::RESULTSKV_FK_COLUMN => $variableId,
                         self::KEY_COLUMN => $key,
                         self::VALUE_COLUMN => $value)
                 );
         }
     }
 
-    public function spawnResult(){
-
+    public function spawnResult()
+    {
+        common_Logger::w('Unsupported function');
     }   
     
     /**
@@ -130,10 +133,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                     self::VARIABLE_CLASS => $variableClass,
                     self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier()));
 
-            $this->lastInsertId = $this->persistence->lastInsertId();
-
-            $this->storeKeysValues($testVariable);
+            $variableId = $this->persistence->lastInsertId();
         }
+        // In all case we add the key values
+        $this->storeKeysValues($variableId, $testVariable);
     }
 
     /**
@@ -165,10 +168,9 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
                     self::VARIABLE_CLASS => $variableClass,
                     self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()));
 
-            $this->lastInsertId = $this->persistence->lastInsertId();
+            $variableId = $this->persistence->lastInsertId();
 
-            // In all case we add the key values
-            $this->storeKeysValues($itemVariable);
+            $this->storeKeysValues($variableId, $itemVariable);
         }
 
 
@@ -180,6 +182,7 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
     /*sic*/
     public function configure(core_kernel_classes_Resource $resultserver, $callOptions = array())
     {
+        common_Logger::w('Unsupported function');
 
     }
 
@@ -224,8 +227,6 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
             $this->persistence->exec($sqlUpdate,$paramsUpdate);
         }
     }
-
-
 
  /**
      * @param callId an item execution identifier
@@ -425,7 +426,6 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
      * @return array the list of item executions ids (across all results)
      * o(n) do not use real time (postprocessing)
      */
-
     public function getAllCallIds()
     {
         $returnValue = array();
@@ -436,8 +436,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
 
         return $returnValue;
     }
+    
     /**
-     * @return array each element is a two fields array deliveryResultIdentifier, testTakerIdentifier
+     * (non-PHPdoc)
+     * @see taoResultServer_models_classes_ReadableResultStorage::getAllTestTakerIds()
      */
     public function getAllTestTakerIds()
     {
@@ -448,8 +450,10 @@ class taoOutcomeRds_models_classes_RdsResultStorage extends tao_models_classes_G
         }
         return $returnValue;
     }
+    
     /**
-     * @return array each element is a two fields array deliveryResultIdentifier, deliveryIdentifier
+     * (non-PHPdoc)
+     * @see taoResultServer_models_classes_ReadableResultStorage::getAllDeliveryIds()
      */
     public function getAllDeliveryIds()
     {

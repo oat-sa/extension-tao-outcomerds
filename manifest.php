@@ -26,7 +26,10 @@ return array(
     'license' => 'GPL-2.0',
     'version' => '1.0',
 	'author' => 'Open Assessment Technologies SA',
-	'requires' => array('tao' => '>=2.6','taoResultServer' => '>=2.6'),
+	'requires' => array(
+	   'tao' => '>=2.6',
+	   'taoResultServer' => '>=2.6'
+    ),
 	// for compatibility
 	'dependencies' => array('tao','taoResultServer'),
     'models' => array(

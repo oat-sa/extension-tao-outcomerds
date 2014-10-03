@@ -11,15 +11,15 @@
 >
 
    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel">
-	<rdfs:label xml:lang="en-US">RdsResultStorage(configure persistency)</rdfs:label>
-	<rdfs:comment xml:lang="en-US">RdsResultStorage (configure persistency)</rdfs:comment>
+	<rdfs:label xml:lang="en-US">RDS ResultStorage</rdfs:label>
+	<rdfs:comment xml:lang="en-US">RDS ResultStorage</rdfs:comment>
 	<resultserver:implementation><![CDATA[taoOutcomeRds_models_classes_RdsResultStorage]]></resultserver:implementation>
 	<rdf:type rdf:resource="http://www.tao.lu/Ontologies/TAOResultServer.rdf#ResultServerModel"/>
   </rdf:Description>
 
   <rdf:Description rdf:about="http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage">
-	<rdfs:label xml:lang="en-US">RdsResultStorage(configure persistency)</rdfs:label>
-	<rdfs:comment xml:lang="en-US">RdsResultStorage(configure persistency)</rdfs:comment>
+	<rdfs:label xml:lang="en-US">RDS ResultStorage</rdfs:label>
+	<rdfs:comment xml:lang="en-US">RDS ResultStorage</rdfs:comment>
 	<resultserver:hasResultServerModel rdf:resource="http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel" />
 	<rdf:type rdf:resource="http://www.tao.lu/Ontologies/TAOResultServer.rdf#ResultServer"/>
   </rdf:Description>
