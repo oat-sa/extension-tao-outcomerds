@@ -41,15 +41,15 @@ return array(
     ),
     'install' => array(
         'rdf' => array(
-            dirname(__FILE__). '/models/ontology/taoOutcomeRds.rdf'
+            dirname(__FILE__). '/scripts/install/taoOutcomeRds.rdf'
         ),
         'php' => array(
-            dirname(__FILE__).'/scripts/install/setOutcomeRds.php',
+            dirname(__FILE__).'/scripts/install/createTables.php',
         )
     ),
     'uninstall' => array(
         'php' => array(
-            dirname(__FILE__).'/scripts/uninstall/unsetOutcomeRds.php',
+            dirname(__FILE__).'/scripts/uninstall/removeTables.php',
         )
     ),
     'autoload' => array (

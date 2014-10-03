@@ -13,7 +13,7 @@
    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel">
 	<rdfs:label xml:lang="en-US">RDS ResultStorage</rdfs:label>
 	<rdfs:comment xml:lang="en-US">RDS ResultStorage</rdfs:comment>
-	<resultserver:implementation><![CDATA[oat\outcomeRDS\controller\RdsResultStorage]]></resultserver:implementation>
+	<resultserver:implementation><![CDATA[oat\taoOutcomeRds\model\RdsResultStorage]]></resultserver:implementation>
 	<rdf:type rdf:resource="http://www.tao.lu/Ontologies/TAOResultServer.rdf#ResultServerModel"/>
   </rdf:Description>
 

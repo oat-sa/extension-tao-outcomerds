@@ -18,7 +18,8 @@
  *
  */
 
-namespace oat\taoOutcomeRds\models\classes;
+namespace oat\taoOutcomeRds\model;
+
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
  *
@@ -70,7 +71,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
     private function getPersistence()
     {
-        return common_persistence_Manager::getPersistence('default');
+        return \common_persistence_Manager::getPersistence('default');
     }
 
     /**
@@ -96,7 +97,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
     public function spawnResult()
     {
-        common_Logger::w('Unsupported function');
+        \common_Logger::w('Unsupported function');
     }   
     
     /**
@@ -182,7 +183,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
      */
     public function configure(\core_kernel_classes_Resource $resultserver, $callOptions = array())
     {
-        throw new \Exception('Unsupported function');
+        \common_Logger::e('configure : ' . implode(" ",$callOptions));
     }
 
     /**
@@ -263,7 +264,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT * FROM ' .self::VARIABLES_TABLENAME. ', ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
         WHERE (' .self::CALL_ID_ITEM_COLUMN. ' = ? OR ' .self::CALL_ID_TEST_COLUMN. ' = ?) AND ' .self::VARIABLES_TABLE_ID. ' = ' .self::RESULTSKV_FK_COLUMN;
         $params = array($callId,$callId);
-        $variables = $this->persistence->query($sql,$params)->fetchAll(PDO::FETCH_ASSOC);
+        $variables = $this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_ASSOC);
 
         $returnValue = array();
 
@@ -429,7 +430,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $returnValue = array();
         $sql = 'SELECT ' .self::CALL_ID_ITEM_COLUMN. ', ' .self::CALL_ID_TEST_COLUMN. ' FROM ' .self::VARIABLES_TABLENAME;
-        foreach($this->persistence->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $value){
+        foreach($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value){
             $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "")?$value[self::CALL_ID_ITEM_COLUMN]:$value[self::CALL_ID_TEST_COLUMN];
         }
 

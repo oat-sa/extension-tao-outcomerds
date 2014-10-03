@@ -19,7 +19,7 @@
  *
  */
 
-use oat\taoOutcomeRds\models\classes\RdsResultStorage;
+use oat\taoOutcomeRds\model\RdsResultStorage;
 
 $persistence = common_persistence_Manager::getPersistence('default');
 
