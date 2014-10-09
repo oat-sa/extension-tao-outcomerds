@@ -85,6 +85,9 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 if(method_exists($variable, $getter)){
                     $value = $variable->$getter();
                 }
+                if($key == 'epoch' && !$variable->isSetEpoch()){
+                    $value = microtime();
+                }
 
                 $this->persistence->insert(
                     self::RESULT_KEY_VALUE_TABLE_NAME,
@@ -429,9 +432,26 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     public function getAllCallIds()
     {
         $returnValue = array();
-        $sql = 'SELECT ' .self::CALL_ID_ITEM_COLUMN. ', ' .self::CALL_ID_TEST_COLUMN. ' FROM ' .self::VARIABLES_TABLENAME;
+        $sql = 'SELECT DISTINCT(' .self::CALL_ID_ITEM_COLUMN. '), ' .self::CALL_ID_TEST_COLUMN. ', ' .self::VARIABLES_FK_COLUMN. ' FROM ' .self::VARIABLES_TABLENAME;
         foreach($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value){
             $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "")?$value[self::CALL_ID_ITEM_COLUMN]:$value[self::CALL_ID_TEST_COLUMN];
+        }
+
+        return $returnValue;
+    }
+    
+    /**
+     * @param $deliveryResultIdentifier
+     * @return array the list of item executions ids related to a delivery result
+     */
+    public function getRelatedItemCallIds($deliveryResultIdentifier)
+    {
+        $returnValue = array();
+        $sql = 'SELECT DISTINCT(' .self::CALL_ID_ITEM_COLUMN. ') FROM ' .self::VARIABLES_TABLENAME. '
+        WHERE ' .self::VARIABLES_FK_COLUMN. ' = ? AND ' .self::CALL_ID_ITEM_COLUMN. ' <> \'\'';
+        $params = array($deliveryResultIdentifier);
+        foreach($this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
         }
 
         return $returnValue;
