@@ -186,7 +186,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
      */
     public function configure(\core_kernel_classes_Resource $resultserver, $callOptions = array())
     {
-        \common_Logger::e('configure : ' . implode(" ",$callOptions));
+        \common_Logger::w('configure : ' . implode(" ",$callOptions));
     }
 
     /**
@@ -292,6 +292,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             // store variable from 0 to n-1
             if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
                 $object = new \stdClass();
+                $object->uri = $lastVariable[self::VARIABLES_TABLE_ID];
+                $object->class = $lastVariable[self::VARIABLE_CLASS];
                 $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
                 $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
                 $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
@@ -315,16 +317,19 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             }
 
         }
-
-        // store the variable n
-        $object = new \stdClass();
-        $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
-        $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
-        $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
-        $object->test = $lastVariable[self::TEST_COLUMN];
-        $object->item = $lastVariable[self::ITEM_COLUMN];
-        $object->variable = clone $resultVariable;
-        $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
+        if(count($variables) > 0){
+            // store the variable n
+            $object = new \stdClass();
+            $object->uri = $lastVariable[self::VARIABLES_TABLE_ID];
+            $object->class = $lastVariable[self::VARIABLE_CLASS];
+            $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
+            $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
+            $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
+            $object->test = $lastVariable[self::TEST_COLUMN];
+            $object->item = $lastVariable[self::ITEM_COLUMN];
+            $object->variable = clone $resultVariable;
+            $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
+        }
 
         return $returnValue;
     }
@@ -360,6 +365,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             }
             if($lastVariable[self::VARIABLES_TABLE_ID] != $variable[self::VARIABLES_TABLE_ID]){
                 $object = new \stdClass();
+                $object->uri = $lastVariable[self::VARIABLES_TABLE_ID];
+                $object->class = $lastVariable[self::VARIABLE_CLASS];
                 $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
                 $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
                 $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
@@ -388,17 +395,29 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         }
 
         // store the variable n
-        $object = new \stdClass();
-        $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
-        $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
-        $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
-        $object->test = $lastVariable[self::TEST_COLUMN];
-        $object->item = $lastVariable[self::ITEM_COLUMN];
-        $object->variable = clone $resultVariable;
-        $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
+        if(count($variables) > 0){
+            $object = new \stdClass();
+            $object->uri = $lastVariable[self::VARIABLES_TABLE_ID];
+            $object->class = $lastVariable[self::VARIABLE_CLASS];
+            $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
+            $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
+            $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
+            $object->test = $lastVariable[self::TEST_COLUMN];
+            $object->item = $lastVariable[self::ITEM_COLUMN];
+            $object->variable = clone $resultVariable;
+            $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
+        }
 
         return $returnValue;
         
+    }
+
+    public function getVariableProperty($variableId, $property){
+        $sql = 'SELECT ' .self::VALUE_COLUMN. ' FROM ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
+        WHERE ' .self::RESULTSKV_FK_COLUMN. ' = ? AND ' .self::KEY_COLUMN. ' = ?';
+        $params = array($variableId, $property);
+        return $this->persistence->query($sql,$params)->fetchAll(\PDO::FETCH_COLUMN)[0];
+
     }
 
     /**
@@ -487,6 +506,42 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 "deliveryIdentifier"        =>  $value[self::DELIVERY_COLUMN]);
         }
         return $returnValue;
+    }
+
+    public function getResultByColumn($columns, $filter){
+        $returnValue = array();
+        $sql = 'SELECT * FROM ' .self::RESULTS_TABLENAME;
+        $params = array();
+
+
+        if(count($columns) > 0){
+            $sql .= ' WHERE ';
+        }
+
+        if(in_array(PROPERTY_RESULT_OF_DELIVERY, $columns)){
+            $inQuery = implode(',', array_fill(0, count($filter[PROPERTY_RESULT_OF_DELIVERY]), '?'));
+            $sql .= self::DELIVERY_COLUMN. ' IN (' .$inQuery. ')';
+            $params = array_merge($params, $filter[PROPERTY_RESULT_OF_DELIVERY]);
+        }
+
+        if(count($columns) > 1){
+            $sql .= ' AND ';
+        }
+
+        if(in_array(PROPERTY_RESULT_OF_SUBJECT, $columns)){
+            $inQuery = implode(',', array_fill(0, count($filter[PROPERTY_RESULT_OF_SUBJECT]), '?'));
+            $sql .= self::TEST_TAKER_COLUMN. ' IN (' .$inQuery. ')';
+            $params = array_merge($params, $filter[PROPERTY_RESULT_OF_SUBJECT]);
+        }
+
+        foreach($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC) as $value){
+            $returnValue[] = array(
+                "deliveryResultIdentifier"  =>  $value[self::RESULTS_TABLE_ID],
+                "testTakerIdentifier"       =>  $value[self::TEST_TAKER_COLUMN],
+                "deliveryIdentifier"        =>  $value[self::DELIVERY_COLUMN]);
+        }
+        return $returnValue;
+
     }
 
 }
