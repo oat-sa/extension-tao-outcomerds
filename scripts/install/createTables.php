@@ -52,7 +52,7 @@ $tableVariables->addForeignKeyConstraint($tableResults,
 
 $tableKvResults->addColumn(RdsResultStorage::RESULTSKV_FK_COLUMN,"integer",array("notnull" => false));
 $tableKvResults->addColumn(RdsResultStorage::KEY_COLUMN,"string",array("notnull" => false,"length" => 255));
-$tableKvResults->addColumn(RdsResultStorage::VALUE_COLUMN,"string",array("notnull" => false,"length" => 255));
+$tableKvResults->addColumn(RdsResultStorage::VALUE_COLUMN,"text",array("notnull" => false));
 $tableKvResults->setPrimaryKey(array(
         RdsResultStorage::RESULTSKV_FK_COLUMN,
         RdsResultStorage::KEY_COLUMN));
