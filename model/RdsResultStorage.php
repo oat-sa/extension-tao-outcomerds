@@ -89,10 +89,6 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 if($key == 'epoch' && !$variable->isSetEpoch()){
                     $value = microtime();
                 }
-                if($basetype == 'file' && $key == 'candidateResponse'){
-                    $key = 'value';
-                    $value = base64_encode($value);
-                }
                 $this->persistence->insert(
                     self::RESULT_KEY_VALUE_TABLE_NAME,
                     array(self::RESULTSKV_FK_COLUMN => $variableId,
@@ -143,9 +139,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                     self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier()));
 
             $variableId = $this->persistence->lastInsertId();
+            $this->storeKeysValues($variableId, $testVariable);
         }
-        // In all case we add the key values
-        $this->storeKeysValues($variableId, $testVariable);
     }
 
     /**
@@ -411,7 +406,6 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $object->variable = clone $resultVariable;
             $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
         }
-
         return $returnValue;
         
     }
