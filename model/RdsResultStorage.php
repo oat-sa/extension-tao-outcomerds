@@ -565,15 +565,14 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         // get all the variables related to the result
         $sql = 'SELECT ' .self::VARIABLES_TABLE_ID. ' FROM ' .self::VARIABLES_TABLENAME. '
         WHERE ' .self::VARIABLES_FK_COLUMN. ' = ?';
-
         $variables = $this->persistence->query($sql,array($deliveryResultIdentifier))->fetchAll(\PDO::FETCH_ASSOC);
 
         // delete key/value for each variable
-        foreach($variables[self::VARIABLES_TABLE_ID] as $variableId){
+        foreach($variables as $variable){
             $sql = 'DELETE FROM ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
             WHERE ' .self::RESULTSKV_FK_COLUMN. ' = ?';
 
-            if($this->persistence->query($sql,array($variableId))->exec() === false){
+            if($this->persistence->exec($sql,array($variable[self::VARIABLES_TABLE_ID])) === false){
                 return false;
             }
         }
@@ -582,7 +581,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'DELETE FROM ' .self::VARIABLES_TABLENAME. '
             WHERE ' .self::VARIABLES_FK_COLUMN. ' = ?';
 
-        if($this->persistence->query($sql,array($deliveryResultIdentifier))->exec() === false){
+        if($this->persistence->exec($sql,array($deliveryResultIdentifier)) === false){
             return false;
         }
 
@@ -590,7 +589,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'DELETE FROM ' .self::RESULTS_TABLENAME. '
             WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
 
-        if($this->persistence->query($sql,array($deliveryResultIdentifier))->exec() === false){
+        if($this->persistence->exec($sql,array($deliveryResultIdentifier)) === false){
             return false;
         }
 
