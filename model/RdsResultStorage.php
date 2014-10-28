@@ -85,6 +85,9 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 $value = null;
                 if(method_exists($variable, $getter)){
                     $value = $variable->$getter();
+                    if($key == 'value' || $key == 'candidateResponse'){
+                        $value = base64_encode($value);
+                    }
                 }
                 if($key == 'epoch' && !$variable->isSetEpoch()){
                     $value = microtime();
@@ -312,7 +315,12 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
 
             if(method_exists($resultVariable, $setter)){
-                $resultVariable->$setter($variable[self::VALUE_COLUMN]);
+                $value = $variable[self::VALUE_COLUMN];
+                if($variable[self::KEY_COLUMN] == 'value' || $variable[self::KEY_COLUMN] == 'candidateResponse'){
+                    $value = base64_decode($value);
+                }
+
+                $resultVariable->$setter($value);
             }
 
         }
@@ -384,11 +392,13 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             }
 
             $setter = 'set'.ucfirst($variable[self::KEY_COLUMN]);
-            if($variable[self::KEY_COLUMN] == 'candidateResponse'){
-                $setter = 'setValue';
-            }
             if(method_exists($resultVariable, $setter)){
-                $resultVariable->$setter($variable[self::VALUE_COLUMN]);
+                $value = $variable[self::VALUE_COLUMN];
+                if($variable[self::KEY_COLUMN] == 'value' || $variable[self::KEY_COLUMN] == 'candidateResponse'){
+                    $value = base64_decode($value);
+                }
+
+                $resultVariable->$setter($value);
             }
 
         }
