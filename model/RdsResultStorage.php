@@ -20,12 +20,14 @@
 
 namespace oat\taoOutcomeRds\model;
 
+use oat\taoResultServer\models\classes\ResultManagement;
+
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
  *
  */
 class RdsResultStorage extends \tao_models_classes_GenerisService
-    implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage
+    implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
     /**
      * Constantes for the database creation and data access
@@ -552,4 +554,46 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
     }
 
+
+    /**
+     * Remove the result and all the related variables
+     * @param $deliveryResultIdentifier
+     * @return bool
+     */
+    public function deleteResult($deliveryResultIdentifier)
+    {
+        // get all the variables related to the result
+        $sql = 'SELECT ' .self::VARIABLES_TABLE_ID. ' FROM ' .self::VARIABLES_TABLENAME. '
+        WHERE ' .self::VARIABLES_FK_COLUMN. ' = ?';
+
+        $variables = $this->persistence->query($sql,array($deliveryResultIdentifier))->fetchAll(\PDO::FETCH_ASSOC);
+
+        // delete key/value for each variable
+        foreach($variables[self::VARIABLES_TABLE_ID] as $variableId){
+            $sql = 'DELETE FROM ' .self::RESULT_KEY_VALUE_TABLE_NAME. '
+            WHERE ' .self::RESULTSKV_FK_COLUMN. ' = ?';
+
+            if($this->persistence->query($sql,array($variableId))->exec() === false){
+                return false;
+            }
+        }
+
+        // remove variables
+        $sql = 'DELETE FROM ' .self::VARIABLES_TABLENAME. '
+            WHERE ' .self::VARIABLES_FK_COLUMN. ' = ?';
+
+        if($this->persistence->query($sql,array($deliveryResultIdentifier))->exec() === false){
+            return false;
+        }
+
+        // remove results
+        $sql = 'DELETE FROM ' .self::RESULTS_TABLENAME. '
+            WHERE ' .self::RESULTS_TABLE_ID. ' = ?';
+
+        if($this->persistence->query($sql,array($deliveryResultIdentifier))->exec() === false){
+            return false;
+        }
+
+        return true;
+    }
 }

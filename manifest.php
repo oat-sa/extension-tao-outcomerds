@@ -70,7 +70,4 @@ return array(
 	    #BASE WWW required by JS
 	    'BASE_WWW' => ROOT_URL.'taoOutcomeRds/views/'
 	),
-    'extra' => array(
-        'structures' => dirname(__FILE__).DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.'structures.xml',
-    )
 );
