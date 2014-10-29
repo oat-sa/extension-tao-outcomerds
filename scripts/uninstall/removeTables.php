@@ -31,12 +31,14 @@ $tableResultsKv = $schema->dropTable(RdsResultStorage::RESULT_KEY_VALUE_TABLE_NA
 $tableVariables = $schema->dropTable(RdsResultStorage::VARIABLES_TABLENAME);
 $tableResults = $schema->dropTable(RdsResultStorage::RESULTS_TABLENAME);
 $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-foreach ($queries as $query){
+foreach ($queries as $query) {
     $persistence->exec($query);
 }
 
 // remove statement entries for this extension
-core_kernel_persistence_smoothsql_SmoothModel::forceUpdatableModelIds(core_kernel_persistence_smoothsql_SmoothModel::getReadableModelIds());
+core_kernel_persistence_smoothsql_SmoothModel::forceUpdatableModelIds(
+    core_kernel_persistence_smoothsql_SmoothModel::getReadableModelIds()
+);
 $storage = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage');
 $storage->delete();
 $model = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel');

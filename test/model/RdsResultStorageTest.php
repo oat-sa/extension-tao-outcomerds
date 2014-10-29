@@ -1,37 +1,39 @@
 <?php
-/**  
+/**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; under version 2
  * of the License (non-upgradable).
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- * 
+ *
  * Copyright (c) 2014 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT); *
- * 
- *  
+ *
+ *
  */
 namespace oat\taoOutcomeRds\test\model;
+
 use oat\taoOutcomeRds\model\RdsResultStorage;
 
-require_once dirname(__FILE__). '/../../../tao/includes/class.Bootstrap.php';
+require_once dirname(__FILE__) . '/../../../tao/includes/class.Bootstrap.php';
 
 
 /**
  * Test Rds result storage
- * 
+ *
  * @author Antoine Robin, <antoine.robin@vesperiagroup.com>
  * @package taoOutcomeRds
  *
  */
-class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
+class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
+{
 
 
     /**
@@ -39,16 +41,19 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
      */
     protected $instance;
 
-    public function setUp() {
+    public function setUp()
+    {
         $this->instance = new RdsResultStorage();
     }
 
-    public function tearDown() {
+    public function tearDown()
+    {
         $this->instance = null;
     }
 
 
-    public function testStoreRelatedTestTaker(){
+    public function testStoreRelatedTestTaker()
+    {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
         $testTakerIdentifier = "mytestTaker#1";
         $this->instance->storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier);
@@ -56,7 +61,8 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($testTakerIdentifier, $this->instance->getTestTaker($deliveryResultIdentifier));
     }
 
-    public function testStoreRelatedDelivery(){
+    public function testStoreRelatedDelivery()
+    {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
         $deliveryIdentifier = "myDelivery#1";
         $this->instance->storeRelatedDelivery($deliveryResultIdentifier, $deliveryIdentifier);
@@ -64,7 +70,8 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
         $this->assertSame($deliveryIdentifier, $this->instance->getDelivery($deliveryResultIdentifier));
     }
 
-    public function testStoreItemVariable(){
+    public function testStoreItemVariable()
+    {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
         $test = "MyGreatTest#2";
         $item = "MyGreatItem#2";
@@ -78,7 +85,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
         $itemVariable->setValue('MyValue');
 
 
-        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable,$callId);
+        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
         $object = array_shift($this->instance->getVariable($callId, 'Identifier'))[0];
         $this->assertEquals($test, $object->test);
         $this->assertEquals($item, $object->item);
@@ -95,7 +102,8 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
 
     }
 
-    public function testStoreTestVariable(){
+    public function testStoreTestVariable()
+    {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
         $test = "MyGreatTest#3";
         $callId = "MyCallId#3";
@@ -108,7 +116,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase {
         $testVariable->setValue('MyValue');
 
 
-        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable,$callId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
         $object = array_shift($this->instance->getVariable($callId, 'TestIdentifier'))[0];
         $this->assertEquals($test, $object->test);
         $this->assertNull($object->item);

@@ -30,40 +30,47 @@ $tableResults = $schema->createtable(RdsResultStorage::RESULTS_TABLENAME);
 $tableVariables = $schema->createtable(RdsResultStorage::VARIABLES_TABLENAME);
 $tableKvResults = $schema->createtable(RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
 
-$tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID,"string",array("notnull" => false, "length" => 255));
-$tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN,"string",array("length" => 255));
-$tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN,"string",array("length" => 255));
+$tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, "string", array("notnull" => false, "length" => 255));
+$tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, "string", array("length" => 255));
+$tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, "string", array("length" => 255));
 $tableResults->setPrimaryKey(array(RdsResultStorage::RESULTS_TABLE_ID));
 
-$tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID,"integer",array("autoincrement" => true));
-$tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN,"string",array("length" => 255));
-$tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN,"string",array("length" => 255));
-$tableVariables->addColumn(RdsResultStorage::TEST_COLUMN,"string",array("notnull" => false,"length" => 255));
-$tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN,"string",array("notnull" => false,"length" => 255));
-$tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER,"string",array("notnull" => false,"length" => 255));
-$tableVariables->addColumn(RdsResultStorage::VARIABLE_CLASS,"string",array("notnull" => false,"length" => 255));
-$tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN,"string",array("length" => 255));
+$tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, "integer", array("autoincrement" => true));
+$tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, "string", array("length" => 255));
+$tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, "string", array("length" => 255));
+$tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, "string", array("notnull" => false, "length" => 255));
+$tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, "string", array("notnull" => false, "length" => 255));
+$tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, "string", array("notnull" => false, "length" => 255));
+$tableVariables->addColumn(RdsResultStorage::VARIABLE_CLASS, "string", array("notnull" => false, "length" => 255));
+$tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, "string", array("length" => 255));
 $tableVariables->setPrimaryKey(array(RdsResultStorage::VARIABLES_TABLE_ID));
-$tableVariables->addForeignKeyConstraint($tableResults,
+$tableVariables->addForeignKeyConstraint(
+    $tableResults,
     array(RdsResultStorage::VARIABLES_FK_COLUMN),
     array(RdsResultStorage::RESULTS_TABLE_ID),
     array(),
-    RdsResultStorage::VARIABLES_FK_NAME);
+    RdsResultStorage::VARIABLES_FK_NAME
+);
 
-$tableKvResults->addColumn(RdsResultStorage::RESULTSKV_FK_COLUMN,"integer",array("notnull" => false));
-$tableKvResults->addColumn(RdsResultStorage::KEY_COLUMN,"string",array("notnull" => false,"length" => 255));
-$tableKvResults->addColumn(RdsResultStorage::VALUE_COLUMN,"text",array("notnull" => false));
-$tableKvResults->setPrimaryKey(array(
+$tableKvResults->addColumn(RdsResultStorage::RESULTSKV_FK_COLUMN, "integer", array("notnull" => false));
+$tableKvResults->addColumn(RdsResultStorage::KEY_COLUMN, "string", array("notnull" => false, "length" => 255));
+$tableKvResults->addColumn(RdsResultStorage::VALUE_COLUMN, "text", array("notnull" => false));
+$tableKvResults->setPrimaryKey(
+    array(
         RdsResultStorage::RESULTSKV_FK_COLUMN,
-        RdsResultStorage::KEY_COLUMN));
-$tableKvResults->addForeignKeyConstraint($tableVariables,
+        RdsResultStorage::KEY_COLUMN
+    )
+);
+$tableKvResults->addForeignKeyConstraint(
+    $tableVariables,
     array(RdsResultStorage::RESULTSKV_FK_COLUMN),
     array(RdsResultStorage::VARIABLES_TABLE_ID),
     array(),
-    RdsResultStorage::RESULTSKV_FK_NAME);
+    RdsResultStorage::RESULTSKV_FK_NAME
+);
 
 
 $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-foreach ($queries as $query){
+foreach ($queries as $query) {
     $persistence->exec($query);
 }
