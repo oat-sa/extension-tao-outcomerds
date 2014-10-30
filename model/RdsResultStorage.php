@@ -541,7 +541,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     /**
      * order orderdir, offset, limit
      */
-    public function getResultByColumn($columns, $filter, $options)
+    public function getResultByColumn($columns, $filter, $options = array())
     {
         $returnValue = array();
         $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
@@ -570,10 +570,10 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
         if(isset($options['order'])){
             $sql .= ' ORDER BY ?';
-            $params = array_merge($params, $options['order']);
+            $params[] = $options['order'];
             if(isset($options['oderdir'])){
                 $sql .= ' ?';
-                $params = array_merge($params, $options['orderdir']);
+                $params[] = $options['orderdir'];
             }
         }
         if(isset($options['offset']) || isset($options['limit'])){
