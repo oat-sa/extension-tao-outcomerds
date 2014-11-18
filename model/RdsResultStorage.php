@@ -334,9 +334,9 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             }
 
             $setter = 'set' . ucfirst($variable[self::KEY_COLUMN]);
+            $value = $variable[self::VALUE_COLUMN];
 
-            if (method_exists($resultVariable, $setter)) {
-                $value = $variable[self::VALUE_COLUMN];
+            if (method_exists($resultVariable, $setter) && !is_null($value)) {
                 if ($variable[self::KEY_COLUMN] == 'value' || $variable[self::KEY_COLUMN] == 'candidateResponse') {
                     $value = base64_decode($value);
                 }
@@ -411,8 +411,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             }
 
             $setter = 'set' . ucfirst($variable[self::KEY_COLUMN]);
-            if (method_exists($resultVariable, $setter)) {
-                $value = $variable[self::VALUE_COLUMN];
+            $value = $variable[self::VALUE_COLUMN];
+            if (method_exists($resultVariable, $setter) && !is_null($value)) {
                 if ($variable[self::KEY_COLUMN] == 'value' || $variable[self::KEY_COLUMN] == 'candidateResponse') {
                     $value = base64_decode($value);
                 }
