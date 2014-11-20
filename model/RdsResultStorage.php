@@ -133,7 +133,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $params = array($deliveryResultIdentifier, $test, $testVariable->getIdentifier());
 
         // if there is already a record for this item we update it
-        if ($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0] > 0) {
+        if ($this->persistence->query($sql, $params)->fetchColumn() > 0) {
             $sqlUpdate = 'UPDATE ' . self::VARIABLES_TABLENAME . ' SET ' . self::CALL_ID_TEST_COLUMN . ' = ?
             WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::TEST_COLUMN . ' = ? AND ' . self::VARIABLE_IDENTIFIER . ' = ?';
             $paramsUpdate = array($callIdTest, $deliveryResultIdentifier, $test, $testVariable->getIdentifier());
@@ -179,7 +179,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $params = array($deliveryResultIdentifier, $test, $callIdItem, $itemVariable->getIdentifier());
 
         // if there is already a record for this item we skip saving
-        if ($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0] == 0) {
+        if ($this->persistence->query($sql, $params)->fetchColumn() == 0) {
 
             $variableClass = get_class($itemVariable);
 
@@ -221,7 +221,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
             ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
         $params = array($deliveryResultIdentifier);
-        if ($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0] == 0) {
+        if ($this->persistence->query($sql, $params)->fetchColumn() == 0) {
             $this->persistence->insert(
                 self::RESULTS_TABLENAME,
                 array(
@@ -246,7 +246,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
             ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
         $params = array($deliveryResultIdentifier);
-        if ($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0] == 0) {
+        if ($this->persistence->query($sql, $params)->fetchColumn() == 0) {
             $this->persistence->insert(
                 self::RESULTS_TABLENAME,
                 array(self::DELIVERY_COLUMN => $deliveryIdentifier, self::RESULTS_TABLE_ID => $deliveryResultIdentifier)
@@ -444,7 +444,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT ' . self::VALUE_COLUMN . ' FROM ' . self::RESULT_KEY_VALUE_TABLE_NAME . '
         WHERE ' . self::RESULTSKV_FK_COLUMN . ' = ? AND ' . self::KEY_COLUMN . ' = ?';
         $params = array($variableId, $property);
-        return $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0];
+        return $this->persistence->query($sql, $params)->fetchColumn();
 
     }
 
@@ -457,7 +457,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $sql = 'SELECT ' . self::TEST_TAKER_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
         $params = array($deliveryResultIdentifier);
-        return $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0];
+        return $this->persistence->query($sql, $params)->fetchColumn();
     }
 
     /**
@@ -469,7 +469,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $sql = 'SELECT ' . self::DELIVERY_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
         $params = array($deliveryResultIdentifier);
-        return $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0];
+        return $this->persistence->query($sql, $params)->fetchColumn();
     }
 
     /**
@@ -620,7 +620,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $params = array_merge($params, $filter[PROPERTY_RESULT_OF_SUBJECT]);
         }
 
-        return $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_COLUMN)[0];
+        return $this->persistence->query($sql, $params)->fetchColumn();
     }
 
 
