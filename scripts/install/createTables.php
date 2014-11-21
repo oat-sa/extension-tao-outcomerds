@@ -27,8 +27,11 @@ $schemaManager = $persistence->getDriver()->getSchemaManager();
 $schema = $schemaManager->createSchema();
 $fromSchema = clone $schema;
 $tableResults = $schema->createtable(RdsResultStorage::RESULTS_TABLENAME);
+$tableResults->addOption('engine', 'MyISAM');
 $tableVariables = $schema->createtable(RdsResultStorage::VARIABLES_TABLENAME);
+$tableVariables->addOption('engine', 'MyISAM');
 $tableKvResults = $schema->createtable(RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
+$tableKvResults->addOption('engine', 'MyISAM');
 
 $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, "string", array("notnull" => false, "length" => 255));
 $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, "string", array("length" => 255));
