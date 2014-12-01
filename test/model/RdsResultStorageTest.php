@@ -98,7 +98,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('float', $this->instance->getVariableProperty($object->uri, 'baseType'));
         $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals('Identifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
-        $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertEquals(base64_encode('MyValue'), $this->instance->getVariableProperty($object->uri, 'value'));
 
     }
 
@@ -129,7 +129,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('float', $this->instance->getVariableProperty($object->uri, 'baseType'));
         $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals('TestIdentifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
-        $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertEquals(base64_encode('MyValue'), $this->instance->getVariableProperty($object->uri, 'value'));
 
 
     }
