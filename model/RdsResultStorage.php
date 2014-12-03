@@ -180,33 +180,25 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         \taoResultServer_models_classes_Variable $itemVariable,
         $callIdItem
     ) {
+        //store value in all case
 
-        $sql = 'SELECT COUNT(*) FROM ' . self::VARIABLES_TABLENAME .
-            ' WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::TEST_COLUMN . ' = ?
-            AND ' . self::CALL_ID_ITEM_COLUMN . ' = ? AND ' . self::VARIABLE_IDENTIFIER . ' = ?';
-        $params = array($deliveryResultIdentifier, $test, $callIdItem, $itemVariable->getIdentifier());
+        $variableClass = get_class($itemVariable);
 
-        // if there is already a record for this item we skip saving
-        if ($this->persistence->query($sql, $params)->fetchColumn() == 0) {
+        $this->persistence->insert(
+            self::VARIABLES_TABLENAME,
+            array(
+                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+                self::TEST_COLUMN => $test,
+                self::ITEM_COLUMN => $item,
+                self::CALL_ID_ITEM_COLUMN => $callIdItem,
+                self::VARIABLE_CLASS => $variableClass,
+                self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
+            )
+        );
 
-            $variableClass = get_class($itemVariable);
+        $variableId = $this->persistence->lastInsertId();
 
-            $this->persistence->insert(
-                self::VARIABLES_TABLENAME,
-                array(
-                    self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                    self::TEST_COLUMN => $test,
-                    self::ITEM_COLUMN => $item,
-                    self::CALL_ID_ITEM_COLUMN => $callIdItem,
-                    self::VARIABLE_CLASS => $variableClass,
-                    self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
-                )
-            );
-
-            $variableId = $this->persistence->lastInsertId();
-
-            $this->storeKeysValues($variableId, $itemVariable);
-        }
+        $this->storeKeysValues($variableId, $itemVariable);
 
 
     }
