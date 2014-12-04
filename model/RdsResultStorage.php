@@ -24,7 +24,6 @@ use oat\taoResultServer\models\classes\ResultManagement;
 use \common_Logger;
 use \core_kernel_classes_Resource;
 use \core_kernel_classes_Property;
-use \tao_helpers_Date;
 use qtism\common\datatypes\Float;
 use qtism\common\enums\BaseType;
 use qtism\common\enums\Cardinality;
@@ -180,33 +179,24 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         \taoResultServer_models_classes_Variable $itemVariable,
         $callIdItem
     ) {
+        //store value in all case
 
-        $sql = 'SELECT COUNT(*) FROM ' . self::VARIABLES_TABLENAME .
-            ' WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::TEST_COLUMN . ' = ?
-            AND ' . self::CALL_ID_ITEM_COLUMN . ' = ? AND ' . self::VARIABLE_IDENTIFIER . ' = ?';
-        $params = array($deliveryResultIdentifier, $test, $callIdItem, $itemVariable->getIdentifier());
+        $variableClass = get_class($itemVariable);
 
-        // if there is already a record for this item we skip saving
-        if ($this->persistence->query($sql, $params)->fetchColumn() == 0) {
+        $this->persistence->insert(
+            self::VARIABLES_TABLENAME,
+            array(
+                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+                self::TEST_COLUMN => $test,
+                self::ITEM_COLUMN => $item,
+                self::CALL_ID_ITEM_COLUMN => $callIdItem,
+                self::VARIABLE_CLASS => $variableClass,
+                self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
+            )
+        );
+        $variableId = $this->persistence->lastInsertId();
 
-            $variableClass = get_class($itemVariable);
-
-            $this->persistence->insert(
-                self::VARIABLES_TABLENAME,
-                array(
-                    self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                    self::TEST_COLUMN => $test,
-                    self::ITEM_COLUMN => $item,
-                    self::CALL_ID_ITEM_COLUMN => $callIdItem,
-                    self::VARIABLE_CLASS => $variableClass,
-                    self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
-                )
-            );
-
-            $variableId = $this->persistence->lastInsertId();
-
-            $this->storeKeysValues($variableId, $itemVariable);
-        }
+        $this->storeKeysValues($variableId, $itemVariable);
 
 
     }
@@ -266,36 +256,10 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         }
     }
 
+
     /**
-     * @param callId an item execution identifier
-     * @return array keys as variableIdentifier , values is an array of observations ,
-     * each observation is an object with deliveryResultIdentifier, test, taoResultServer_models_classes_Variable variable, callIdTest
-     * Array
-     * (
-     * [LtiOutcome] => Array
-     * (
-     * [0] => stdClass Object
-     * (
-     * [deliveryResultIdentifier] => con-777:::rlid-777:::777777
-     * [test] => http://tao26/tao26.rdf#i1402389674744647
-     * [item] => http://tao26/tao26.rdf#i1402334674744890
-     * [variable] => taoResultServer_models_classes_OutcomeVariable Object
-     * (
-     * [normalMaximum] =>
-     * [normalMinimum] =>
-     * [value] => MC41
-     * [identifier] => LtiOutcome
-     * [cardinality] => single
-     * [baseType] => float
-     * [epoch] => 0.10037600 1402390997
-     * )
-     * [callIdTest] => http://tao26/tao26.rdf#i14023907995907103
-     * [callIdItem] => http://tao26/tao26.rdf#i14023907995907110
-     * )
-     *
-     * )
-     *
-     * )
+     * @param string $callId
+     * @return array
      */
     public function getVariables($callId)
     {
@@ -366,7 +330,6 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $object->variable = clone $resultVariable;
             $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
         }
-
         return $returnValue;
     }
 
