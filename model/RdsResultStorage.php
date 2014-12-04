@@ -206,7 +206,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
      */
     public function configure(core_kernel_classes_Resource $resultserver, $callOptions = array())
     {
-        \common_Logger::w('configure : ' . implode(" ", $callOptions));
+        \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
     }
 
     /**
@@ -500,6 +500,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $returnValue = array();
         $sql = 'SELECT ' . self::RESULTS_TABLE_ID . ', ' . self::DELIVERY_COLUMN . ' FROM ' . self::RESULTS_TABLENAME;
+
         foreach ($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value) {
             $returnValue[] = array(
                 "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
