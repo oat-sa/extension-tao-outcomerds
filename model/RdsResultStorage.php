@@ -180,27 +180,23 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $callIdItem
     ) {
         //store value in all case
+        $variableClass = get_class($itemVariable);
 
-            $variableClass = get_class($itemVariable);
+        $this->persistence->insert(
+            self::VARIABLES_TABLENAME,
+            array(
+                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+                self::TEST_COLUMN => $test,
+                self::ITEM_COLUMN => $item,
+                self::CALL_ID_ITEM_COLUMN => $callIdItem,
+                self::VARIABLE_CLASS => $variableClass,
+                self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
+            )
+        );
 
-            $this->persistence->insert(
-                self::VARIABLES_TABLENAME,
-                array(
-                    self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                    self::TEST_COLUMN => $test,
-                    self::ITEM_COLUMN => $item,
-                    self::CALL_ID_ITEM_COLUMN => $callIdItem,
-                    self::VARIABLE_CLASS => $variableClass,
-                    self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
-                )
-            );
+        $variableId = $this->persistence->lastInsertId();
 
-            $variableId = $this->persistence->lastInsertId();
-
-            $this->storeKeysValues($variableId, $itemVariable);
-        }
-
-
+        $this->storeKeysValues($variableId, $itemVariable);
     }
 
     /*
