@@ -24,7 +24,6 @@ use oat\taoResultServer\models\classes\ResultManagement;
 use \common_Logger;
 use \core_kernel_classes_Resource;
 use \core_kernel_classes_Property;
-use \tao_helpers_Date;
 use qtism\common\datatypes\Float;
 use qtism\common\enums\BaseType;
 use qtism\common\enums\Cardinality;
@@ -182,23 +181,24 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     ) {
         //store value in all case
 
-        $variableClass = get_class($itemVariable);
+            $variableClass = get_class($itemVariable);
 
-        $this->persistence->insert(
-            self::VARIABLES_TABLENAME,
-            array(
-                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                self::TEST_COLUMN => $test,
-                self::ITEM_COLUMN => $item,
-                self::CALL_ID_ITEM_COLUMN => $callIdItem,
-                self::VARIABLE_CLASS => $variableClass,
-                self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
-            )
-        );
+            $this->persistence->insert(
+                self::VARIABLES_TABLENAME,
+                array(
+                    self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+                    self::TEST_COLUMN => $test,
+                    self::ITEM_COLUMN => $item,
+                    self::CALL_ID_ITEM_COLUMN => $callIdItem,
+                    self::VARIABLE_CLASS => $variableClass,
+                    self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier()
+                )
+            );
 
-        $variableId = $this->persistence->lastInsertId();
+            $variableId = $this->persistence->lastInsertId();
 
-        $this->storeKeysValues($variableId, $itemVariable);
+            $this->storeKeysValues($variableId, $itemVariable);
+        }
 
 
     }
@@ -208,7 +208,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
      */
     public function configure(core_kernel_classes_Resource $resultserver, $callOptions = array())
     {
-        \common_Logger::w('configure : ' . implode(" ", $callOptions));
+        \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
     }
 
     /**
@@ -258,43 +258,17 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         }
     }
 
+
     /**
-     * @param callId an item execution identifier
-     * @return array keys as variableIdentifier , values is an array of observations ,
-     * each observation is an object with deliveryResultIdentifier, test, taoResultServer_models_classes_Variable variable, callIdTest
-     * Array
-     * (
-     * [LtiOutcome] => Array
-     * (
-     * [0] => stdClass Object
-     * (
-     * [deliveryResultIdentifier] => con-777:::rlid-777:::777777
-     * [test] => http://tao26/tao26.rdf#i1402389674744647
-     * [item] => http://tao26/tao26.rdf#i1402334674744890
-     * [variable] => taoResultServer_models_classes_OutcomeVariable Object
-     * (
-     * [normalMaximum] =>
-     * [normalMinimum] =>
-     * [value] => MC41
-     * [identifier] => LtiOutcome
-     * [cardinality] => single
-     * [baseType] => float
-     * [epoch] => 0.10037600 1402390997
-     * )
-     * [callIdTest] => http://tao26/tao26.rdf#i14023907995907103
-     * [callIdItem] => http://tao26/tao26.rdf#i14023907995907110
-     * )
-     *
-     * )
-     *
-     * )
+     * @param string $callId
+     * @return array
      */
     public function getVariables($callId)
     {
         $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . ', ' . self::RESULT_KEY_VALUE_TABLE_NAME . '
         WHERE (' . self::CALL_ID_ITEM_COLUMN . ' = ? OR ' . self::CALL_ID_TEST_COLUMN . ' = ?) AND ' . self::VARIABLES_TABLE_ID . ' = ' . self::RESULTSKV_FK_COLUMN;
         $params = array($callId, $callId);
-        $variables = $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        $variables = $this->persistence->query($sql, $params);
 
         $returnValue = array();
 
@@ -375,7 +349,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         AND ' . self::VARIABLES_TABLE_ID . ' = ' . self::RESULTSKV_FK_COLUMN . ' AND ' . self::VARIABLE_IDENTIFIER . ' = ?';
 
         $params = array($callId, $callId, $variableIdentifier);
-        $variables = $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        $variables = $this->persistence->query($sql, $params);
 
         $returnValue = array();
 
@@ -480,7 +454,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $returnValue = array();
         $sql = 'SELECT DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' . self::CALL_ID_TEST_COLUMN . ', ' . self::VARIABLES_FK_COLUMN . ' FROM ' . self::VARIABLES_TABLENAME;
-        foreach ($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value) {
+        $results = $this->persistence->query($sql);
+        foreach ($results as $value) {
             $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "") ? $value[self::CALL_ID_ITEM_COLUMN] : $value[self::CALL_ID_TEST_COLUMN];
         }
 
@@ -497,7 +472,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT DISTINCT(' . self::CALL_ID_ITEM_COLUMN . ') FROM ' . self::VARIABLES_TABLENAME . '
         WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::CALL_ID_ITEM_COLUMN . ' <> \'\'';
         $params = array($deliveryResultIdentifier);
-        foreach ($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC) as $value) {
+        $results = $this->persistence->query($sql, $params);
+        foreach ($results as $value) {
             $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
         }
 
@@ -512,7 +488,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $returnValue = array();
         $sql = 'SELECT ' . self::RESULTS_TABLE_ID . ', ' . self::TEST_TAKER_COLUMN . ' FROM ' . self::RESULTS_TABLENAME;
-        foreach ($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value) {
+        $results = $this->persistence->query($sql);
+        foreach ($results as $value) {
             $returnValue[] = array(
                 "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
                 "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN]
@@ -529,7 +506,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     {
         $returnValue = array();
         $sql = 'SELECT ' . self::RESULTS_TABLE_ID . ', ' . self::DELIVERY_COLUMN . ' FROM ' . self::RESULTS_TABLENAME;
-        foreach ($this->persistence->query($sql)->fetchAll(\PDO::FETCH_ASSOC) as $value) {
+        $results = $this->persistence->query($sql);
+        foreach ($results as $value) {
             $returnValue[] = array(
                 "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
                 "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
@@ -582,8 +560,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $sql .= ' LIMIT ?,?';
             $params = array_merge($params, array($offset, $limit));
         }
-
-        foreach ($this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC) as $value) {
+        $results = $this->persistence->query($sql, $params);
+        foreach ($results as $value) {
             $returnValue[] = array(
                 "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
                 "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN],
@@ -634,7 +612,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         // get all the variables related to the result
         $sql = 'SELECT ' . self::VARIABLES_TABLE_ID . ' FROM ' . self::VARIABLES_TABLENAME . '
         WHERE ' . self::VARIABLES_FK_COLUMN . ' = ?';
-        $variables = $this->persistence->query($sql, array($deliveryResultIdentifier))->fetchAll(\PDO::FETCH_ASSOC);
+        $variables = $this->persistence->query($sql, array($deliveryResultIdentifier));
 
         // delete key/value for each variable
         foreach ($variables as $variable) {
@@ -675,7 +653,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . ', ' . self::RESULT_KEY_VALUE_TABLE_NAME . 
         ' WHERE ' . self::CALL_ID_TEST_COLUMN . ' = ? AND ' . self::VARIABLES_TABLE_ID . ' = ' . self::RESULTSKV_FK_COLUMN;
         $params = array($deliveryResultIdentifier);
-        $variables = $this->persistence->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+        $variables = $this->persistence->query($sql, $params);
 
         $variableData = array();
         $returnValue  = array();
