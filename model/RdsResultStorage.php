@@ -414,7 +414,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $sql = 'SELECT ' . self::VALUE_COLUMN . ' FROM ' . self::RESULT_KEY_VALUE_TABLE_NAME . '
         WHERE ' . self::RESULTSKV_FK_COLUMN . ' = ? AND ' . self::KEY_COLUMN . ' = ?';
         $params = array($variableId, $property);
-        return $this->persistence->query($sql, $params)->fetchColumn();
+        $value = $this->persistence->query($sql, $params)->fetchColumn();
+        return (base64_decode($value))?:$value;
 
     }
 
@@ -639,37 +640,6 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         return true;
     }
 
-    public function getItemFromItemResult($itemResult) {
-        $items = $this->getVariables($itemResult);
-        $tmp = array_shift($items);
-        return new core_kernel_classes_Resource($tmp[0]->item);
-    }
-
-    public function getDeliveryResultVariables($deliveryResultIdentifier) {
-        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . ', ' . self::RESULT_KEY_VALUE_TABLE_NAME . 
-        ' WHERE ' . self::CALL_ID_TEST_COLUMN . ' = ? AND ' . self::VARIABLES_TABLE_ID . ' = ' . self::RESULTSKV_FK_COLUMN;
-        $params = array($deliveryResultIdentifier);
-        $variables = $this->persistence->query($sql, $params);
-
-        $variableData = array();
-        $returnValue  = array();
-
-        foreach ($variables as $variable) {
-            $variableData[$variable[self::VARIABLES_TABLE_ID]][$variable[self::KEY_COLUMN]] = $variable[self::VALUE_COLUMN];
-        }
-
-        foreach ($variableData as $variable) {
-            $returnValue[] = new OutcomeVariable(
-                $variable['identifier'],
-                Cardinality::getConstantByName($variable['cardinality']),
-                BaseType::getConstantByName($variable['baseType']),
-                new Float((float) base64_decode($variable['value']))
-            );
-        }
-
-        return $returnValue;
-
-    }
 
     /**
      * 
@@ -694,149 +664,4 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             return 0;
         }
     }
-
-    /**
-     * returns the enum class type
-     * 
-     * @param string $className
-     * @throws common_exception_Error
-     */
-    private function getVariableType($className) {
-        switch ($className) {
-            case "taoResultServer_models_classes_OutcomeVariable":
-                return CLASS_OUTCOME_VARIABLE;
-            case "taoResultServer_models_classes_ResponseVariable":
-                return CLASS_RESPONSE_VARIABLE;
-            case "taoResultServer_models_classes_TraceVariable":
-                return CLASS_TRACE_VARIABLE;
-            default:
-                throw new \common_exception_Error("The variable class is not supported");
-        }
-    }
-
-    public function getDeliveryItemVariables($deliveryResultIdentifier, $filter) {
-        $undefinedStr = __('unknown'); //some data may have not been submitted
-
-        $itemResults = $this->getRelatedItemCallIds($deliveryResultIdentifier);
-
-        $variablesByItem = array();
-        $numberOfResponseVariables = 0;
-        $numberOfCorrectResponseVariables = 0;
-        $numberOfInCorrectResponseVariables = 0;
-        $numberOfUnscoredResponseVariables = 0;
-        $numberOfOutcomeVariables = 0;
-
-        foreach ($itemResults as $itemResult) {
-            try {
-                common_Logger::d("Retrieving related Item for itemResult " . $itemResult);
-                $relatedItem = $this->getItemFromItemResult($itemResult);
-            } catch (common_Exception $e) {
-                common_Logger::w("The itemResult " . $itemResult . " is not linked to a valid item. (deleted item ?)");
-                $relatedItem = null;
-            }
-            if (get_class($relatedItem) == "core_kernel_classes_Literal") {
-                $itemIdentifier = $relatedItem->__toString();
-                $itemLabel = $relatedItem->__toString();
-                $itemModel = $undefinedStr;
-            } elseif (get_class($relatedItem) == "core_kernel_classes_Resource") {
-                $itemIdentifier = $relatedItem->getUri();
-                $itemLabel = $relatedItem->getLabel();
-
-                try {
-                    common_Logger::d("Retrieving related Item model for item " . $relatedItem->getUri() . "");
-                    $modelProperty = $relatedItem->getUniquePropertyValue(new core_kernel_classes_Property(TAO_ITEM_MODEL_PROPERTY));
-                    $itemModel = $modelProperty->getLabel();
-                } catch (common_Exception $e) {
-                    $itemModel = $undefinedStr;
-                }
-
-            } else {
-                $itemIdentifier = $undefinedStr;
-                $itemLabel = $undefinedStr;
-                $itemModel = $undefinedStr;
-            }
-
-            $variables = array();
-
-            foreach ($this->getVariables($itemResult) as $data) {
-
-                $variable = $data[0]->variable;
-                $variableType = $this->getVariableType(get_class($variable));
-                $response = false;
-                $outcome  = false;
-
-                switch ($variableType) {
-                    case CLASS_RESPONSE_VARIABLE:
-                        ++$numberOfResponseVariables;
-
-                        $response = $variable->getCorrectResponse();
-                        if (empty($response)) {
-                            ++$numberOfUnscoredResponseVariables;
-                            $response = "unscored";
-                        } else {
-                            if($response >= 1){
-                                ++$numberOfCorrectResponseVariables;
-                                $response = "correct";
-                            }
-                            else{
-                                ++$numberOfInCorrectResponseVariables;
-                                $response = "incorrect";
-                            }
-                        }
-
-                        break;
-                    case CLASS_OUTCOME_VARIABLE:
-                        ++$numberOfOutcomeVariables;
-                        $outcome = array(base64_decode($variable->getValue()));
-                        break;
-                }
-
-                $variables[$variableType][$variable->getIdentifier()][$variable->getEpoch()] = array(
-                    'variable'  => $variable,
-                    'outcome'   => $outcome,
-                    'isCorrect' => $response,
-                    'uri'       => $data[0]->uri
-                );
-
-            }
-
-            $variablesByItem[$itemIdentifier] = array(
-                'itemModel'  => $itemModel,
-                'label'      => $itemLabel,
-                'sortedVars' => $variables
-            );
-
-        }
-
-        //sort by epoch and filter
-        foreach ($variablesByItem as $itemIdentifier => $itemVariables) {
-
-            foreach ($itemVariables['sortedVars'] as $type => $variables) {
-                foreach ($variables as $variableIdentifier => $observation) {
-
-                    uksort($variablesByItem[$itemIdentifier]['sortedVars'][$type][$variableIdentifier], "self::sortTimeStamps");
-
-                    switch ($filter) {
-                        case "lastSubmitted": {
-                            $variablesByItem[$itemIdentifier]['sortedVars'][$type][$variableIdentifier] = array(array_pop($variablesByItem[$itemIdentifier]['sortedVars'][$type][$variableIdentifier]));
-                            break;
-                        }
-                        case "firstSubmitted": {
-                            $variablesByItem[$itemIdentifier]['sortedVars'][$type][$variableIdentifier] = array(array_shift($variablesByItem[$itemIdentifier]['sortedVars'][$type][$variableIdentifier]));
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return array(
-            "nbResponses" => $numberOfResponseVariables,
-            "nbCorrectResponses" => $numberOfCorrectResponseVariables,
-            "nbIncorrectResponses" => $numberOfInCorrectResponseVariables,
-            "nbUnscoredResponses" => $numberOfUnscoredResponseVariables,
-            "data" => $variablesByItem
-        );
-    }
-
 }
