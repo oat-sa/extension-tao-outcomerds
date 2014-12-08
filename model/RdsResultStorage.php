@@ -315,19 +315,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             }
 
         }
-        if (count($variables) > 0) {
-            // store the variable n
-            $object = new \stdClass();
-            $object->uri = $lastVariable[self::VARIABLES_TABLE_ID];
-            $object->class = $lastVariable[self::VARIABLE_CLASS];
-            $object->deliveryResultIdentifier = $lastVariable[self::VARIABLES_FK_COLUMN];
-            $object->callIdItem = $lastVariable[self::CALL_ID_ITEM_COLUMN];
-            $object->callIdTest = $lastVariable[self::CALL_ID_TEST_COLUMN];
-            $object->test = $lastVariable[self::TEST_COLUMN];
-            $object->item = $lastVariable[self::ITEM_COLUMN];
-            $object->variable = clone $resultVariable;
-            $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
-        }
+
 
         return $returnValue;
     }
