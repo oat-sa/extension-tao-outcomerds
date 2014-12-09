@@ -494,32 +494,20 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     /**
      * order orderdir, offset, limit
      */
-    public function getResultByColumn($columns, $filter, $options = array())
+    public function getResultByDelivery($delivery, $options = array())
     {
         $returnValue = array();
         $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
         $params = array();
 
 
-        if (count($columns) > 0) {
+        if (count($delivery) > 0) {
             $sql .= ' WHERE ';
-        }
-
-        if (in_array(PROPERTY_RESULT_OF_DELIVERY, $columns)) {
-            $inQuery = implode(',', array_fill(0, count($filter[PROPERTY_RESULT_OF_DELIVERY]), '?'));
+            $inQuery = implode(',', array_fill(0, count($delivery), '?'));
             $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
-            $params = array_merge($params, $filter[PROPERTY_RESULT_OF_DELIVERY]);
+            $params = array_merge($params, $delivery);
         }
 
-        if (count($columns) > 1) {
-            $sql .= ' AND ';
-        }
-
-        if (in_array(PROPERTY_RESULT_OF_SUBJECT, $columns)) {
-            $inQuery = implode(',', array_fill(0, count($filter[PROPERTY_RESULT_OF_SUBJECT]), '?'));
-            $sql .= self::TEST_TAKER_COLUMN . ' IN (' . $inQuery . ')';
-            $params = array_merge($params, $filter[PROPERTY_RESULT_OF_SUBJECT]);
-        }
 
         if(isset($options['order'])){
             $sql .= ' ORDER BY ?';
@@ -547,30 +535,16 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
     }
 
-    public function countResultByFilter($columns, $filter){
-        $returnValue = array();
+    public function countResultByDelivery($delivery){
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME;
         $params = array();
 
 
-        if (count($columns) > 0) {
+        if (count($delivery) > 0) {
             $sql .= ' WHERE ';
-        }
-
-        if (in_array(PROPERTY_RESULT_OF_DELIVERY, $columns)) {
-            $inQuery = implode(',', array_fill(0, count($filter[PROPERTY_RESULT_OF_DELIVERY]), '?'));
+            $inQuery = implode(',', array_fill(0, count($delivery), '?'));
             $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
-            $params = array_merge($params, $filter[PROPERTY_RESULT_OF_DELIVERY]);
-        }
-
-        if (count($columns) > 1) {
-            $sql .= ' AND ';
-        }
-
-        if (in_array(PROPERTY_RESULT_OF_SUBJECT, $columns)) {
-            $inQuery = implode(',', array_fill(0, count($filter[PROPERTY_RESULT_OF_SUBJECT]), '?'));
-            $sql .= self::TEST_TAKER_COLUMN . ' IN (' . $inQuery . ')';
-            $params = array_merge($params, $filter[PROPERTY_RESULT_OF_SUBJECT]);
+            $params = array_merge($params, $delivery);
         }
 
         return $this->persistence->query($sql, $params)->fetchColumn();
