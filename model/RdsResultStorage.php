@@ -37,7 +37,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
     /**
-     * Constantes for the database creation and data access
+     * Constants for the database creation and data access
      *
      */
     const RESULTS_TABLENAME = "results_storage";
@@ -390,7 +390,10 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         WHERE ' . self::RESULTSKV_FK_COLUMN . ' = ? AND ' . self::KEY_COLUMN . ' = ?';
         $params = array($variableId, $property);
         $value = $this->persistence->query($sql, $params)->fetchColumn();
-        return (base64_decode($value))?:$value;
+        if(in_array($property, array('value', 'candidateResponse'))){
+            return base64_decode($value);
+        }
+        return $value;
 
     }
 
