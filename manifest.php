@@ -49,6 +49,7 @@ return array(
         ),
         'php' => array(
             dirname(__FILE__) . '/scripts/install/createTables.php',
+            dirname(__FILE__) . '/scripts/install/setDefault.php',
         )
     ),
     'uninstall' => array(
