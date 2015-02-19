@@ -472,12 +472,32 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     public function getRelatedItemCallIds($deliveryResultIdentifier)
     {
         $returnValue = array();
+
         $sql = 'SELECT DISTINCT(' . self::CALL_ID_ITEM_COLUMN . ') FROM ' . self::VARIABLES_TABLENAME . '
         WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::CALL_ID_ITEM_COLUMN . ' <> \'\'';
         $params = array($deliveryResultIdentifier);
         $results = $this->persistence->query($sql, $params);
         foreach ($results as $value) {
-            $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
+            if(isset($value[self::CALL_ID_ITEM_COLUMN])){
+                $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
+            }
+        }
+
+        return $returnValue;
+    }
+
+    public function getRelatedTestCallIds($deliveryResultIdentifier)
+    {
+        $returnValue = array();
+
+        $sql = 'SELECT DISTINCT(' . self::CALL_ID_TEST_COLUMN . ') FROM ' . self::VARIABLES_TABLENAME . '
+        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::CALL_ID_TEST_COLUMN . ' <> \'\'';
+        $params = array($deliveryResultIdentifier);
+        $results = $this->persistence->query($sql, $params);
+        foreach ($results as $value) {
+            if(isset($value[self::CALL_ID_TEST_COLUMN])){
+                $returnValue[] = $value[self::CALL_ID_TEST_COLUMN];
+            }
         }
 
         return $returnValue;
