@@ -20,6 +20,10 @@
  */
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\tao\scripts\update\OntologyUpdater;
+use oat\generis\model\kernel\persistence\file\FileModel;
+use oat\generis\model\data\ModelManager;
+use oat\tao\model\extension\ExtensionModel;
 
 $persistence = common_persistence_Manager::getPersistence('default');
 $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
@@ -36,11 +40,8 @@ foreach ($queries as $query) {
 }
 
 // remove statement entries for this extension
-core_kernel_persistence_smoothsql_SmoothModel::forceUpdatableModelIds(
-    core_kernel_persistence_smoothsql_SmoothModel::getReadableModelIds()
-);
-$storage = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage');
-$storage->delete();
-$model = new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorageModel');
-$model->delete();
-core_kernel_persistence_smoothsql_SmoothModel::forceReloadModelIds();
+$model = new ExtensionModel(common_ext_ExtensionsManager::singleton()->getExtensionById('taoOutcomeRds'));
+$modelRdf = ModelManager::getModel()->getRdfInterface();
+foreach ($model as $triple) {
+    $modelRdf->remove($triple);
+}
