@@ -35,14 +35,6 @@ return array(
     'models' => array(
         'http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#'
     ),
-    'managementRole' => 'http://www.tao.lu/Ontologies/generis.rdf#taoOutcomeResultsManager',
-    'acl' => array(
-        array(
-            'grant',
-            'http://www.tao.lu/Ontologies/generis.rdf#taoOutcomeResultsManager',
-            array('ext' => 'taoOutcomeRds')
-        ),
-    ),
     'install' => array(
         'rdf' => array(
             dirname(__FILE__) . '/scripts/install/taoOutcomeRds.rdf'
