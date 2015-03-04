@@ -159,7 +159,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 )
             );
 
-            $variableId = $this->persistence->lastInsertId();
+            $variableId = $this->persistence->lastInsertId(self::VARIABLES_TABLENAME);
             $this->storeKeysValues($variableId, $testVariable);
         }
     }
@@ -194,7 +194,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             )
         );
 
-        $variableId = $this->persistence->lastInsertId();
+        $variableId = $this->persistence->lastInsertId(self::VARIABLES_TABLENAME);
 
         $this->storeKeysValues($variableId, $itemVariable);
     }
