@@ -159,7 +159,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 )
             );
 
-            $variableId = $this->persistence->lastInsertId();
+            $variableId = $this->persistence->lastInsertId(self::VARIABLES_TABLENAME);
             $this->storeKeysValues($variableId, $testVariable);
         }
     }
@@ -194,7 +194,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             )
         );
 
-        $variableId = $this->persistence->lastInsertId();
+        $variableId = $this->persistence->lastInsertId(self::VARIABLES_TABLENAME);
 
         $this->storeKeysValues($variableId, $itemVariable);
     }
@@ -569,8 +569,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         if(isset($options['offset']) || isset($options['limit'])){
             $offset = (isset($options['offset']))?$options['offset']:0;
             $limit = (isset($options['limit']))?$options['limit']:1000;
-            $sql .= ' LIMIT ?,?';
-            $params = array_merge($params, array($offset, $limit));
+            $this->persistence->getPlatForm()->limitStatement($sql, $limit, $offset);
         }
         $results = $this->persistence->query($sql, $params);
         foreach ($results as $value) {
