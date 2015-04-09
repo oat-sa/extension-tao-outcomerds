@@ -9,7 +9,14 @@ msgstr ""
 "targetLanguage: en-US\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Basepath: ../../\n"
-"X-Poedit-KeywordsList: __\n"
-"X-Poedit-SearchPath-0: .\n"
+
+# http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage
+msgctxt "http://www.w3.org/2000/01/rdf-schema#label"
+msgid "RDS ResultStorage"
+msgstr ""
+
+# http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage
+msgctxt "http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "RDS ResultStorage"
+msgstr ""
 
