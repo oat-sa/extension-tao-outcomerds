@@ -24,7 +24,7 @@ return array(
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '1.0',
+    'version' => '1.0.1',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'tao' => '>=2.7.0',
@@ -49,6 +49,7 @@ return array(
             dirname(__FILE__) . '/scripts/uninstall/removeTables.php',
         )
     ),
+    'update' => 'oat\\taoOutcomeRds\\scripts\\update\\Updater',
     'autoload' => array(
         'psr-4' => array(
             'oat\\taoOutcomeRds\\' => dirname(__FILE__) . DIRECTORY_SEPARATOR
