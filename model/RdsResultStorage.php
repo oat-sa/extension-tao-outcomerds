@@ -262,7 +262,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     public function getVariables($callId)
     {
         $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . ', ' . self::RESULT_KEY_VALUE_TABLE_NAME . '
-        WHERE (' . self::CALL_ID_ITEM_COLUMN . ' = ? OR ' . self::CALL_ID_TEST_COLUMN . ' = ?) AND ' . self::VARIABLES_TABLE_ID . ' = ' . self::RESULTSKV_FK_COLUMN;
+        WHERE (' . self::CALL_ID_ITEM_COLUMN . ' = ? OR ' . self::CALL_ID_TEST_COLUMN . ' = ?) AND ' . self::VARIABLES_TABLE_ID . ' = ' . self::RESULTSKV_FK_COLUMN . ' ORDER BY ' . self::VARIABLES_TABLE_ID;
         $params = array($callId, $callId);
         $variables = $this->persistence->query($sql, $params);
 
