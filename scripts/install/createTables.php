@@ -21,7 +21,6 @@
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use Doctrine\DBAL\Schema\SchemaException;
-use \common_Logger;
 
 $persistence = common_persistence_Manager::getPersistence('default');
 
