@@ -88,6 +88,13 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
      */
     private function storeKeysValues($variableId, \taoResultServer_models_classes_Variable $variable)
     {
+        $multipleInsertQueryHelper = $this->persistence->getPlatForm()->getMultipleInsertsSqlQueryHelper();
+        $columns = array(
+            self::RESULTSKV_FK_COLUMN,
+            self::KEY_COLUMN,
+            self::VALUE_COLUMN
+        );
+        $query = $multipleInsertQueryHelper->getFirstStaticPart(self::RESULT_KEY_VALUE_TABLE_NAME, $columns);
         $basetype = $variable->getBaseType();
         foreach (array_keys((array)$variable) as $key) {
             $getter = 'get' . ucfirst($key);
@@ -101,15 +108,17 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             if ($key == 'epoch' && !$variable->isSetEpoch()) {
                 $value = microtime();
             }
-            $this->persistence->insert(
-                self::RESULT_KEY_VALUE_TABLE_NAME,
+            $query .= $multipleInsertQueryHelper->getValuePart(self::RESULT_KEY_VALUE_TABLE_NAME, $columns,
                 array(
-                    self::RESULTSKV_FK_COLUMN => $variableId,
-                    self::KEY_COLUMN => $key,
-                    self::VALUE_COLUMN => $value
+                    self::RESULTSKV_FK_COLUMN => $this->persistence->quote($variableId),
+                    self::KEY_COLUMN => $this->persistence->quote($key),
+                    self::VALUE_COLUMN => $this->persistence->quote($value)
                 )
             );
         }
+        $query = substr($query, 0, strlen($query) -1);
+        $query .= $multipleInsertQueryHelper->getEndStaticPart();
+        $this->persistence->exec($query);
     }
 
     public function spawnResult()
