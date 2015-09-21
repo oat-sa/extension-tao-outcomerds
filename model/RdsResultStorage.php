@@ -381,7 +381,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
                 $object->test = $lastVariable[self::TEST_COLUMN];
                 $object->item = $lastVariable[self::ITEM_COLUMN];
                 $object->variable = clone $resultVariable;
-                $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
+                $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]] = $object;
 
                 $lastVariable = $variable;
                 if (class_exists($lastVariable[self::VARIABLE_CLASS])) {
@@ -414,7 +414,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $object->test = $lastVariable[self::TEST_COLUMN];
             $object->item = $lastVariable[self::ITEM_COLUMN];
             $object->variable = clone $resultVariable;
-            $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]][] = $object;
+            $returnValue[$lastVariable[self::VARIABLES_TABLE_ID]] = $object;
         }
 
         return $returnValue;
