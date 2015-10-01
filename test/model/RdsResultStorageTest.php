@@ -101,6 +101,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals('Identifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
 
     }
 
