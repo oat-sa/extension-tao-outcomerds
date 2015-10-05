@@ -53,7 +53,6 @@ class Updater extends \common_ext_ExtensionUpdater
 
 			$tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
 			$tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
-			$tableVariables->dropColumn(RdsResultStorage::VARIABLE_IDENTIFIER);
 			$queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
 			foreach ($queries as $query) {
 				$persistence->exec($query);
@@ -93,7 +92,6 @@ class Updater extends \common_ext_ExtensionUpdater
 			}
 
 			//remove kv table
-
 			$schema = $persistence->getDriver()->getSchemaManager()->createSchema();
 			$fromSchema = clone $schema;
 
