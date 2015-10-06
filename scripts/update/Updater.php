@@ -42,22 +42,28 @@ class Updater extends \common_ext_ExtensionUpdater
 
 			//get variables
 			$persistence = \common_persistence_Manager::getPersistence('default');
-			$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . '
+			$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL
 			ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
-			$params = array();
-			$variables = $persistence->query($sql, $params);
 
 			//update variable storage table schema
 			$schema = $persistence->getDriver()->getSchemaManager()->createSchema();
 			$fromSchema = clone $schema;
 
 			$tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-			$tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
-			$queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-			foreach ($queries as $query) {
-				$persistence->exec($query);
+			if(!$tableVariables->hasColumn(RdsResultStorage::VARIABLE_VALUE)){
+				$tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
+				$queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
+
+				foreach ($queries as $query) {
+					$persistence->exec($query);
+				}
+
+				$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . '
+						ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
 			}
 
+			$params = array();
+			$variables = $persistence->query($sql, $params);
 			//store information the new way
 
 			foreach($variables as $variable){
