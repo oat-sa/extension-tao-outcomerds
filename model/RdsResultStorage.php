@@ -112,6 +112,11 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         \taoResultServer_models_classes_Variable $testVariable,
         $callIdTest
     ) {
+        //ensure that variable have epoch
+        if(!$testVariable->isSetEpoch()){
+            $testVariable->setEpoch(microtime());
+        }
+
         $this->persistence->insert(
             self::VARIABLES_TABLENAME,
             array(
@@ -139,6 +144,11 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         \taoResultServer_models_classes_Variable $itemVariable,
         $callIdItem
     ) {
+        //ensure that variable have epoch
+        if(!$itemVariable->isSetEpoch()){
+            $itemVariable->setEpoch(microtime());
+        }
+
         //store value in all case
         $this->persistence->insert(
             self::VARIABLES_TABLENAME,
