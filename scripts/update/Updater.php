@@ -42,8 +42,8 @@ class Updater extends \common_ext_ExtensionUpdater
 
 			//get variables
 			$persistence = \common_persistence_Manager::getPersistence('default');
-			$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL
-			ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
+			$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL';
+			$countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL';
 
 			//update variable storage table schema
 			$schema = $persistence->getDriver()->getSchemaManager()->createSchema();
@@ -58,43 +58,49 @@ class Updater extends \common_ext_ExtensionUpdater
 					$persistence->exec($query);
 				}
 
-				$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . '
-						ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
+				$sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME;
+				$countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME;
 			}
 
 			$params = array();
-			$variables = $persistence->query($sql, $params);
-			//store information the new way
+			$entries = $persistence->query($countSql, $params)->fetchColumn();
 
-			foreach($variables as $variable){
-				//get Variable informations
-				$sql = 'SELECT * FROM ' . RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME . '
+			for($i = 0; $i <= $entries; $i+=1000){
+				$newSql = $sql . ' ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID . ' LIMIT ?, 1000';
+				$params = array($i);
+				$variables = $persistence->query($newSql, $params);
+
+				//store information the new way
+				foreach($variables as $variable){
+					//get Variable informations
+					$variableSql = 'SELECT * FROM ' . RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME . '
 				WHERE ' . RdsResultStorage::RESULTSKV_FK_COLUMN .' = ?';
-				$params = array($variable[RdsResultStorage::VARIABLES_TABLE_ID]);
-				$variableValues = $persistence->query($sql, $params);
+					$params = array($variable[RdsResultStorage::VARIABLES_TABLE_ID]);
+					$variableValues = $persistence->query($variableSql, $params);
 
-				if (class_exists($variable[RdsResultStorage::VARIABLE_CLASS])) {
-					$resultVariable = new $variable[RdsResultStorage::VARIABLE_CLASS]();
-				} else {
-					$resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
-				}
-
-				foreach($variableValues as $variableValue){
-					$setter = 'set' . ucfirst($variableValue[RdsResultStorage::KEY_COLUMN]);
-					$value = $variableValue[RdsResultStorage::VALUE_COLUMN];
-					if (method_exists($resultVariable, $setter) && !is_null($value)) {
-						if ($variableValue[RdsResultStorage::KEY_COLUMN] == 'value' || $variableValue[RdsResultStorage::KEY_COLUMN] == 'candidateResponse') {
-							$value = base64_decode($value);
-						}
-
-						$resultVariable->$setter($value);
+					if (class_exists($variable[RdsResultStorage::VARIABLE_CLASS])) {
+						$resultVariable = new $variable[RdsResultStorage::VARIABLE_CLASS]();
+					} else {
+						$resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
 					}
+
+					foreach($variableValues as $variableValue){
+						$setter = 'set' . ucfirst($variableValue[RdsResultStorage::KEY_COLUMN]);
+						$value = $variableValue[RdsResultStorage::VALUE_COLUMN];
+						if (method_exists($resultVariable, $setter) && !is_null($value)) {
+							if ($variableValue[RdsResultStorage::KEY_COLUMN] == 'value' || $variableValue[RdsResultStorage::KEY_COLUMN] == 'candidateResponse') {
+								$value = base64_decode($value);
+							}
+
+							$resultVariable->$setter($value);
+						}
+					}
+
+					$sqlUpdate = 'UPDATE ' . RdsResultStorage::VARIABLES_TABLENAME . ' SET ' . RdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . RdsResultStorage::VARIABLES_TABLE_ID . ' = ?';
+					$paramsUpdate = array(serialize($resultVariable), $variable[RdsResultStorage::VARIABLES_TABLE_ID]);
+					$persistence->exec($sqlUpdate, $paramsUpdate);
+
 				}
-
-				$sqlUpdate = 'UPDATE ' . RdsResultStorage::VARIABLES_TABLENAME . ' SET ' . RdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . RdsResultStorage::VARIABLES_TABLE_ID . ' = ?';
-				$paramsUpdate = array(serialize($resultVariable), $variable[RdsResultStorage::VARIABLES_TABLE_ID]);
-				$persistence->exec($sqlUpdate, $paramsUpdate);
-
 			}
 
 			//remove kv table
