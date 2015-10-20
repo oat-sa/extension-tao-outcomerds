@@ -31,7 +31,6 @@ $fromSchema = clone $schema;
 /**
  * @throws PDOException
  */
-$tableResultsKv = $schema->dropTable(RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
 $tableVariables = $schema->dropTable(RdsResultStorage::VARIABLES_TABLENAME);
 $tableResults = $schema->dropTable(RdsResultStorage::RESULTS_TABLENAME);
 $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
