@@ -65,10 +65,11 @@ class Updater extends \common_ext_ExtensionUpdater
 			$params = array();
 			$entries = $persistence->query($countSql, $params)->fetchColumn();
 
-			for($i = 0; $i <= $entries; $i+=1000){
-				$newSql = $sql . ' ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID . ' LIMIT ?, 1000';
-				$params = array($i);
-				$variables = $persistence->query($newSql, $params);
+			$limit = 1000;
+			for($i = 0; $i <= $entries; $i+=$limit){
+				$newSql = $sql . ' ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
+				$query = $persistence->getPlatform()->limitStatement($newSql, $limit,$i);
+				$variables = $persistence->query($query);
 
 				//store information the new way
 				foreach($variables as $variable){
