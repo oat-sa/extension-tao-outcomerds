@@ -24,10 +24,6 @@ use oat\taoResultServer\models\classes\ResultManagement;
 use \common_Logger;
 use \core_kernel_classes_Resource;
 use \core_kernel_classes_Property;
-use qtism\common\datatypes\Float;
-use qtism\common\enums\BaseType;
-use qtism\common\enums\Cardinality;
-use qtism\runtime\common\OutcomeVariable;
 
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
