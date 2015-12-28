@@ -88,7 +88,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
         $tmp = $this->instance->getVariable($callId, 'Identifier');
 
-        $object = array_shift($tmp)[0];
+        $object = array_shift($tmp);
         $this->assertEquals($test, $object->test);
         $this->assertEquals($item, $object->item);
         $this->assertEquals('float', $object->variable->getBaseType());
@@ -101,6 +101,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals('Identifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
 
     }
 
@@ -120,7 +121,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
 
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
         $tmp = $this->instance->getVariable($callId, 'TestIdentifier');
-        $object = array_shift($tmp)[0];
+        $object = array_shift($tmp);
         $this->assertEquals($test, $object->test);
         $this->assertNull($object->item);
         $this->assertEquals('float', $object->variable->getBaseType());
