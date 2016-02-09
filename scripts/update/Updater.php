@@ -118,7 +118,9 @@ class Updater extends \common_ext_ExtensionUpdater
 
 			$currentVersion = '1.1.0';
 		}
-
-		return $currentVersion;
+		$this->setVersion($currentVersion);
+		
+		$this->skip('1.1.0','1.1.1');
+		return null;
 	}
 }
