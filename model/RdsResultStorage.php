@@ -289,7 +289,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         $params = array($variableId);
         $variableValue = $this->persistence->query($sql, $params)->fetchColumn();
         $getter = 'get' . ucfirst($property);
-        if(method_exists($getter, $variableValue)){
+        $variableValue = unserialize($variableValue);
+        if(is_callable([$variableValue, $getter])){
             return $variableValue->$getter();
         }
 
