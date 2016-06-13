@@ -484,7 +484,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $returnValue[] = array(
                 "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
                 "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN],
-                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
+                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN],
+                "deliveryExecutionIdentifier" => $value[self::DELIVERY_EXECUTION_COLUMN]
             );
         }
         return $returnValue;
