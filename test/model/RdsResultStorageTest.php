@@ -70,6 +70,15 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($deliveryIdentifier, $this->instance->getDelivery($deliveryResultIdentifier));
     }
 
+    public function testStoreRelatedDeliveryExecution()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
+        $deliveryExecution = "myDeliveryExec#1";
+        $this->instance->storeRelatedDeliveryExecution($deliveryResultIdentifier, $deliveryExecution);
+
+        $this->assertSame($deliveryExecution, $this->instance->getDeliveryExecution($deliveryResultIdentifier));
+    }
+
     public function testStoreItemVariable()
     {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";

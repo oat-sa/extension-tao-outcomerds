@@ -22,6 +22,7 @@
 namespace oat\taoOutcomeRds\scripts\update;
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\scripts\update\AlterTables;
 
 class Updater extends \common_ext_ExtensionUpdater 
 {
@@ -121,6 +122,12 @@ class Updater extends \common_ext_ExtensionUpdater
 		$this->setVersion($currentVersion);
 		
 		$this->skip('1.1.0','1.1.2');
-		return null;
+
+        if ($this->isVersion('1.1.2')) {
+            $action = new AlterTables();
+            $action->setServiceLocator($this->getServiceManager());
+            $action->__invoke(array('default'));
+            $this->setVersion('1.2.0');
+        }
 	}
 }

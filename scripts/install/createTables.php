@@ -37,6 +37,7 @@ try {
     $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, "string", array("length" => 255));
     $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, "string", array("notnull" => false, "length" => 255));
     $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, "string", array("notnull" => false, "length" => 255));
+    $tableResults->addColumn(RdsResultStorage::DELIVERY_EXECUTION_COLUMN, "string", array("notnull" => false, "length" => 255));
     $tableResults->setPrimaryKey(array(RdsResultStorage::RESULTS_TABLE_ID));
 
     $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, "integer", array("autoincrement" => true));
