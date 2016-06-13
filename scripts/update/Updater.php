@@ -127,7 +127,7 @@ class Updater extends \common_ext_ExtensionUpdater
             $action = new AlterTables();
             $action->setServiceLocator($this->getServiceManager());
             $action->__invoke(array('default'));
-            $this->setVersion('1.2.0');
+            $this->setVersion('2.0.0');
         }
 	}
 }
