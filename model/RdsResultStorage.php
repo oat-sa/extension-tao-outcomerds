@@ -413,7 +413,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     }
 
     /**
-     * order orderdir, offset, limit
+     * order, orderdir, offset, limit
      */
     public function getResultByDelivery($delivery, $options = array())
     {
@@ -434,7 +434,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             
             $sql .= ' ORDER BY ?';
             $params[] = $options['order'];
-            if(isset($options['oderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
+            if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
                 $sql .= ' ?';
                 $params[] = $options['orderdir'];
             }
