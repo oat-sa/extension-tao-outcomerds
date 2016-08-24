@@ -435,8 +435,7 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $sql .= ' ORDER BY ?';
             $params[] = $options['order'];
             if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
-                $sql .= ' ?';
-                $params[] = $options['orderdir'];
+                $sql .= ' ' . $options['orderdir'];
             }
         }
         if(isset($options['offset']) || isset($options['limit'])){
