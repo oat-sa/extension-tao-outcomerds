@@ -120,7 +120,7 @@ class Updater extends \common_ext_ExtensionUpdater
 		}
 		$this->setVersion($currentVersion);
 		
-		$this->skip('1.1.0','1.1.3');
-		return null;
+		$this->skip('1.1.0','1.1.4');
+
 	}
 }
