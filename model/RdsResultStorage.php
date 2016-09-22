@@ -213,8 +213,39 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
             $this->persistence->exec($sqlUpdate, $paramsUpdate);
         }
     }
-
-
+    /**
+     * Retrieve the array o all variables per callId (item execution)
+     * @param string $deliveryResultID
+     * @return array
+     * @author Rex Wallen Tan
+     */
+    public function getVariablesFromDeliveryResult($deliveryResultID, $wantedTypes = array(\taoResultServer_models_classes_ResponseVariable::class,\taoResultServer_models_classes_OutcomeVariable::class, \taoResultServer_models_classes_TraceVariable::class))
+    {
+        $sql = "SELECT * FROM " . self::VARIABLES_TABLENAME 
+            . " WHERE ".self::VARIABLES_FK_COLUMN." = ?";
+         
+        $params = array($deliveryResultID);
+        $variables = $this->persistence->query($sql, $params);
+        $variablesArray = $variables->fetchAll();
+        $returnValues = array();
+        foreach($variablesArray as $variable){
+                $object = new \stdClass();
+                $object->uri = $variable[self::VARIABLES_TABLE_ID];
+                $object->class = $variable[self::VARIABLE_CLASS];
+                $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
+                $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
+                $object->callIdTest = $variable[self::CALL_ID_TEST_COLUMN];
+                $object->test = $variable[self::TEST_COLUMN];
+                $object->item = $variable[self::ITEM_COLUMN];
+                $object->variable = unserialize($variable[self::VARIABLE_VALUE]);
+               
+                 if(in_array(get_class($object->variable),$wantedTypes)){
+                    $returnValues[] = array($object); //array to mock the structure returned by getVariablesFromObjectResult
+                }
+                
+        }
+        return $returnValues;
+    }
     /**
      * @param string $callId
      * @return array
