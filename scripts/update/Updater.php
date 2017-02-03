@@ -121,9 +121,9 @@ class Updater extends \common_ext_ExtensionUpdater
 		}
 		$this->setVersion($currentVersion);
 		
-		$this->skip('1.1.0','1.1.2');
+		$this->skip('1.1.0','1.1.4');
 
-        if ($this->isVersion('1.1.2')) {
+        if ($this->isVersion('1.1.4')) {
             $action = new AlterTables();
             $action->setServiceLocator($this->getServiceManager());
             $action->__invoke(array('default'));
