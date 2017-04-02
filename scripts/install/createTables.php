@@ -38,6 +38,7 @@ try {
     $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, "string", array("notnull" => false, "length" => 255));
     $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, "string", array("notnull" => false, "length" => 255));
     $tableResults->setPrimaryKey(array(RdsResultStorage::RESULTS_TABLE_ID));
+    
 
     $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, "integer", array("autoincrement" => true));
     $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, "string", array("notnull" => false, "length" => 255));
@@ -55,6 +56,8 @@ try {
         array(),
         RdsResultStorage::VARIABLES_FK_NAME
     );
+    $tableVariables->addIndex(array(RdsResultsStorage::CALL_ID_ITEM_COLUMN), 'idx_variables_storage_call_id_item');
+    $tableVariables->addIndex(array(RdsResultsStorage::CALL_ID_TEST_COLUMN), 'idx_variables_storage_call_id_test');
 
 } catch(SchemaException $e) {
     common_Logger::i('Database Schema already up to date.');
