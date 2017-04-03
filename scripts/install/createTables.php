@@ -56,8 +56,8 @@ try {
         array(),
         RdsResultStorage::VARIABLES_FK_NAME
     );
-    $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_ITEM_COLUMN), 'idx_variables_storage_call_id_item');
-    $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_TEST_COLUMN), 'idx_variables_storage_call_id_test');
+    $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_ITEM_COLUMN), RdsResultStorage::CALL_ID_ITEM_INDEX);
+    $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_TEST_COLUMN), RdsResultStorage::CALL_ID_TEST_INDEX);
 
 } catch(SchemaException $e) {
     common_Logger::i('Database Schema already up to date.');

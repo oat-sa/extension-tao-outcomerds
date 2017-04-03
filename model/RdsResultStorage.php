@@ -50,6 +50,10 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+
+    const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
+    const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
+
     /** @deprecated */
     const VARIABLE_CLASS = "class";
     const VARIABLES_FK_COLUMN = "results_result_id";
