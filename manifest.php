@@ -24,7 +24,7 @@ return array(
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '1.1.5',
+    'version' => '2.0.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'taoResultServer' => '>=2.6'
@@ -62,7 +62,5 @@ return array(
         "DIR_VIEWS" => dirname(__FILE__) . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR,
         #BASE URL (usually the domain root)
         'BASE_URL' => ROOT_URL . 'taoOutcomeRds/',
-        #BASE WWW required by JS
-        'BASE_WWW' => ROOT_URL . 'taoOutcomeRds/views/'
     ),
 );
