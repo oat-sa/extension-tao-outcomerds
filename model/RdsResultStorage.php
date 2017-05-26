@@ -251,6 +251,36 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     }
 
     /**
+     * @param $deliveryResultIdentifier
+     * @return array
+     */
+    public function getDeliveryVariables($deliveryResultIdentifier)
+    {
+        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
+        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? ORDER BY ' . self::VARIABLES_TABLE_ID;
+        $params = array($deliveryResultIdentifier);
+        $variables = $this->persistence->query($sql, $params);
+
+        $returnValue = array();
+
+        // for each variable we construct the array
+        foreach ($variables as $variable) {
+            $resultVariable = unserialize($variable[self::VARIABLE_VALUE]);
+            $object = new \stdClass();
+            $object->uri = $variable[self::VARIABLES_TABLE_ID];
+            $object->class = get_class($resultVariable);
+            $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
+            $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
+            $object->callIdTest = $variable[self::CALL_ID_TEST_COLUMN];
+            $object->test = $variable[self::TEST_COLUMN];
+            $object->item = $variable[self::ITEM_COLUMN];
+            $object->variable = clone $resultVariable;
+            $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $object;
+        }
+        return $returnValue;
+    }
+
+    /**
      * Get a variable from callId and Variable identifier
      * @param $callId
      * @param $variableIdentifier
