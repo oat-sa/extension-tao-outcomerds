@@ -22,6 +22,7 @@
 namespace oat\taoOutcomeRds\scripts\update;
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\tao\scripts\update\OntologyUpdater;
 
 class Updater extends \common_ext_ExtensionUpdater 
 {
@@ -123,6 +124,7 @@ class Updater extends \common_ext_ExtensionUpdater
 		$this->skip('1.1.0','2.1.0');
 
 		if ($this->isVersion('2.1.0')) {
+            OntologyUpdater::syncModels();
             $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([]));
             $this->setVersion('2.2.0');
         }
