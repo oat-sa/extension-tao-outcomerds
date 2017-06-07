@@ -125,7 +125,9 @@ class Updater extends \common_ext_ExtensionUpdater
 
 		if ($this->isVersion('2.1.0')) {
             OntologyUpdater::syncModels();
-            $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([]));
+            $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([
+                RdsResultStorage::OPTION_PERSISTENCE => 'default'
+            ]));
             $this->setVersion('2.2.0');
         }
 
