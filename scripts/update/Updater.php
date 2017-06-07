@@ -122,9 +122,9 @@ class Updater extends \common_ext_ExtensionUpdater
 		
 		$this->skip('1.1.0','2.1.0');
 
-		if ($this->isVersion('2.0.0')) {
+		if ($this->isVersion('2.1.0')) {
             $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([]));
-            $this->setVersion('2.1.0');
+            $this->setVersion('2.2.0');
         }
 
 	}
