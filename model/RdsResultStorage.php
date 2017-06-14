@@ -21,17 +21,18 @@
 namespace oat\taoOutcomeRds\model;
 
 use oat\taoResultServer\models\classes\ResultManagement;
-use \common_Logger;
 use \core_kernel_classes_Resource;
-use \core_kernel_classes_Property;
+use oat\oatbox\service\ConfigurableService;
 
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
  *
  */
-class RdsResultStorage extends \tao_models_classes_GenerisService
+class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
+    const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
+
     /**
      * Constants for the database creation and data access
      *
@@ -51,6 +52,10 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+
+    const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
+    const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
+
     /** @deprecated */
     const VARIABLE_CLASS = "class";
     const VARIABLES_FK_COLUMN = "results_result_id";
@@ -67,6 +72,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     /** @deprecated */
     const RESULTSKV_FK_NAME = "fk_resultsKv_variables";
 
+    /** result storage persistence identifier */
+    const OPTION_PERSISTENCE = 'persistence_id';
 
     /**
      * SQL persistence to use
@@ -83,7 +90,9 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
     private function getPersistence()
     {
-        return \common_persistence_Manager::getPersistence('default');
+        $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
+            $this->getOption(self::OPTION_PERSISTENCE) : 'default';
+        return \common_persistence_Manager::getPersistence($persistenceId);
     }
 
 
@@ -254,6 +263,36 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
         // for each variable we construct the array
         foreach ($variables as $variable) {
 
+            $resultVariable = unserialize($variable[self::VARIABLE_VALUE]);
+            $object = new \stdClass();
+            $object->uri = $variable[self::VARIABLES_TABLE_ID];
+            $object->class = get_class($resultVariable);
+            $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
+            $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
+            $object->callIdTest = $variable[self::CALL_ID_TEST_COLUMN];
+            $object->test = $variable[self::TEST_COLUMN];
+            $object->item = $variable[self::ITEM_COLUMN];
+            $object->variable = clone $resultVariable;
+            $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $object;
+        }
+        return $returnValue;
+    }
+
+    /**
+     * @param $deliveryResultIdentifier
+     * @return array
+     */
+    public function getDeliveryVariables($deliveryResultIdentifier)
+    {
+        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
+        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? ORDER BY ' . self::VARIABLES_TABLE_ID;
+        $params = array($deliveryResultIdentifier);
+        $variables = $this->persistence->query($sql, $params);
+
+        $returnValue = array();
+
+        // for each variable we construct the array
+        foreach ($variables as $variable) {
             $resultVariable = unserialize($variable[self::VARIABLE_VALUE]);
             $object = new \stdClass();
             $object->uri = $variable[self::VARIABLES_TABLE_ID];
