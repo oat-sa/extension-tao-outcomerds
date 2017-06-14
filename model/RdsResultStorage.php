@@ -41,6 +41,7 @@ class RdsResultStorage extends ConfigurableService
     const RESULTS_TABLE_ID = 'result_id';
     const TEST_TAKER_COLUMN = 'test_taker';
     const DELIVERY_COLUMN = 'delivery';
+    const DELIVERY_EXECUTION_COLUMN = 'delivery_execution';
 
 
     const VARIABLES_TABLENAME = "variables_storage";
@@ -223,6 +224,28 @@ class RdsResultStorage extends ConfigurableService
         }
     }
 
+    /**
+     * Store delivery execution id corresponding to the current test
+     * @param string $deliveryResultIdentifier
+     * @param string $executionIdentifier
+     */
+    public function storeRelatedDeliveryExecution($deliveryResultIdentifier, $executionIdentifier)
+    {
+        $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
+            ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
+        $params = array($deliveryResultIdentifier);
+        if ($this->persistence->query($sql, $params)->fetchColumn() == 0) {
+            $this->persistence->insert(
+                self::RESULTS_TABLENAME,
+                array(self::DELIVERY_EXECUTION_COLUMN => $executionIdentifier, self::RESULTS_TABLE_ID => $deliveryResultIdentifier)
+            );
+        } else {
+            $sqlUpdate = 'UPDATE ' . self::RESULTS_TABLENAME . ' SET ' . self::DELIVERY_EXECUTION_COLUMN . ' = ? WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
+            $paramsUpdate = array($executionIdentifier, $deliveryResultIdentifier);
+            $this->persistence->exec($sqlUpdate, $paramsUpdate);
+        }
+    }
+
 
     /**
      * @param string $callId
@@ -362,6 +385,18 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
+     * get delivery execution identifier corresponding to a result
+     * @param $deliveryResultIdentifier
+     * @return string
+     */
+    public function getDeliveryExecution($deliveryResultIdentifier)
+    {
+        $sql = 'SELECT ' . self::DELIVERY_EXECUTION_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
+        $params = array($deliveryResultIdentifier);
+        return $this->persistence->query($sql, $params)->fetchColumn();
+    }
+
+    /**
      * @return array the list of item executions ids (across all results)
      * o(n) do not use real time (postprocessing)
      */
@@ -487,7 +522,8 @@ class RdsResultStorage extends ConfigurableService
             $returnValue[] = array(
                 "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
                 "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN],
-                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
+                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN],
+                "deliveryExecutionIdentifier" => $value[self::DELIVERY_EXECUTION_COLUMN]
             );
         }
         return $returnValue;
