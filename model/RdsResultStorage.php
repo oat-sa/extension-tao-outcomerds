@@ -21,17 +21,18 @@
 namespace oat\taoOutcomeRds\model;
 
 use oat\taoResultServer\models\classes\ResultManagement;
-use \common_Logger;
 use \core_kernel_classes_Resource;
-use \core_kernel_classes_Property;
+use oat\oatbox\service\ConfigurableService;
 
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
  *
  */
-class RdsResultStorage extends \tao_models_classes_GenerisService
+class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
+    const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
+
     /**
      * Constants for the database creation and data access
      *
@@ -70,6 +71,8 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
     /** @deprecated */
     const RESULTSKV_FK_NAME = "fk_resultsKv_variables";
 
+    /** result storage persistence identifier */
+    const OPTION_PERSISTENCE = 'persistence_id';
 
     /**
      * SQL persistence to use
@@ -86,7 +89,9 @@ class RdsResultStorage extends \tao_models_classes_GenerisService
 
     private function getPersistence()
     {
-        return \common_persistence_Manager::getPersistence('default');
+        $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
+            $this->getOption(self::OPTION_PERSISTENCE) : 'default';
+        return \common_persistence_Manager::getPersistence($persistenceId);
     }
 
 
