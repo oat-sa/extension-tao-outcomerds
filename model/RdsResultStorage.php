@@ -72,7 +72,7 @@ class RdsResultStorage extends ConfigurableService
     const RESULTSKV_FK_NAME = "fk_resultsKv_variables";
 
     /** result storage persistence identifier */
-    const OPTION_PERSISTENCE = 'persistence_id';
+    const OPTION_PERSISTENCE = 'persistence';
 
     private function getPersistence()
     {
