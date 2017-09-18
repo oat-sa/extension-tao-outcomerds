@@ -24,6 +24,6 @@ use oat\taoResultServer\models\classes\ResultServerService;
 $service = taoResultServer_models_classes_ResultServerAuthoringService::singleton();
 
 // replace default result server if it is void
-if ($service->getDefaultResultServer()->getUri() == ResultServerService::RESULT_SERVER) {
+if ($service->getDefaultResultServer()->getUri() == ResultServerService::PROPERTY_RESULT_SERVER) {
     $service->setDefaultResultServer(new core_kernel_classes_Resource('http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#RdsResultStorage'));
 }
