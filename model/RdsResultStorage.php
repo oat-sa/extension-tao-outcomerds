@@ -154,6 +154,18 @@ class RdsResultStorage extends ConfigurableService
             )
         );
     }
+    
+    public function storeItemVariables(
+        $deliveryResultIdentifier,
+        $test,
+        $item,
+        array $itemVariables,
+        $callIdItem
+    ) {
+        foreach ($itemVariables as $itemVariable) {
+            $this->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callIdItem);
+        }
+    }
 
     /*
      * retrieve specific parameters from the resultserver to configure the storage
