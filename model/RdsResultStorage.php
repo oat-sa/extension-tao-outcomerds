@@ -104,21 +104,35 @@ class RdsResultStorage extends ConfigurableService
         \taoResultServer_models_classes_Variable $testVariable,
         $callIdTest
     ) {
-        //ensure that variable have epoch
-        if(!$testVariable->isSetEpoch()){
-            $testVariable->setEpoch(microtime());
-        }
-
         $this->getPersistence()->insert(
             self::VARIABLES_TABLENAME,
-            array(
-                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                self::TEST_COLUMN => $test,
-                self::CALL_ID_TEST_COLUMN => $callIdTest,
-                self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier(),
-                self::VARIABLE_VALUE => serialize($testVariable)
+            self::prepareTestVariableData(
+                $deliveryResultIdentifier,
+                $test, 
+                $testVariable,
+                $callIdTest
             )
         );
+    }
+    
+    public function storeTestVariables(
+        $deliveryResultIdentifier,
+        $test,
+        array $testVariables,
+        $callIdTest
+    ) {
+        $dataToInsert = [];
+        
+        foreach ($testVariables as $testVariable) {
+            $dataToInsert[] = self::prepareTestVariableData(
+                $deliveryResultIdentifier,
+                $test,
+                $testVariable,
+                $callIdTest
+            );
+        };
+        
+        $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
     /**
@@ -190,6 +204,25 @@ class RdsResultStorage extends ConfigurableService
             self::CALL_ID_ITEM_COLUMN => $callIdItem,
             self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier(),
             self::VARIABLE_VALUE => serialize($itemVariable)
+        ];
+    }
+    
+    private static function prepareTestVariableData(
+        $deliveryResultIdentifier,
+        $test,
+        \taoResultServer_models_classes_Variable $testVariable,
+        $callIdTest
+    ) {
+        if (!$testVariable->isSetEpoch()){
+            $testVariable->setEpoch(microtime());
+        }
+
+        return [
+            self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+            self::TEST_COLUMN => $test,
+            self::CALL_ID_TEST_COLUMN => $callIdTest,
+            self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier(),
+            self::VARIABLE_VALUE => serialize($testVariable)
         ];
     }
 
