@@ -104,21 +104,35 @@ class RdsResultStorage extends ConfigurableService
         \taoResultServer_models_classes_Variable $testVariable,
         $callIdTest
     ) {
-        //ensure that variable have epoch
-        if(!$testVariable->isSetEpoch()){
-            $testVariable->setEpoch(microtime());
-        }
-
         $this->getPersistence()->insert(
             self::VARIABLES_TABLENAME,
-            array(
-                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                self::TEST_COLUMN => $test,
-                self::CALL_ID_TEST_COLUMN => $callIdTest,
-                self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier(),
-                self::VARIABLE_VALUE => serialize($testVariable)
+            self::prepareTestVariableData(
+                $deliveryResultIdentifier,
+                $test, 
+                $testVariable,
+                $callIdTest
             )
         );
+    }
+    
+    public function storeTestVariables(
+        $deliveryResultIdentifier,
+        $test,
+        array $testVariables,
+        $callIdTest
+    ) {
+        $dataToInsert = [];
+        
+        foreach ($testVariables as $testVariable) {
+            $dataToInsert[] = self::prepareTestVariableData(
+                $deliveryResultIdentifier,
+                $test,
+                $testVariable,
+                $callIdTest
+            );
+        };
+        
+        $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
     /**
@@ -136,23 +150,80 @@ class RdsResultStorage extends ConfigurableService
         \taoResultServer_models_classes_Variable $itemVariable,
         $callIdItem
     ) {
+        //store value in all case
+        $this->getPersistence()->insert(
+            self::VARIABLES_TABLENAME,
+            self::prepareItemVariableData(
+                $deliveryResultIdentifier,
+                $test,
+                $item,
+                $itemVariable,
+                $callIdItem
+            )
+        );
+    }
+    
+    public function storeItemVariables(
+        $deliveryResultIdentifier,
+        $test,
+        $item,
+        array $itemVariables,
+        $callIdItem
+    ) {
+        $dataToInsert = [];
+        
+        foreach ($itemVariables as $itemVariable) {
+            $dataToInsert[] = self::prepareItemVariableData(
+                $deliveryResultIdentifier,
+                $test,
+                $item,
+                $itemVariable,
+                $callIdItem
+            );
+        }
+        
+        $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
+    }
+    
+    private static function prepareItemVariableData(
+        $deliveryResultIdentifier,
+        $test,
+        $item,
+        \taoResultServer_models_classes_Variable $itemVariable,
+        $callIdItem
+    ) {
         //ensure that variable have epoch
         if(!$itemVariable->isSetEpoch()){
             $itemVariable->setEpoch(microtime());
         }
+        
+        return [
+            self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+            self::TEST_COLUMN => $test,
+            self::ITEM_COLUMN => $item,
+            self::CALL_ID_ITEM_COLUMN => $callIdItem,
+            self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier(),
+            self::VARIABLE_VALUE => serialize($itemVariable)
+        ];
+    }
+    
+    private static function prepareTestVariableData(
+        $deliveryResultIdentifier,
+        $test,
+        \taoResultServer_models_classes_Variable $testVariable,
+        $callIdTest
+    ) {
+        if (!$testVariable->isSetEpoch()){
+            $testVariable->setEpoch(microtime());
+        }
 
-        //store value in all case
-        $this->getPersistence()->insert(
-            self::VARIABLES_TABLENAME,
-            array(
-                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                self::TEST_COLUMN => $test,
-                self::ITEM_COLUMN => $item,
-                self::CALL_ID_ITEM_COLUMN => $callIdItem,
-                self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier(),
-                self::VARIABLE_VALUE => serialize($itemVariable)
-            )
-        );
+        return [
+            self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+            self::TEST_COLUMN => $test,
+            self::CALL_ID_TEST_COLUMN => $callIdTest,
+            self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier(),
+            self::VARIABLE_VALUE => serialize($testVariable)
+        ];
     }
 
     /*
