@@ -21,13 +21,19 @@
 namespace oat\taoOutcomeRds\scripts\bench;
 
 use oat\oatbox\extension\AbstractAction;
+use common_report_Report as Report;
 
 abstract class AbstractStoreItemVariable extends AbstractAction
 {
     protected $storage;
     
     public function __invoke($params)
-    {
+    {        
+        $report = new Report(
+            Report::TYPE_INFO,
+            "The script ended gracefully."
+        );
+        
         $this->storage = $this->getServiceManager()->get('taoOutcomeRds/RdsResultStorage');
         
         $time = [];
@@ -87,6 +93,13 @@ abstract class AbstractStoreItemVariable extends AbstractAction
             }
         }
         
+        $report->add(
+            new Report(
+                Report::TYPE_SUCCESS,
+                "Total time spent in '" . $this->getBenchmarkMethodName() . "' in seconds: " . array_sum($time)
+            )
+        );
+        
         return new \common_report_Report(
             \common_report_Report::TYPE_INFO,
             array_sum($time)
@@ -94,4 +107,6 @@ abstract class AbstractStoreItemVariable extends AbstractAction
     }
     
     abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem, array &$time);
+    
+    abstract protected function getBenchmarkMethodName();
 }
