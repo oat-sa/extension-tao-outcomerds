@@ -21,6 +21,7 @@
 namespace oat\taoOutcomeRds\scripts\bench;
 
 use oat\oatbox\extension\AbstractAction;
+use oat\taoOutcomeRds\model\RdsResultStorage;
 use common_report_Report as Report;
 
 abstract class AbstractStoreItemVariable extends AbstractAction
@@ -44,15 +45,17 @@ abstract class AbstractStoreItemVariable extends AbstractAction
             );
         }
         
+        
         $deliveryExecutionCount = intval($params[0]);
         $attemptCount = intval($params[1]);
+        $purge = !empty($params[2]) && boolval($params[2]);
         
         $report = new Report(
             Report::TYPE_INFO,
             "The script ended gracefully."
         );
         
-        $this->storage = $this->getServiceManager()->get('taoOutcomeRds/RdsResultStorage');
+        $this->storage = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
         
         $time = [];
         
@@ -124,6 +127,33 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 "Total time spent in '" . $this->getBenchmarkMethodName() . "': " . array_sum($time) . ' seconds.'
             )
         );
+        
+        if ($purge) {
+            $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_ID);
+            $sqlPersistence = $persistenceManager->getPersistenceById('default');
+            $dbPlatform = $sqlPersistence->getPlatform();
+            
+            if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {
+                foreach ([RdsResultStorage::VARIABLES_TABLENAME, RdsResultStorage::RESULTS_TABLENAME] as $tbl) {
+                    $dbTruncateSql = $dbPlatform->getTruncateTableSql($tbl);
+                    $sqlPersistence->exec($dbTruncateSql . " CASCADE");
+                }
+                
+                $report->add(
+                    new Report(
+                        Report::TYPE_WARNING,
+                        "Your RDS Result Storage has just been purged!"
+                    )
+                );
+            } else {
+                $report->add(
+                    new Report(
+                        Report::TYPE_ERROR,
+                        "The purge feature is only available with 'mysql' and 'postgresql' RDBMS platforms."
+                    )
+                );
+            }
+        }
         
         return $report;
     }
