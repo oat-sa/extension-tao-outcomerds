@@ -28,7 +28,25 @@ abstract class AbstractStoreItemVariable extends AbstractAction
     protected $storage;
     
     public function __invoke($params)
-    {        
+    {
+        // Arguments check.
+        if (empty($params[0])) {
+            return new Report(
+                Report::TYPE_ERROR,
+                "Argument 1 - Delivery Execution Count must be provided."
+            );
+        }
+        
+        if (empty($params[1])) {
+            return new Report(
+                Report::TYPE_ERROR,
+                "Argument 2 - Attempt Count must be provided."
+            );
+        }
+        
+        $deliveryExecutionCount = intval($params[0]);
+        $attemptCount = intval($params[1]);
+        
         $report = new Report(
             Report::TYPE_INFO,
             "The script ended gracefully."
@@ -38,12 +56,12 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         
         $time = [];
         
-        for ($i = 0; $i < intval($params[0]); $i++) {
+        for ($i = 0; $i < $deliveryExecutionCount; $i++) {
             
             $this->storage->storeRelatedTestTaker("deliveryResultIdentifier${i}", "testTakerIdentifier${i}");
             $this->storage->storeRelatedDelivery("deliveryResultIdentifier${i}", "deliveryIdentifier");
             
-            for ($j = 0; $j < intval($params[1]); $j++) {
+            for ($j = 0; $j < $attemptCount; $j++) {
                 $itemVariables = [];
                 
                 $var = new \taoResultServer_models_classes_OutcomeVariable();
@@ -95,15 +113,19 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         
         $report->add(
             new Report(
-                Report::TYPE_SUCCESS,
-                "Total time spent in '" . $this->getBenchmarkMethodName() . "' in seconds: " . array_sum($time)
+                Report::TYPE_INFO,
+                "Simulation is composed of ${deliveryExecutionCount} delivery executions. ${attemptCount} candidate attempts are performed for each delivery execution."
             )
         );
         
-        return new \common_report_Report(
-            \common_report_Report::TYPE_INFO,
-            array_sum($time)
+        $report->add(
+            new Report(
+                Report::TYPE_INFO,
+                "Total time spent in '" . $this->getBenchmarkMethodName() . "': " . array_sum($time) . ' seconds.'
+            )
         );
+        
+        return $report;
     }
     
     abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem, array &$time);
