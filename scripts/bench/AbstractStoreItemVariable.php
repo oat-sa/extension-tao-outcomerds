@@ -107,7 +107,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setValue('PT10S');
                 $itemVariables[] = $var;
                 
-                $this->storeItemVariableSet("deliveryResultIdentifier${i}", "test", "item${j}", $itemVariables, "callIdItem${j}", $time);
+                $time[] = $this->storeItemVariableSet("deliveryResultIdentifier${i}", "test", "item${j}", $itemVariables, "callIdItem${j}");
             }
         }
         
@@ -128,7 +128,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         return $report;
     }
     
-    abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem, array &$time);
+    abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem);
     
     abstract protected function getBenchmarkMethodName();
 }

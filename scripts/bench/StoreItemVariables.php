@@ -24,13 +24,13 @@ use oat\oatbox\extension\AbstractAction;
 
 class StoreItemVariables extends AbstractStoreItemVariable
 {
-    protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem, array &$time)
+    protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem)
     {
         $startTime = microtime(true);
         $this->storage->storeItemVariables($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, $variables, $callIdItem);
         $endTime = microtime(true);
         
-        $time[] = ($endTime - $startTime);
+        return ($endTime - $startTime);
     }
     
     protected function getBenchmarkMethodName()

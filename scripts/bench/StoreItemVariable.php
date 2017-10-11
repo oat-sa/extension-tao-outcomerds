@@ -24,14 +24,14 @@ use oat\oatbox\extension\AbstractAction;
 
 class StoreItemVariable extends AbstractStoreItemVariable
 {
-    protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem, array &$time)
+    protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem)
     {
         foreach ($variables as $variable) {
             $startTime = microtime(true);
             $this->storage->storeItemVariable($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, $variable, $callIdItem);
             $endTime = microtime(true);
             
-            $time[] = ($endTime - $startTime);
+            return ($endTime - $startTime);
         }
     }
     
