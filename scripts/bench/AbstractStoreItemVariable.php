@@ -124,7 +124,14 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         $report->add(
             new Report(
                 Report::TYPE_INFO,
-                "Total time spent in '" . $this->getBenchmarkMethodName() . "': " . array_sum($time) . ' seconds.'
+                'Total time spent in storing candidate attempts related variables: ' . array_sum($time) . ' seconds.'
+            )
+        );
+        
+        $report->add(
+            new Report(
+                Report::TYPE_INFO,
+                'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / $attemptCount) . ' seconds.'
             )
         );
         
@@ -159,6 +166,4 @@ abstract class AbstractStoreItemVariable extends AbstractAction
     }
     
     abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem);
-    
-    abstract protected function getBenchmarkMethodName();
 }

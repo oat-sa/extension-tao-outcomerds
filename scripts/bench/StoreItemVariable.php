@@ -38,9 +38,4 @@ class StoreItemVariable extends AbstractStoreItemVariable
         
         return array_sum($time);
     }
-    
-    protected function getBenchmarkMethodName()
-    {
-        return 'RdsResultStorage::storeItemVariable';
-    }
 }

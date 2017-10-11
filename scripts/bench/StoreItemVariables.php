@@ -32,9 +32,4 @@ class StoreItemVariables extends AbstractStoreItemVariable
         
         return ($endTime - $startTime);
     }
-    
-    protected function getBenchmarkMethodName()
-    {
-        return 'RdsResultStorage::storeItemVariables';
-    }
 }
