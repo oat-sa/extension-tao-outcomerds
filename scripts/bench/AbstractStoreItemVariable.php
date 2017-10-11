@@ -131,7 +131,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         $report->add(
             new Report(
                 Report::TYPE_INFO,
-                'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / $attemptCount) . ' seconds.'
+                'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
             )
         );
         
