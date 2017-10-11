@@ -78,7 +78,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $itemVariables[] = $var;
                 
                 $var = new \taoResultServer_models_classes_OutcomeVariable();
-                $var->setIdentifier('SCORE');
+                $var->setIdentifier('completionStatus');
                 $var->setCardinality('single');
                 $var->setBaseType('identifier');
                 $var->setEpoch(microtime());
