@@ -18,29 +18,42 @@
  *
  *
  */
+namespace oat\taoOutcomeRds\scripts\uninstall;
 
+use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\RdsResultStorage;
-use oat\tao\scripts\update\OntologyUpdater;
-use oat\generis\model\kernel\persistence\file\FileModel;
 use oat\generis\model\data\ModelManager;
 use oat\tao\model\extension\ExtensionModel;
 
-$persistence = common_persistence_Manager::getPersistence('default');
-$schema = $persistence->getDriver()->getSchemaManager()->createSchema();
-$fromSchema = clone $schema;
-/**
- * @throws PDOException
- */
-$tableVariables = $schema->dropTable(RdsResultStorage::VARIABLES_TABLENAME);
-$tableResults = $schema->dropTable(RdsResultStorage::RESULTS_TABLENAME);
-$queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-foreach ($queries as $query) {
-    $persistence->exec($query);
-}
+class removeTables extends AbstractAction
+{
+
+    public function __invoke($params)
+    {
+        $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
+        $method = new \ReflectionMethod(RdsResultStorage::class, 'getPersistence');
+        $method->setAccessible(true);
+        $persistence = $method->invoke($service);
+
+        $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
+        $fromSchema = clone $schema;
+        /**
+         * @throws PDOException
+         */
+        $tableVariables = $schema->dropTable(RdsResultStorage::VARIABLES_TABLENAME);
+        $tableResults = $schema->dropTable(RdsResultStorage::RESULTS_TABLENAME);
+        $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
+        foreach ($queries as $query) {
+            $persistence->exec($query);
+        }
 
 // remove statement entries for this extension
-$model = new ExtensionModel(common_ext_ExtensionsManager::singleton()->getExtensionById('taoOutcomeRds'));
-$modelRdf = ModelManager::getModel()->getRdfInterface();
-foreach ($model as $triple) {
-    $modelRdf->remove($triple);
+        $model = new ExtensionModel(\common_ext_ExtensionsManager::singleton()->getExtensionById('taoOutcomeRds'));
+        $modelRdf = ModelManager::getModel()->getRdfInterface();
+        foreach ($model as $triple) {
+            $modelRdf->remove($triple);
+        }
+
+
+    }
 }

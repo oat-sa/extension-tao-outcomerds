@@ -134,10 +134,12 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
             )
         );
-        
+
         if ($purge) {
-            $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_ID);
-            $sqlPersistence = $persistenceManager->getPersistenceById('default');
+
+            $method = new \ReflectionMethod(get_class($this->storage), 'getPersistence');
+            $method->setAccessible(true);
+            $sqlPersistence = $method->invoke($this->storage);
             $dbPlatform = $sqlPersistence->getPlatform();
             
             if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {

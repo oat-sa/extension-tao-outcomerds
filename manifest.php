@@ -24,7 +24,7 @@ return array(
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '3.1.0',
+    'version' => '3.2.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'taoResultServer' => '>=2.6',
@@ -40,13 +40,13 @@ return array(
             dirname(__FILE__) . '/scripts/install/taoOutcomeRds.rdf'
         ),
         'php' => array(
-            dirname(__FILE__) . '/scripts/install/createTables.php',
+            \oat\taoOutcomeRds\scripts\install\createTables::class,
             dirname(__FILE__) . '/scripts/install/setDefault.php',
         )
     ),
     'uninstall' => array(
         'php' => array(
-            dirname(__FILE__) . '/scripts/uninstall/removeTables.php',
+            \oat\taoOutcomeRds\scripts\uninstall\removeTables::class
         )
     ),
     'update' => 'oat\\taoOutcomeRds\\scripts\\update\\Updater',
