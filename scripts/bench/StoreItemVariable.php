@@ -26,13 +26,17 @@ class StoreItemVariable extends AbstractStoreItemVariable
 {
     protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem)
     {
+        $time = [];
+        
         foreach ($variables as $variable) {
             $startTime = microtime(true);
             $this->storage->storeItemVariable($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, $variable, $callIdItem);
             $endTime = microtime(true);
             
-            return ($endTime - $startTime);
+            $time[] = ($endTime - $startTime);
         }
+        
+        return array_sum($time);
     }
     
     protected function getBenchmarkMethodName()
