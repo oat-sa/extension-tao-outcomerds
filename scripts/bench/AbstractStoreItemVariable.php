@@ -26,6 +26,7 @@ use common_report_Report as Report;
 
 abstract class AbstractStoreItemVariable extends AbstractAction
 {
+    /** @var  RdsResultStorage */
     protected $storage;
     
     public function __invoke($params)
@@ -137,9 +138,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
 
         if ($purge) {
 
-            $method = new \ReflectionMethod(get_class($this->storage), 'getPersistence');
-            $method->setAccessible(true);
-            $sqlPersistence = $method->invoke($this->storage);
+            $sqlPersistence = $this->storage->getPersistence();
             $dbPlatform = $sqlPersistence->getPlatform();
             
             if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {
