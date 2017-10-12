@@ -32,10 +32,7 @@ class AddIndexes extends AbstractAction
      */
     public function __invoke($params)
     {
-        $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
-        $method = new \ReflectionMethod(RdsResultStorage::class, 'getPersistence');
-        $method->setAccessible(true);
-        $persistence = $method->invoke($service);
+        $persistence = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID)->getPersistence();
 
         $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
         $fromSchema = clone $schema;
