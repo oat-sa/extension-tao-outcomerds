@@ -26,6 +26,7 @@ use common_report_Report as Report;
 
 abstract class AbstractStoreItemVariable extends AbstractAction
 {
+    /** @var  RdsResultStorage */
     protected $storage;
     
     public function __invoke($params)
@@ -134,10 +135,10 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
             )
         );
-        
+
         if ($purge) {
-            $persistenceManager = $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_ID);
-            $sqlPersistence = $persistenceManager->getPersistenceById('default');
+
+            $sqlPersistence = $this->storage->getPersistence();
             $dbPlatform = $sqlPersistence->getPlatform();
             
             if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {

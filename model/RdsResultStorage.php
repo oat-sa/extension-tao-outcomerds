@@ -74,11 +74,11 @@ class RdsResultStorage extends ConfigurableService
     /** result storage persistence identifier */
     const OPTION_PERSISTENCE = 'persistence';
 
-    private function getPersistence()
+    public function getPersistence()
     {
         $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
             $this->getOption(self::OPTION_PERSISTENCE) : 'default';
-        return \common_persistence_Manager::getPersistence($persistenceId);
+        return $this->getServiceManager()->get(\common_persistence_Manager::SERVICE_ID)->getPersistenceById($persistenceId);
     }
 
 
