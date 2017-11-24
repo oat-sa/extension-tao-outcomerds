@@ -229,7 +229,7 @@ class RdsResultStorage extends ConfigurableService
     /*
      * retrieve specific parameters from the resultserver to configure the storage
      */
-    public function configure(core_kernel_classes_Resource $resultserver, $callOptions = array())
+    public function configure($callOptions = array())
     {
         \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
     }
