@@ -28,7 +28,7 @@ return array(
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'taoResultServer' => '>=4.2.0',
-        'generis' => '>=5.10.0'
+        'generis' => '>=5.1.0'
     ),
     // for compatibility
     'dependencies' => array('tao', 'taoResultServer'),
