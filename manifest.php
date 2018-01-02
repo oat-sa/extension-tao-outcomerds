@@ -24,7 +24,7 @@ return array(
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '3.3.0',
+    'version' => '3.4.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'taoResultServer' => '>=4.2.0',
