@@ -20,6 +20,7 @@
 
 namespace oat\taoOutcomeRds\model;
 
+use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use \core_kernel_classes_Resource;
 use oat\oatbox\service\ConfigurableService;
@@ -31,6 +32,7 @@ use oat\oatbox\service\ConfigurableService;
 class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
+    use ResultDeliveryExecutionDelete;
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
 
     /**
