@@ -20,6 +20,8 @@
 
 namespace oat\taoOutcomeRds\model;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use \core_kernel_classes_Resource;
@@ -76,6 +78,10 @@ class RdsResultStorage extends ConfigurableService
     /** result storage persistence identifier */
     const OPTION_PERSISTENCE = 'persistence';
 
+    /**
+     * @return \common_persistence_SqlPersistence
+     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
+     */
     public function getPersistence()
     {
         $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
@@ -242,25 +248,42 @@ class RdsResultStorage extends ConfigurableService
         }
     }
 
+    /**
+     * @return QueryBuilder
+     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
+     */
+    private function getQueryBuilder()
+    {
+        /**@var \common_persistence_sql_pdo_mysql_Driver $driver */
+        return $this->getPersistence()->getPlatform()->getQueryBuilder();
+    }
+
 
     /**
-     * @param string $callId
+     * @param string|array $callId Either an item call id or a test call id
      * @return array
+     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
      */
     public function getVariables($callId)
     {
+        if (!is_array($callId)) {
+            $callId = [$callId];
+        }
 
-        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE (' . self::CALL_ID_ITEM_COLUMN . ' = ? OR ' . self::CALL_ID_TEST_COLUMN . ' = ?) ORDER BY ' . self::VARIABLES_TABLE_ID;
-        $params = array($callId, $callId);
-        $variables = $this->getPersistence()->query($sql, $params);
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN(:ids)')
+            ->orWhere(self::CALL_ID_TEST_COLUMN .' IN(:ids)')
+            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
-        $returnValue = array();
+        $returnValue = [];
 
-        // for each variable we construct the array
-        foreach ($variables as $variable) {
+        foreach ($qb->execute()->fetchAll() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
+
         return $returnValue;
     }
 
