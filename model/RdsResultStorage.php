@@ -482,10 +482,8 @@ class RdsResultStorage extends ConfigurableService
         }
 
 
-        if(isset($options['order'])){
-            
-            $sql .= ' ORDER BY ?';
-            $params[] = $options['order'];
+        if(isset($options['order']) && in_array($options['order'], [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID])){
+            $sql .= ' ORDER BY ' . $options['order'];
             if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
                 $sql .= ' ' . $options['orderdir'];
             }
