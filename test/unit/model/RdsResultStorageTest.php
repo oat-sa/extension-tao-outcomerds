@@ -18,12 +18,13 @@
  *
  *
  */
-namespace oat\taoOutcomeRds\test\model;
+namespace oat\taoOutcomeRds\test\unit\model;
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
 
-require_once dirname(__FILE__) . '/../../../tao/includes/class.Bootstrap.php';
+require_once dirname(__FILE__) . '/../../../../tao/includes/class.Bootstrap.php';
 
+// @todo fix "ServiceLocator not initialized for oat\taoOutcomeRds\model\RdsResultStorage"
 
 /**
  * Test Rds result storage
