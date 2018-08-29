@@ -20,11 +20,10 @@
  */
 namespace oat\taoOutcomeRds\test\unit\model;
 
+use oat\oatbox\service\ServiceManager;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 
-require_once dirname(__FILE__) . '/../../../../tao/includes/class.Bootstrap.php';
-
-// @todo fix "ServiceLocator not initialized for oat\taoOutcomeRds\model\RdsResultStorage"
+require_once dirname(__FILE__) . '/../../../../tao/includes/raw_start.php';
 
 /**
  * Test Rds result storage
@@ -45,6 +44,7 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->instance = new RdsResultStorage();
+        $this->instance->setServiceLocator(ServiceManager::getServiceManager());
     }
 
     public function tearDown()
