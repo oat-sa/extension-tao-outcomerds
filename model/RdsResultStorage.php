@@ -293,16 +293,21 @@ class RdsResultStorage extends ConfigurableService
      */
     public function getDeliveryVariables($deliveryResultIdentifier)
     {
+        if (!is_array($deliveryResultIdentifier)) {
+            $deliveryResultIdentifier = [$deliveryResultIdentifier];
+        }
 
-        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? ORDER BY ' . self::VARIABLES_TABLE_ID;
-        $params = array($deliveryResultIdentifier);
-        $variables = $this->getPersistence()->query($sql, $params);
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::VARIABLES_FK_COLUMN .' IN(:ids)')
+            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
         $returnValue = array();
 
         // for each variable we construct the array
-        foreach ($variables as $variable) {
+        foreach ($qb->execute()->fetchAll() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
         return $returnValue;
