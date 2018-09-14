@@ -34,6 +34,14 @@ class createTables extends AbstractAction
 
         $persistence = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID)->getPersistence();
 
+        $this->generateTables($persistence);
+    }
+
+    /**
+     * @param \common_persistence_SqlPersistence $persistence
+     */
+    public function generateTables(\common_persistence_SqlPersistence $persistence)
+    {
         $schemaManager = $persistence->getDriver()->getSchemaManager();
         $schema = $schemaManager->createSchema();
         $fromSchema = clone $schema;
@@ -77,6 +85,5 @@ class createTables extends AbstractAction
         foreach ($queries as $query) {
             $persistence->exec($query);
         }
-
     }
 }
