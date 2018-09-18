@@ -627,6 +627,7 @@ class RdsResultStorage extends ConfigurableService
         $resultVariable = $this->unserializeVariableValue($variable[self::VARIABLE_VALUE]);
         $object = new \stdClass();
         $object->uri = $variable[self::VARIABLES_TABLE_ID];
+        $object->class = get_class($resultVariable);
         $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
         $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
         $object->callIdTest = $variable[self::CALL_ID_TEST_COLUMN];
