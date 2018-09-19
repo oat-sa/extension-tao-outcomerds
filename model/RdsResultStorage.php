@@ -288,20 +288,24 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
-     * @param $deliveryResultIdentifier
+     * @param array|string $deliveryResultIdentifier
      * @return array
+     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
      */
     public function getDeliveryVariables($deliveryResultIdentifier)
     {
-
-        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? ORDER BY ' . self::VARIABLES_TABLE_ID;
-        $params = array($deliveryResultIdentifier);
-        $variables = $this->getPersistence()->query($sql, $params);
-
+        if (!is_array($deliveryResultIdentifier)) {
+            $deliveryResultIdentifier = [$deliveryResultIdentifier];
+        }
         $returnValue = array();
 
-        // for each variable we construct the array
+        $inQuery = implode(',', array_fill(0, count($deliveryResultIdentifier), '?'));
+        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
+    WHERE ' . self::VARIABLES_FK_COLUMN . ' IN ('.$inQuery.') ORDER BY ' . self::VARIABLES_TABLE_ID;
+
+        $variables = $this->getPersistence()->query($sql, $deliveryResultIdentifier);
+        $variables = $variables->fetchAll(\PDO::FETCH_ASSOC);
+
         foreach ($variables as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
