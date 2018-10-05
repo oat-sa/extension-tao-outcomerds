@@ -121,7 +121,7 @@ class Updater extends \common_ext_ExtensionUpdater
 		}
 		$this->setVersion($currentVersion);
 		
-		$this->skip('1.1.0','2.1.0');
+		$this->skip('1.1.0', '2.1.0');
 
 		if ($this->isVersion('2.1.0')) {
             OntologyUpdater::syncModels();
@@ -131,6 +131,6 @@ class Updater extends \common_ext_ExtensionUpdater
             $this->setVersion('2.2.0');
         }
 
-		$this->skip('2.2.0','4.3.0');
+		$this->skip('2.2.0','5.0.1');
 	}
 }

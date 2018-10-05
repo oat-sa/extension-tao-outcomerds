@@ -20,11 +20,11 @@
  */
 namespace oat\taoOutcomeRds\test\unit\model;
 
+use oat\generis\test\TestCase;
 use oat\taoOutcomeRds\model\RdsResultStorage;
-
-require_once dirname(__FILE__) . '/../../../../tao/includes/class.Bootstrap.php';
-
-// @todo fix "ServiceLocator not initialized for oat\taoOutcomeRds\model\RdsResultStorage"
+use Prophecy\Argument;
+use oat\taoOutcomeRds\scripts\install\createTables;
+use common_persistence_Manager;
 
 /**
  * Test Rds result storage
@@ -33,7 +33,7 @@ require_once dirname(__FILE__) . '/../../../../tao/includes/class.Bootstrap.php'
  * @package taoOutcomeRds
  *
  */
-class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
+class RdsResultStorageTest extends TestCase
 {
 
 
@@ -44,7 +44,19 @@ class RdsResultStorageTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+        $databaseMock = $this->getSqlMock('rds_result_storage_test');
+        $persistance = $databaseMock->getPersistenceById('rds_result_storage_test');
+
+        (new createTables())->generateTables($persistance);
+        $persistanceManagerProphecy = $this->prophesize(common_persistence_Manager::class);
+        $persistanceManagerProphecy->getPersistenceById(Argument::any())->willReturn($persistance);
+        $serviceManagerMock = $this->getServiceLocatorMock([
+            common_persistence_Manager::SERVICE_ID => $persistanceManagerProphecy,
+        ]);
+
         $this->instance = new RdsResultStorage();
+        $this->instance->setOption(RdsResultStorage::OPTION_PERSISTENCE, $persistance);
+        $this->instance->setServiceLocator($serviceManagerMock);
     }
 
     public function tearDown()
