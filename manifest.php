@@ -24,11 +24,11 @@ return array(
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '5.0.1',
+    'version' => '5.0.2',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'taoResultServer' => '>=6.5.0',
-        'generis' => '>=7.9.6'
+        'generis' => '>=7.9.9'
     ),
     // for compatibility
     'dependencies' => array('tao', 'taoResultServer'),
