@@ -525,6 +525,55 @@ class RdsResultStorage extends ConfigurableService
     }
 
 
+    public function getResultByDeliveryAndPeriod($delivery, $options = array(), $period=[]){
+
+
+        $returnValue =[];
+        $ids_sql = $this->getQueryBuilder()
+            ->select(DeliveryMonitoringService::DELIVERY_EXECUTION_ID)
+            ->from('delivery_monitoring')
+            ->where('start_time>='.(isset($period['start_time'])?$period['start_time']:  '0'));
+        if(isset($period['end_time'])){
+            $ids_sql= $ids_sql ->andWhere('end_time<='.$period['end_time']);
+        }
+
+        if(count($delivery)>0){
+            $ids_sql = $ids_sql->andWhere("delivery_id in('". implode("','", $delivery)."')");
+        }
+        $ids_sql = $ids_sql->getSQL();
+        $sql = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::RESULTS_TABLENAME)
+            ->where(self::RESULTS_TABLE_ID. ' in ('.$ids_sql.')');
+
+        if(isset($options['order']) && in_array($options['order'], [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID])){
+            if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
+                $options['order'].= ' ' . $options['orderdir'];
+            }
+            $sql = $sql->orderBy($options['order']);
+        }
+        $sql=  $sql->getSQL();
+        if(isset($options['offset']) || isset($options['limit'])){
+            $offset = (isset($options['offset']))?$options['offset']:0;
+            $limit = (isset($options['limit']))?$options['limit']:1000;
+            $sql = $this->getPersistence()->getPlatForm()->limitStatement($sql, $limit, $offset);
+        }
+        $results = $this->getPersistence()->query($sql);
+
+        foreach ($results as $value) {
+            $returnValue[] = array(
+                "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
+                "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN],
+                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
+            );
+        }
+
+
+
+        return $returnValue;
+    }
+
+
     /**
      * Remove the result and all the related variables
      * @param $deliveryResultIdentifier
