@@ -574,6 +574,35 @@ class RdsResultStorage extends ConfigurableService
     }
 
 
+    public function countResultByDeliveryAndPeriod($delivery, $options = array(), $period=[]){
+
+
+        $returnValue =[];
+        $ids_sql = $this->getQueryBuilder()
+            ->select(DeliveryMonitoringService::DELIVERY_EXECUTION_ID)
+            ->from('delivery_monitoring')
+            ->where('start_time>='.(isset($period['start_time'])?$period['start_time']:  '0'));
+        if(isset($period['end_time'])){
+            $ids_sql= $ids_sql ->andWhere('end_time<='.$period['end_time']);
+        }
+
+        if(count($delivery)>0){
+            $ids_sql = $ids_sql->andWhere("delivery_id in('". implode("','", $delivery)."')");
+        }
+        $ids_sql = $ids_sql->getSQL();
+        $sql = $this->getQueryBuilder()
+            ->select('count(*)')
+            ->from(self::RESULTS_TABLENAME)
+            ->where(self::RESULTS_TABLE_ID. ' in ('.$ids_sql.')');
+
+
+        $sql=  $sql->getSQL();
+
+        return $this->getPersistence()->query($sql)->fetchColumn();
+
+
+    }
+
     /**
      * Remove the result and all the related variables
      * @param $deliveryResultIdentifier
