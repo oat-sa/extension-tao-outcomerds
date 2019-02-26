@@ -474,15 +474,28 @@ class RdsResultStorage extends ConfigurableService
     public function getResultByDelivery($delivery, $options = array())
     {
         $returnValue = array();
+        $ids_sql='';
+        if(isset($options['start_time'])){
+            $ids_sql = 'SELECT '.DeliveryMonitoringService::DELIVERY_EXECUTION_ID.' from delivery_monitoring 
+            WHERE start_time>='.$options['start_time']. 'AND start_time<='.$options['end_time'];
+
+            if(count($delivery)>0){
+                $ids_sql .= "AND delivery_id in('". implode("','", $delivery)."')";
+            }
+
+        }
+
         $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
         $params = array();
 
 
-        if (count($delivery) > 0) {
+        if (count($delivery) > 0 && empty($ids_sql)) {
             $sql .= ' WHERE ';
             $inQuery = implode(',', array_fill(0, count($delivery), '?'));
             $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
             $params = array_merge($params, $delivery);
+        }else{
+            $sql .= ' WHERE '.self::RESULTS_TABLE_ID." in (".$ids_sql.")";
         }
 
 
@@ -509,99 +522,34 @@ class RdsResultStorage extends ConfigurableService
 
     }
 
-    public function countResultByDelivery($delivery){
+    public function countResultByDelivery($delivery, $options=[]){
+        $ids_sql='';
+        if(isset($options['start_time'])){
+            $ids_sql = 'SELECT '.DeliveryMonitoringService::DELIVERY_EXECUTION_ID.' from delivery_monitoring 
+            WHERE start_time>='.$options['start_time']. 'AND start_time<='.$options['end_time'];
+
+            if(count($delivery)>0){
+                $ids_sql .= "AND delivery_id in('". implode("','", $delivery)."')";
+            }
+
+        }
+
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME;
         $params = array();
 
-
-        if (count($delivery) > 0) {
+        if (count($delivery) > 0 && empty($ids_sql)) {
             $sql .= ' WHERE ';
             $inQuery = implode(',', array_fill(0, count($delivery), '?'));
             $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
             $params = array_merge($params, $delivery);
+        }else{
+            $sql .= ' WHERE '.self::RESULTS_TABLE_ID." in (".$ids_sql.")";
         }
 
         return $this->getPersistence()->query($sql, $params)->fetchColumn();
     }
 
 
-    public function getResultByDeliveryAndPeriod($delivery, $options = array(), $period=[]){
-
-
-        $returnValue =[];
-        $ids_sql = $this->getQueryBuilder()
-            ->select(DeliveryMonitoringService::DELIVERY_EXECUTION_ID)
-            ->from('delivery_monitoring')
-            ->where('start_time>='.(isset($period['start_time'])?$period['start_time']:  '0'));
-        if(isset($period['end_time'])){
-            $ids_sql= $ids_sql ->andWhere('end_time<='.$period['end_time']);
-        }
-
-        if(count($delivery)>0){
-            $ids_sql = $ids_sql->andWhere("delivery_id in('". implode("','", $delivery)."')");
-        }
-        $ids_sql = $ids_sql->getSQL();
-        $sql = $this->getQueryBuilder()
-            ->select('*')
-            ->from(self::RESULTS_TABLENAME)
-            ->where(self::RESULTS_TABLE_ID. ' in ('.$ids_sql.')');
-
-        if(isset($options['order']) && in_array($options['order'], [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID])){
-            if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
-                $options['order'].= ' ' . $options['orderdir'];
-            }
-            $sql = $sql->orderBy($options['order']);
-        }
-        $sql=  $sql->getSQL();
-        if(isset($options['offset']) || isset($options['limit'])){
-            $offset = (isset($options['offset']))?$options['offset']:0;
-            $limit = (isset($options['limit']))?$options['limit']:1000;
-            $sql = $this->getPersistence()->getPlatForm()->limitStatement($sql, $limit, $offset);
-        }
-        $results = $this->getPersistence()->query($sql);
-
-        foreach ($results as $value) {
-            $returnValue[] = array(
-                "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
-                "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN],
-                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
-            );
-        }
-
-
-
-        return $returnValue;
-    }
-
-
-    public function countResultByDeliveryAndPeriod($delivery, $options = array(), $period=[]){
-
-
-        $returnValue =[];
-        $ids_sql = $this->getQueryBuilder()
-            ->select(DeliveryMonitoringService::DELIVERY_EXECUTION_ID)
-            ->from('delivery_monitoring')
-            ->where('start_time>='.(isset($period['start_time'])?$period['start_time']:  '0'));
-        if(isset($period['end_time'])){
-            $ids_sql= $ids_sql ->andWhere('end_time<='.$period['end_time']);
-        }
-
-        if(count($delivery)>0){
-            $ids_sql = $ids_sql->andWhere("delivery_id in('". implode("','", $delivery)."')");
-        }
-        $ids_sql = $ids_sql->getSQL();
-        $sql = $this->getQueryBuilder()
-            ->select('count(*)')
-            ->from(self::RESULTS_TABLENAME)
-            ->where(self::RESULTS_TABLE_ID. ' in ('.$ids_sql.')');
-
-
-        $sql=  $sql->getSQL();
-
-        return $this->getPersistence()->query($sql)->fetchColumn();
-
-
-    }
 
     /**
      * Remove the result and all the related variables
