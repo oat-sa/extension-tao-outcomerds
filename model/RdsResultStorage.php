@@ -474,8 +474,9 @@ class RdsResultStorage extends ConfigurableService
     public function getResultByDelivery($delivery, $options = array())
     {
         $returnValue = array();
+        $params = array();
         $ids_sql='';
-        if(isset($options['start_time'])){
+        if (array_key_exists('start_time', $options) or array_key_exists('end_time', $options)){
             $ids_sql = 'SELECT '.DeliveryMonitoringService::DELIVERY_EXECUTION_ID.' from delivery_monitoring 
             WHERE start_time>='.$options['start_time']. 'AND start_time<='.$options['end_time'];
 
@@ -483,10 +484,12 @@ class RdsResultStorage extends ConfigurableService
                 $ids_sql .= "AND delivery_id in('". implode("','", $delivery)."')";
             }
 
+            $ids_sql = $this->getPersistence()->query($ids_sql, $params);
+
         }
 
         $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
-        $params = array();
+
 
 
         if (count($delivery) > 0 && empty($ids_sql)) {
