@@ -22,6 +22,9 @@ namespace oat\taoOutcomeRds\model;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use oat\taoDelivery\model\execution\ServiceProxy;
+use oat\taoProctoring\model\monitorCache\DeliveryMonitoringService;
+use oat\taoQtiItem\model\qti\Resource;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use \core_kernel_classes_Resource;
@@ -111,26 +114,28 @@ class RdsResultStorage extends ConfigurableService
         $test,
         \taoResultServer_models_classes_Variable $testVariable,
         $callIdTest
-    ) {
+    )
+    {
         $this->getPersistence()->insert(
             self::VARIABLES_TABLENAME,
             $this->prepareTestVariableData(
                 $deliveryResultIdentifier,
-                $test, 
+                $test,
                 $testVariable,
                 $callIdTest
             )
         );
     }
-    
+
     public function storeTestVariables(
         $deliveryResultIdentifier,
         $test,
         array $testVariables,
         $callIdTest
-    ) {
+    )
+    {
         $dataToInsert = [];
-        
+
         foreach ($testVariables as $testVariable) {
             $dataToInsert[] = $this->prepareTestVariableData(
                 $deliveryResultIdentifier,
@@ -139,7 +144,7 @@ class RdsResultStorage extends ConfigurableService
                 $callIdTest
             );
         };
-        
+
         $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
@@ -157,7 +162,8 @@ class RdsResultStorage extends ConfigurableService
         $item,
         \taoResultServer_models_classes_Variable $itemVariable,
         $callIdItem
-    ) {
+    )
+    {
         //store value in all case
         $this->getPersistence()->insert(
             self::VARIABLES_TABLENAME,
@@ -170,16 +176,17 @@ class RdsResultStorage extends ConfigurableService
             )
         );
     }
-    
+
     public function storeItemVariables(
         $deliveryResultIdentifier,
         $test,
         $item,
         array $itemVariables,
         $callIdItem
-    ) {
+    )
+    {
         $dataToInsert = [];
-        
+
         foreach ($itemVariables as $itemVariable) {
             $dataToInsert[] = $this->prepareItemVariableData(
                 $deliveryResultIdentifier,
@@ -189,7 +196,7 @@ class RdsResultStorage extends ConfigurableService
                 $callIdItem
             );
         }
-        
+
         $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
@@ -273,8 +280,8 @@ class RdsResultStorage extends ConfigurableService
         $qb = $this->getQueryBuilder()
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN(:ids)')
-            ->orWhere(self::CALL_ID_TEST_COLUMN .' IN(:ids)')
+            ->andWhere(self::CALL_ID_ITEM_COLUMN . ' IN(:ids)')
+            ->orWhere(self::CALL_ID_TEST_COLUMN . ' IN(:ids)')
             ->orderBy(self::VARIABLES_TABLE_ID)
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
@@ -301,7 +308,7 @@ class RdsResultStorage extends ConfigurableService
 
         $inQuery = implode(',', array_fill(0, count($deliveryResultIdentifier), '?'));
         $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-    WHERE ' . self::VARIABLES_FK_COLUMN . ' IN ('.$inQuery.') ORDER BY ' . self::VARIABLES_TABLE_ID;
+    WHERE ' . self::VARIABLES_FK_COLUMN . ' IN (' . $inQuery . ') ORDER BY ' . self::VARIABLES_TABLE_ID;
 
         $variables = $this->getPersistence()->query($sql, $deliveryResultIdentifier);
         $variables = $variables->fetchAll(\PDO::FETCH_ASSOC);
@@ -346,7 +353,7 @@ class RdsResultStorage extends ConfigurableService
         $getter = 'get' . ucfirst($property);
 
         $variableValue = $this->unserializeVariableValue($variableValue);
-        if(is_callable([$variableValue, $getter])){
+        if (is_callable([$variableValue, $getter])) {
             return $variableValue->$getter();
         }
 
@@ -407,7 +414,7 @@ class RdsResultStorage extends ConfigurableService
         $params = array($deliveryResultIdentifier);
         $results = $this->getPersistence()->query($sql, $params);
         foreach ($results as $value) {
-            if(isset($value[self::CALL_ID_ITEM_COLUMN])){
+            if (isset($value[self::CALL_ID_ITEM_COLUMN])) {
                 $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
             }
         }
@@ -424,7 +431,7 @@ class RdsResultStorage extends ConfigurableService
         $params = array($deliveryResultIdentifier);
         $results = $this->getPersistence()->query($sql, $params);
         foreach ($results as $value) {
-            if(isset($value[self::CALL_ID_TEST_COLUMN])){
+            if (isset($value[self::CALL_ID_TEST_COLUMN])) {
                 $returnValue[] = $value[self::CALL_ID_TEST_COLUMN];
             }
         }
@@ -475,42 +482,66 @@ class RdsResultStorage extends ConfigurableService
     {
         $returnValue = array();
         $params = array();
-        $ids_sql='';
-        if (array_key_exists('start_time', $options) or array_key_exists('end_time', $options)){
-            $ids_sql = 'SELECT '.DeliveryMonitoringService::DELIVERY_EXECUTION_ID.' from delivery_monitoring 
-            WHERE start_time>='.$options['start_time']. 'AND start_time<='.$options['end_time'];
 
-            if(count($delivery)>0){
-                $ids_sql .= "AND delivery_id in('". implode("','", $delivery)."')";
+
+        $ids = [];
+        if (array_key_exists('startfrom', $options) || array_key_exists('endfrom', $options)
+            || array_key_exists('startto', $options) || array_key_exists('endto', $options)) {
+
+            $ex_ids = ServiceProxy::singleton()->getExecutionsByDelivery(new core_kernel_classes_Resource($delivery[0]));
+            foreach ($ex_ids as $execution) {
+                if (array_key_exists('startfrom', $options) && $options['startfrom'] !== false) {
+                        if (\tao_helpers_Date::getTimeStamp($execution->getStartTime(), false) <= $options['startfrom']) {
+                            continue;
+                        }
+
+                }
+                if (array_key_exists('startto', $options) && $options['startto'] !== false) {
+                    if (\tao_helpers_Date::getTimeStamp($execution->getStartTime(), false) >= $options['startto']) {
+                        continue;
+                    }
+
+                }
+                if (array_key_exists('endfrom', $options) && $options['endfrom'] !== false) {
+                    if (\tao_helpers_Date::getTimeStamp($execution->getFinishTime(), false) <= $options['endfrom']) {
+                        continue;
+                    }
+
+                }
+                if (array_key_exists('endto', $options) && $options['endto'] !== false) {
+                    if (\tao_helpers_Date::getTimeStamp($execution->getFinishTime(), false) >= $options['endto']) {
+                        continue;
+                    }
+
+                }
+                $ids[] = $execution->getIdentifier();
             }
 
-            $ids_sql = $this->getPersistence()->query($ids_sql, $params);
 
         }
 
         $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
 
 
-
-        if (count($delivery) > 0 && empty($ids_sql)) {
+        if (count($delivery) > 0 && !isset($ex_ids)) {
             $sql .= ' WHERE ';
             $inQuery = implode(',', array_fill(0, count($delivery), '?'));
             $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
             $params = array_merge($params, $delivery);
-        }else{
-            $sql .= ' WHERE '.self::RESULTS_TABLE_ID." in (".$ids_sql.")";
+        } else {
+            $sql .= ' WHERE ' . self::RESULTS_TABLE_ID . " in ('" . implode("','", $ids) . "')";
         }
 
 
-        if(isset($options['order']) && in_array($options['order'], [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID])){
+        if (isset($options['order']) && in_array($options['order'], [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID])) {
             $sql .= ' ORDER BY ' . $options['order'];
-            if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
+            if (isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
                 $sql .= ' ' . $options['orderdir'];
             }
         }
-        if(isset($options['offset']) || isset($options['limit'])){
-            $offset = (isset($options['offset']))?$options['offset']:0;
-            $limit = (isset($options['limit']))?$options['limit']:1000;
+        if (isset($options['offset']) || isset($options['limit'])) {
+            $offset = (isset($options['offset'])) ? $options['offset'] : 0;
+            $limit = (isset($options['limit'])) ? $options['limit'] : 1000;
             $sql = $this->getPersistence()->getPlatForm()->limitStatement($sql, $limit, $offset);
         }
         $results = $this->getPersistence()->query($sql, $params);
@@ -525,14 +556,15 @@ class RdsResultStorage extends ConfigurableService
 
     }
 
-    public function countResultByDelivery($delivery, $options=[]){
-        $ids_sql='';
-        if(isset($options['start_time'])){
-            $ids_sql = 'SELECT '.DeliveryMonitoringService::DELIVERY_EXECUTION_ID.' from delivery_monitoring 
-            WHERE start_time>='.$options['start_time']. 'AND start_time<='.$options['end_time'];
+    public function countResultByDelivery($delivery, $options = [])
+    {
+        $ids_sql = '';
+        if (isset($options['start_time'])) {
+            $ids_sql = 'SELECT ' . DeliveryMonitoringService::DELIVERY_EXECUTION_ID . ' from delivery_monitoring 
+            WHERE start_time>=' . $options['start_time'] . 'AND start_time<=' . $options['end_time'];
 
-            if(count($delivery)>0){
-                $ids_sql .= "AND delivery_id in('". implode("','", $delivery)."')";
+            if (count($delivery) > 0) {
+                $ids_sql .= "AND delivery_id in('" . implode("','", $delivery) . "')";
             }
 
         }
@@ -545,13 +577,12 @@ class RdsResultStorage extends ConfigurableService
             $inQuery = implode(',', array_fill(0, count($delivery), '?'));
             $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
             $params = array_merge($params, $delivery);
-        }else{
-            $sql .= ' WHERE '.self::RESULTS_TABLE_ID." in (".$ids_sql.")";
+        } else {
+            $sql .= ' WHERE ' . self::RESULTS_TABLE_ID . " in (" . $ids_sql . ")";
         }
 
         return $this->getPersistence()->query($sql, $params)->fetchColumn();
     }
-
 
 
     /**
@@ -582,16 +613,17 @@ class RdsResultStorage extends ConfigurableService
 
 
     /**
-     * 
+     *
      * @param unknown $a
      * @param unknown $b
      * @return number
      */
-    public static function sortTimeStamps($a, $b) {
+    public static function sortTimeStamps($a, $b)
+    {
         list($usec, $sec) = explode(" ", $a);
-        $floata = ((float) $usec + (float) $sec);
+        $floata = ((float)$usec + (float)$sec);
         list($usec, $sec) = explode(" ", $b);
-        $floatb = ((float) $usec + (float) $sec);
+        $floatb = ((float)$usec + (float)$sec);
         //common_Logger::i($a." ".$floata);
         //common_Logger::i($b. " ".$floatb);
         //the callback is expecting an int returned, for the case where the difference is of less than a second
@@ -612,9 +644,10 @@ class RdsResultStorage extends ConfigurableService
         $item,
         \taoResultServer_models_classes_Variable $itemVariable,
         $callIdItem
-    ) {
+    )
+    {
         //ensure that variable have epoch
-        if(!$itemVariable->isSetEpoch()){
+        if (!$itemVariable->isSetEpoch()) {
             $itemVariable->setEpoch(microtime());
         }
 
@@ -633,8 +666,9 @@ class RdsResultStorage extends ConfigurableService
         $test,
         \taoResultServer_models_classes_Variable $testVariable,
         $callIdTest
-    ) {
-        if (!$testVariable->isSetEpoch()){
+    )
+    {
+        if (!$testVariable->isSetEpoch()) {
             $testVariable->setEpoch(microtime());
         }
 
