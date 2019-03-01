@@ -82,6 +82,15 @@ class RdsResultStorage extends ConfigurableService
     const OPTION_PERSISTENCE = 'persistence';
 
     /**
+     *  period FILTER variables
+     */
+    const PARAM_START_FROM = 'startfrom';
+    const PARAM_START_TO = 'startto';
+    const PARAM_END_FROM = 'endfrom';
+    const PARAM_END_TO = 'endto';
+
+
+    /**
      * @return \common_persistence_SqlPersistence
      * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
      */
@@ -482,34 +491,33 @@ class RdsResultStorage extends ConfigurableService
     {
         $returnValue = array();
         $params = array();
-
-
         $ids = [];
-        if (array_key_exists('startfrom', $options) || array_key_exists('endfrom', $options)
-            || array_key_exists('startto', $options) || array_key_exists('endto', $options)) {
+
+        if (array_key_exists(self::PARAM_START_FROM, $options) || array_key_exists(self::PARAM_END_FROM, $options)
+            || array_key_exists(self::PARAM_START_TO, $options) || array_key_exists(self::PARAM_END_TO, $options)) {
 
             $ex_ids = ServiceProxy::singleton()->getExecutionsByDelivery(new core_kernel_classes_Resource($delivery[0]));
             foreach ($ex_ids as $execution) {
-                if (array_key_exists('startfrom', $options) && $options['startfrom'] !== false) {
-                        if (\tao_helpers_Date::getTimeStamp($execution->getStartTime(), false) <= $options['startfrom']) {
+                if (array_key_exists(self::PARAM_START_FROM, $options) && $options[self::PARAM_START_FROM] !== false) {
+                        if (\tao_helpers_Date::getTimeStamp($execution->getStartTime(), false) <= $options[self::PARAM_START_FROM]) {
                             continue;
                         }
 
                 }
-                if (array_key_exists('startto', $options) && $options['startto'] !== false) {
-                    if (\tao_helpers_Date::getTimeStamp($execution->getStartTime(), false) >= $options['startto']) {
+                if (array_key_exists(self::PARAM_START_TO, $options) && $options[self::PARAM_START_TO] !== false) {
+                    if (\tao_helpers_Date::getTimeStamp($execution->getStartTime(), false) >= $options[self::PARAM_START_TO]) {
                         continue;
                     }
 
                 }
-                if (array_key_exists('endfrom', $options) && $options['endfrom'] !== false) {
-                    if (\tao_helpers_Date::getTimeStamp($execution->getFinishTime(), false) <= $options['endfrom']) {
+                if (array_key_exists(self::PARAM_END_FROM, $options) && $options[self::PARAM_END_FROM] !== false) {
+                    if (\tao_helpers_Date::getTimeStamp($execution->getFinishTime(), false) <= $options[self::PARAM_END_FROM]) {
                         continue;
                     }
 
                 }
-                if (array_key_exists('endto', $options) && $options['endto'] !== false) {
-                    if (\tao_helpers_Date::getTimeStamp($execution->getFinishTime(), false) >= $options['endto']) {
+                if (array_key_exists(self::PARAM_END_TO, $options) && $options[self::PARAM_END_TO] !== false) {
+                    if (\tao_helpers_Date::getTimeStamp($execution->getFinishTime(), false) >= $options[self::PARAM_END_TO]) {
                         continue;
                     }
 
