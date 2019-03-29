@@ -24,16 +24,16 @@ namespace oat\taoOutcomeRds\scripts\update;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\tao\scripts\update\OntologyUpdater;
 
-class Updater extends \common_ext_ExtensionUpdater 
+class Updater extends \common_ext_ExtensionUpdater
 {
 
 	/**
-     * 
+     *
      * @param string $currentVersion
      * @return string $versionUpdatedTo
      */
     public function update($initialVersion) {
-        
+
         $currentVersion = $initialVersion;
 		if ($currentVersion == '1.0' || $currentVersion == '1.0.1' || $currentVersion == '1.0.2' ) {
 			$currentVersion = '1.0.3';
@@ -120,7 +120,7 @@ class Updater extends \common_ext_ExtensionUpdater
 			$currentVersion = '1.1.0';
 		}
 		$this->setVersion($currentVersion);
-		
+
 		$this->skip('1.1.0', '2.1.0');
 
 		if ($this->isVersion('2.1.0')) {
@@ -131,6 +131,6 @@ class Updater extends \common_ext_ExtensionUpdater
             $this->setVersion('2.2.0');
         }
 
-		$this->skip('2.2.0','5.0.1');
+		$this->skip('2.2.0','5.1.0');
 	}
 }
