@@ -20,6 +20,7 @@
 
 namespace oat\taoOutcomeRds\scripts\install;
 
+use Doctrine\DBAL\DBALException;
 use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 
@@ -59,7 +60,7 @@ class AddIndexes extends AbstractAction
                 $persistence->exec($query);
             }
 
-            } catch(\PDOException $e){
+            } catch(DBALException $e){
                 \common_Logger::w($e->getMessage());
                 return \common_report_Report::createFailure(__('Something went wrong during indexes addition'));
             }
