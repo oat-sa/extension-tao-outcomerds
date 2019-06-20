@@ -55,6 +55,7 @@ class RdsResultStorage extends ConfigurableService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+    const CREATED_AT = "created_at";
 
     const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
     const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
@@ -116,13 +117,13 @@ class RdsResultStorage extends ConfigurableService
             self::VARIABLES_TABLENAME,
             $this->prepareTestVariableData(
                 $deliveryResultIdentifier,
-                $test, 
+                $test,
                 $testVariable,
                 $callIdTest
             )
         );
     }
-    
+
     public function storeTestVariables(
         $deliveryResultIdentifier,
         $test,
@@ -130,7 +131,7 @@ class RdsResultStorage extends ConfigurableService
         $callIdTest
     ) {
         $dataToInsert = [];
-        
+
         foreach ($testVariables as $testVariable) {
             $dataToInsert[] = $this->prepareTestVariableData(
                 $deliveryResultIdentifier,
@@ -139,7 +140,7 @@ class RdsResultStorage extends ConfigurableService
                 $callIdTest
             );
         };
-        
+
         $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
@@ -170,7 +171,7 @@ class RdsResultStorage extends ConfigurableService
             )
         );
     }
-    
+
     public function storeItemVariables(
         $deliveryResultIdentifier,
         $test,
@@ -179,7 +180,7 @@ class RdsResultStorage extends ConfigurableService
         $callIdItem
     ) {
         $dataToInsert = [];
-        
+
         foreach ($itemVariables as $itemVariable) {
             $dataToInsert[] = $this->prepareItemVariableData(
                 $deliveryResultIdentifier,
@@ -189,7 +190,7 @@ class RdsResultStorage extends ConfigurableService
                 $callIdItem
             );
         }
-        
+
         $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
@@ -275,7 +276,7 @@ class RdsResultStorage extends ConfigurableService
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN(:ids)')
             ->orWhere(self::CALL_ID_TEST_COLUMN .' IN(:ids)')
-            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->orderBy(self::CREATED_AT)
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -301,7 +302,7 @@ class RdsResultStorage extends ConfigurableService
 
         $inQuery = implode(',', array_fill(0, count($deliveryResultIdentifier), '?'));
         $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-    WHERE ' . self::VARIABLES_FK_COLUMN . ' IN ('.$inQuery.') ORDER BY ' . self::VARIABLES_TABLE_ID;
+    WHERE ' . self::VARIABLES_FK_COLUMN . ' IN ('.$inQuery.') ORDER BY ' . self::CREATED_AT;
 
         $variables = $this->getPersistence()->query($sql, $deliveryResultIdentifier);
         $variables = $variables->fetchAll(\PDO::FETCH_ASSOC);
@@ -553,7 +554,7 @@ class RdsResultStorage extends ConfigurableService
 
 
     /**
-     * 
+     *
      * @param unknown $a
      * @param unknown $b
      * @return number
@@ -590,12 +591,14 @@ class RdsResultStorage extends ConfigurableService
         }
 
         return [
+            self::VARIABLES_TABLE_ID => $this->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
             self::TEST_COLUMN => $test,
             self::ITEM_COLUMN => $item,
             self::CALL_ID_ITEM_COLUMN => $callIdItem,
             self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier(),
-            self::VARIABLE_VALUE => $this->serializeVariableValue($itemVariable)
+            self::VARIABLE_VALUE => $this->serializeVariableValue($itemVariable),
+            self::CREATED_AT => $this->getPersistence()->getPlatform()->getNowExpression(),
         ];
     }
 
@@ -610,11 +613,13 @@ class RdsResultStorage extends ConfigurableService
         }
 
         return [
+            self::VARIABLES_TABLE_ID => $this->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
             self::TEST_COLUMN => $test,
             self::CALL_ID_TEST_COLUMN => $callIdTest,
             self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier(),
-            self::VARIABLE_VALUE => $this->serializeVariableValue($testVariable)
+            self::VARIABLE_VALUE => $this->serializeVariableValue($testVariable),
+            self::CREATED_AT => $this->getPersistence()->getPlatform()->getNowExpression(),
         ];
     }
 
@@ -636,6 +641,16 @@ class RdsResultStorage extends ConfigurableService
         $object->variable = clone $resultVariable;
 
         return $object;
+    }
+
+    /**
+     * Generates a unique, not auto-increment based, primary key.
+     *
+     * @return string
+     */
+    public function getUniquePrimaryKey()
+    {
+        return strrev(uniqid('', true));
     }
 
     /**
