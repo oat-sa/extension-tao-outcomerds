@@ -55,6 +55,7 @@ class RdsResultStorage extends ConfigurableService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+    const CREATED_AT = "created_at";
 
     const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
     const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
