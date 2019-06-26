@@ -39,13 +39,11 @@ class RdsResultStorage extends ConfigurableService
 
     /**
      * Constants for the database creation and data access
-     *
      */
     const RESULTS_TABLENAME = "results_storage";
     const RESULTS_TABLE_ID = 'result_id';
     const TEST_TAKER_COLUMN = 'test_taker';
     const DELIVERY_COLUMN = 'delivery';
-
 
     const VARIABLES_TABLENAME = "variables_storage";
     const VARIABLES_TABLE_ID = "variable_id";
@@ -77,6 +75,11 @@ class RdsResultStorage extends ConfigurableService
 
     /** result storage persistence identifier */
     const OPTION_PERSISTENCE = 'persistence';
+
+    // Fields for results retrieval.
+    const FIELD_DELIVERY_RESULT = 'deliveryResultIdentifier';
+    const FIELD_TEST_TAKER = 'testTakerIdentifier';
+    const FIELD_DELIVERY = 'deliveryIdentifier';
 
     /**
      * @return \common_persistence_SqlPersistence
@@ -443,8 +446,8 @@ class RdsResultStorage extends ConfigurableService
         $results = $this->getPersistence()->query($sql);
         foreach ($results as $value) {
             $returnValue[] = array(
-                "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
-                "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN]
+                self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
+                self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN]
             );
         }
         return $returnValue;
@@ -461,8 +464,8 @@ class RdsResultStorage extends ConfigurableService
         $results = $this->getPersistence()->query($sql);
         foreach ($results as $value) {
             $returnValue[] = array(
-                "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
-                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
+                self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
+                self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN]
             );
         }
         return $returnValue;
@@ -473,6 +476,10 @@ class RdsResultStorage extends ConfigurableService
      */
     public function getResultByDelivery($delivery, $options = array())
     {
+        if (!is_array($delivery)) {
+            $delivery = [$delivery];
+        }
+
         $returnValue = array();
         $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
         $params = array();
@@ -500,9 +507,9 @@ class RdsResultStorage extends ConfigurableService
         $results = $this->getPersistence()->query($sql, $params);
         foreach ($results as $value) {
             $returnValue[] = array(
-                "deliveryResultIdentifier" => $value[self::RESULTS_TABLE_ID],
-                "testTakerIdentifier" => $value[self::TEST_TAKER_COLUMN],
-                "deliveryIdentifier" => $value[self::DELIVERY_COLUMN]
+                self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
+                self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN],
+                self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN]
             );
         }
         return $returnValue;
@@ -510,6 +517,10 @@ class RdsResultStorage extends ConfigurableService
     }
 
     public function countResultByDelivery($delivery){
+        if (!is_array($delivery)) {
+            $delivery = [$delivery];
+        }
+
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME;
         $params = array();
 
