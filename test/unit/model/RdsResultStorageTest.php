@@ -30,7 +30,7 @@ use Prophecy\Argument;
 /**
  * Test Rds result storage
  *
- * @author Antoine Robin, <antoine.robin@vesperiagroup.com>
+ * @author  Antoine Robin, <antoine.robin@vesperiagroup.com>
  * @package taoOutcomeRds
  *
  */
@@ -128,7 +128,7 @@ class RdsResultStorageTest extends TestCase
         $this->instance->storeRelatedDelivery($deliveryResultIdentifier2, $deliveryIdentifier2);
 
         $this->assertEquals(2, $this->instance->countResultByDelivery([]));
-        $this->assertEquals(1, $this->instance->countResultByDelivery([$deliveryIdentifier1]));
+        $this->assertEquals(1, $this->instance->countResultByDelivery($deliveryIdentifier1));
     }
 
     /**
@@ -152,9 +152,9 @@ class RdsResultStorageTest extends TestCase
 
         foreach ($expected as &$fields) {
             $fields = [
-                'deliveryResultIdentifier' => $ids[$fields[0]],
-                'testTakerIdentifier' => $ids[$fields[1]],
-                'deliveryIdentifier' => $ids[$fields[2]],
+                RdsResultStorage::FIELD_DELIVERY_RESULT => $ids[$fields[0]],
+                RdsResultStorage::FIELD_TEST_TAKER => $ids[$fields[1]],
+                RdsResultStorage::FIELD_DELIVERY => $ids[$fields[2]],
             ];
         }
 
@@ -217,7 +217,7 @@ class RdsResultStorageTest extends TestCase
             ],
             'not existing delivery' => [
                 $ids,
-                ['not existing delivery'],
+                'not existing delivery',
                 [],
                 [],
             ],
