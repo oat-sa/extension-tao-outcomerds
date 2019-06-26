@@ -18,13 +18,14 @@
  *
  *
  */
+
 namespace oat\taoOutcomeRds\test\unit\model;
 
+use common_persistence_Manager;
 use oat\generis\test\TestCase;
 use oat\taoOutcomeRds\model\RdsResultStorage;
-use Prophecy\Argument;
 use oat\taoOutcomeRds\scripts\install\createTables;
-use common_persistence_Manager;
+use Prophecy\Argument;
 
 /**
  * Test Rds result storage
@@ -35,8 +36,6 @@ use common_persistence_Manager;
  */
 class RdsResultStorageTest extends TestCase
 {
-
-
     /**
      * @var RdsResultStorage
      */
@@ -63,7 +62,6 @@ class RdsResultStorageTest extends TestCase
     {
         $this->instance = null;
     }
-
 
     public function testStoreRelatedTestTaker()
     {
@@ -93,10 +91,8 @@ class RdsResultStorageTest extends TestCase
         $itemVariable = new \taoResultServer_models_classes_OutcomeVariable();
         $itemVariable->setBaseType('float');
         $itemVariable->setCardinality('multiple');
-        $itemVariable->setEpoch(microtime());
         $itemVariable->setIdentifier('Identifier');
         $itemVariable->setValue('MyValue');
-
 
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
         $tmp = $this->instance->getVariable($callId, 'Identifier');
@@ -115,7 +111,6 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals('Identifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
         $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
-
     }
 
     public function testStoreTestVariable()
@@ -127,10 +122,8 @@ class RdsResultStorageTest extends TestCase
         $testVariable = new \taoResultServer_models_classes_OutcomeVariable();
         $testVariable->setBaseType('float');
         $testVariable->setCardinality('multiple');
-        $testVariable->setEpoch(microtime());
         $testVariable->setIdentifier('TestIdentifier');
         $testVariable->setValue('MyValue');
-
 
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
         $tmp = $this->instance->getVariable($callId, 'TestIdentifier');
@@ -147,8 +140,5 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals('TestIdentifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
-
-
     }
-
 }

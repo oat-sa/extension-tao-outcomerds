@@ -22,10 +22,9 @@ namespace oat\taoOutcomeRds\model;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
-use \core_kernel_classes_Resource;
-use oat\oatbox\service\ConfigurableService;
 
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
@@ -35,6 +34,7 @@ class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
     use ResultDeliveryExecutionDelete;
+
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
 
     /**
