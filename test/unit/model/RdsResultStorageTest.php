@@ -135,12 +135,12 @@ class RdsResultStorageTest extends TestCase
     /**
      * @dataProvider resultByDeliveryToTest
      *
-     * @param $ids
-     * @param $selected
-     * @param $options
-     * @param $expected
+     * @param array $ids
+     * @param array|string $selected
+     * @param array $options
+     * @param array $expected
      */
-    public function testGetResultByDelivery($ids, $selected, $options, $expected)
+    public function testGetResultByDelivery(array $ids, $selected, array $options, array $expected)
     {
         $this->instance->storeRelatedTestTaker($ids['dr11'], $ids['tt1']);
         $this->instance->storeRelatedDelivery($ids['dr11'], $ids['d1']);
