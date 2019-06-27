@@ -101,13 +101,10 @@ class RdsResultStorage extends ConfigurableService
     /**
      * Store the test variable in table and its value in key/value storage
      *
-     * @param type $deliveryResultIdentifier
-     *            lis_result_sourcedid
-     * @param type $test
-     *            ignored
+     * @param string $deliveryResultIdentifier
+     * @param string $test
      * @param \taoResultServer_models_classes_Variable $testVariable
-     * @param type $callIdTest
-     *            ignored
+     * @param string $callIdTest
      */
     public function storeTestVariable(
         $deliveryResultIdentifier,
