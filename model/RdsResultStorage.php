@@ -158,10 +158,12 @@ class RdsResultStorage extends ConfigurableService
      */
     public function storeRelatedData($deliveryResultIdentifier, $relatedField, $relatedIdentifier)
     {
-        $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
-            ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
-        $params = array($deliveryResultIdentifier);
-        if ($this->getPersistence()->query($sql, $params)->fetchColumn() == 0) {
+        $qb = $this->getQueryBuilder()
+            ->select('COUNT(*)')
+            ->from(self::RESULTS_TABLENAME)
+            ->andWhere(self::RESULTS_TABLE_ID .' = :id')
+            ->setParameter('id', $deliveryResultIdentifier);
+        if ($qb->execute()->fetchColumn() == 0) {
             $this->getPersistence()->insert(
                 self::RESULTS_TABLENAME,
                 [
@@ -185,13 +187,11 @@ class RdsResultStorage extends ConfigurableService
         $qb = $this->getQueryBuilder()
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN(:ids)')
-            ->orWhere(self::CALL_ID_TEST_COLUMN .' IN(:ids)')
+            ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids) OR ' . self::CALL_ID_TEST_COLUMN .' IN (:ids)')
             ->orderBy(self::VARIABLES_TABLE_ID)
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
-
         foreach ($qb->execute()->fetchAll() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
@@ -204,56 +204,56 @@ class RdsResultStorage extends ConfigurableService
         if (!is_array($deliveryResultIdentifier)) {
             $deliveryResultIdentifier = [$deliveryResultIdentifier];
         }
-        $returnValue = array();
 
-        $inQuery = implode(',', array_fill(0, count($deliveryResultIdentifier), '?'));
-        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-    WHERE ' . self::VARIABLES_FK_COLUMN . ' IN ('.$inQuery.') ORDER BY ' . self::VARIABLES_TABLE_ID;
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::VARIABLES_FK_COLUMN .' IN (:ids)')
+            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
-        $variables = $this->getPersistence()->query($sql, $deliveryResultIdentifier);
-        $variables = $variables->fetchAll(\PDO::FETCH_ASSOC);
-
-        foreach ($variables as $variable) {
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
+
         return $returnValue;
     }
 
     public function getVariable($callId, $variableIdentifier)
     {
-        $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE (' . self::CALL_ID_ITEM_COLUMN . ' = ? OR ' . self::CALL_ID_TEST_COLUMN . ' = ?)
-        AND ' . self::VARIABLE_IDENTIFIER . ' = ?';
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::CALL_ID_ITEM_COLUMN .' = :callId OR ' . self::CALL_ID_TEST_COLUMN . ' = :callId')
+            ->andWhere(self::VARIABLE_IDENTIFIER . ' = :variableId')
+            ->setParameter('callId', $callId)
+            ->setParameter('variableId', $variableIdentifier);
 
-        $params = array($callId, $callId, $variableIdentifier);
-        $variables = $this->getPersistence()->query($sql, $params);
-
-        $returnValue = array();
-
-        // for each variable we construct the array
-        foreach ($variables as $variable) {
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]] = $this->getResultRow($variable);
         }
 
         return $returnValue;
-
     }
 
     public function getVariableProperty($variableId, $property)
     {
-        $sql = 'SELECT ' . self::VARIABLE_VALUE . ' FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE ' . self::VARIABLES_TABLE_ID . ' = ?';
-        $params = array($variableId);
-        $variableValue = $this->getPersistence()->query($sql, $params)->fetchColumn();
-        $getter = 'get' . ucfirst($property);
+        $qb = $this->getQueryBuilder()
+            ->select(self::VARIABLE_VALUE)
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::VARIABLES_TABLE_ID .' = :variableId')
+            ->setParameter('variableId', $variableId);
 
+        $variableValue = $qb->execute()->fetchColumn();
         $variableValue = $this->unserializeVariableValue($variableValue);
+        $getter = 'get' . ucfirst($property);
         if(is_callable([$variableValue, $getter])) {
             return $variableValue->$getter();
         }
 
         return null;
-
     }
 
     public function getTestTaker($deliveryResultIdentifier)
@@ -275,9 +275,13 @@ class RdsResultStorage extends ConfigurableService
      */
     public function getRelatedData($deliveryResultIdentifier, $field)
     {
-        $sql = 'SELECT ' . $field . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
-        $params = array($deliveryResultIdentifier);
-        return $this->getPersistence()->query($sql, $params)->fetchColumn();
+        $qb = $this->getQueryBuilder()
+            ->select($field)
+            ->from(self::RESULTS_TABLENAME)
+            ->andWhere(self::RESULTS_TABLE_ID .' = :id')
+            ->setParameter('id', $deliveryResultIdentifier);
+
+        return $qb->execute()->fetchColumn();
     }
 
     /**
@@ -286,10 +290,12 @@ class RdsResultStorage extends ConfigurableService
      */
     public function getAllCallIds()
     {
-        $returnValue = array();
-        $sql = 'SELECT DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' . self::CALL_ID_TEST_COLUMN . ', ' . self::VARIABLES_FK_COLUMN . ' FROM ' . self::VARIABLES_TABLENAME;
-        $results = $this->getPersistence()->query($sql);
-        foreach ($results as $value) {
+        $qb = $this->getQueryBuilder()
+            ->select('DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' . self::CALL_ID_TEST_COLUMN . ', ' . self::VARIABLES_FK_COLUMN)
+            ->from(self::VARIABLES_TABLENAME);
+
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $value) {
             $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "") ? $value[self::CALL_ID_ITEM_COLUMN] : $value[self::CALL_ID_TEST_COLUMN];
         }
 
@@ -308,13 +314,14 @@ class RdsResultStorage extends ConfigurableService
 
     public function getRelatedCallIds($deliveryResultIdentifier, $field)
     {
-        $returnValue = array();
+        $qb = $this->getQueryBuilder()
+            ->select('DISTINCT(' . $field . ')')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::VARIABLES_FK_COLUMN . ' = :id AND ' . $field . ' <> ""')
+            ->setParameter('id', $deliveryResultIdentifier);
 
-        $sql = 'SELECT DISTINCT(' . $field . ') FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . $field . ' <> \'\'';
-        $params = array($deliveryResultIdentifier);
-        $results = $this->getPersistence()->query($sql, $params);
-        foreach ($results as $value) {
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $value) {
             if(isset($value[$field])){
                 $returnValue[] = $value[$field];
             }
@@ -355,59 +362,83 @@ class RdsResultStorage extends ConfigurableService
         if (!is_array($delivery)) {
             $delivery = [$delivery];
         }
-
-        $returnValue = array();
-        $sql = 'SELECT * FROM ' . self::RESULTS_TABLENAME;
-        $params = array();
-
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::RESULTS_TABLENAME)
+            ->orderBy($this->getOrderField($options), $this->getOrderDirection($options))
+            ->setMaxResults(isset($options['limit']) ? $options['limit'] : 1000)
+            ->setFirstResult(isset($options['offset']) ? $options['offset'] : 0);
 
         if (count($delivery) > 0) {
-            $sql .= ' WHERE ';
-            $inQuery = implode(',', array_fill(0, count($delivery), '?'));
-            $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
-            $params = array_merge($params, $delivery);
+            $qb
+                ->andWhere(self::DELIVERY_COLUMN .' IN (:delivery)')
+                ->setParameter(':delivery', $delivery, Connection::PARAM_STR_ARRAY);
         }
 
-
-        if(isset($options['order']) && in_array($options['order'], [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID])){
-            $sql .= ' ORDER BY ' . $options['order'];
-            if(isset($options['orderdir']) && (strtolower($options['orderdir']) === 'asc' || strtolower($options['orderdir']) === 'desc')) {
-                $sql .= ' ' . $options['orderdir'];
-            }
-        }
-        if(isset($options['offset']) || isset($options['limit'])){
-            $offset = (isset($options['offset']))?$options['offset']:0;
-            $limit = (isset($options['limit']))?$options['limit']:1000;
-            $sql = $this->getPersistence()->getPlatForm()->limitStatement($sql, $limit, $offset);
-        }
-        $results = $this->getPersistence()->query($sql, $params);
-        foreach ($results as $value) {
-            $returnValue[] = array(
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $value) {
+            $returnValue[] = [
                 self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
                 self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN],
-                self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN]
-            );
+                self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN],
+            ];
         }
 
         return $returnValue;
     }
 
-    public function countResultByDelivery($delivery){
+    /**
+     * Generates and sanitize ORDER BY field.
+     *
+     * @param array $options
+     *
+     * @return string
+     */
+    protected function getOrderField(array $options)
+    {
+        $allowedOrderFields = [self::DELIVERY_COLUMN, self::TEST_TAKER_COLUMN, self::RESULTS_TABLE_ID];
+
+        if (isset($options['order']) && in_array($options['order'], $allowedOrderFields)) {
+            return $options['order'];
+        }
+
+        return self::RESULTS_TABLE_ID;
+    }
+
+    /**
+     * Generates and sanitize ORDER BY direction.
+     *
+     * @param array $options
+     *
+     * @return string
+     */
+    protected function getOrderDirection(array $options)
+    {
+        $allowedOrderDirections = ['ASC', 'DESC'];
+
+        if (isset($options['orderdir']) && in_array(strtoupper($options['orderdir']), $allowedOrderDirections)) {
+            return $options['orderdir'];
+        }
+
+        return 'ASC';
+    }
+
+    public function countResultByDelivery($delivery)
+    {
         if (!is_array($delivery)) {
             $delivery = [$delivery];
         }
-
-        $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME;
-        $params = array();
+        $qb = $this->getQueryBuilder()
+            ->select('COUNT(*)')
+            ->from(self::RESULTS_TABLENAME);
 
         if (count($delivery) > 0) {
-            $sql .= ' WHERE ';
-            $inQuery = implode(',', array_fill(0, count($delivery), '?'));
-            $sql .= self::DELIVERY_COLUMN . ' IN (' . $inQuery . ')';
-            $params = array_merge($params, $delivery);
+            $qb
+                ->andWhere(self::DELIVERY_COLUMN .' IN (:delivery)')
+                ->setParameter('delivery', $delivery, Connection::PARAM_STR_ARRAY);
         }
 
-        return $this->getPersistence()->query($sql, $params)->fetchColumn();
+        return $qb->execute()->fetchColumn();
     }
 
     public function deleteResult($deliveryResultIdentifier)
