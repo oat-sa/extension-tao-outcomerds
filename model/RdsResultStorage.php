@@ -83,15 +83,7 @@ class RdsResultStorage extends ConfigurableService
 
     public function storeTestVariable($deliveryResultIdentifier, $test, Variable $testVariable, $callIdTest)
     {
-        $this->getPersistence()->insert(
-            self::VARIABLES_TABLENAME,
-            $this->prepareTestVariableData(
-                $deliveryResultIdentifier,
-                $test,
-                $testVariable,
-                $callIdTest
-            )
-        );
+        $this->storeTestVariables($deliveryResultIdentifier, $test, [$testVariable], $callIdTest);
     }
 
     /**
@@ -120,17 +112,7 @@ class RdsResultStorage extends ConfigurableService
      */
     public function storeItemVariable($deliveryResultIdentifier, $test, $item, Variable $itemVariable, $callIdItem)
     {
-        //store value in all case
-        $this->getPersistence()->insert(
-            self::VARIABLES_TABLENAME,
-            $this->prepareItemVariableData(
-                $deliveryResultIdentifier,
-                $test,
-                $item,
-                $itemVariable,
-                $callIdItem
-            )
-        );
+        $this->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable], $callIdItem);
     }
 
     /**
@@ -160,25 +142,21 @@ class RdsResultStorage extends ConfigurableService
 
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
     {
-        $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
-            ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
-        $params = array($deliveryResultIdentifier);
-        if ($this->getPersistence()->query($sql, $params)->fetchColumn() == 0) {
-            $this->getPersistence()->insert(
-                self::RESULTS_TABLENAME,
-                array(
-                    self::TEST_TAKER_COLUMN => $testTakerIdentifier,
-                    self::RESULTS_TABLE_ID => $deliveryResultIdentifier
-                )
-            );
-        } else {
-            $sqlUpdate = 'UPDATE ' . self::RESULTS_TABLENAME . ' SET ' . self::TEST_TAKER_COLUMN . ' = ? WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
-            $paramsUpdate = array($testTakerIdentifier, $deliveryResultIdentifier);
-            $this->getPersistence()->exec($sqlUpdate, $paramsUpdate);
-        }
+        $this->storeRelatedData($deliveryResultIdentifier, self::TEST_TAKER_COLUMN, $testTakerIdentifier);
     }
 
     public function storeRelatedDelivery($deliveryResultIdentifier, $deliveryIdentifier)
+    {
+        $this->storeRelatedData($deliveryResultIdentifier, self::DELIVERY_COLUMN, $deliveryIdentifier);
+    }
+
+    /**
+     * Store Delivery corresponding to the current test
+     * @param string $deliveryResultIdentifier
+     * @param string $relatedField
+     * @param string $relatedIdentifier
+     */
+    public function storeRelatedData($deliveryResultIdentifier, $relatedField, $relatedIdentifier)
     {
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
             ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
@@ -186,11 +164,14 @@ class RdsResultStorage extends ConfigurableService
         if ($this->getPersistence()->query($sql, $params)->fetchColumn() == 0) {
             $this->getPersistence()->insert(
                 self::RESULTS_TABLENAME,
-                array(self::DELIVERY_COLUMN => $deliveryIdentifier, self::RESULTS_TABLE_ID => $deliveryResultIdentifier)
+                [
+                    self::RESULTS_TABLE_ID => $deliveryResultIdentifier,
+                    $relatedField => $relatedIdentifier,
+                ]
             );
         } else {
-            $sqlUpdate = 'UPDATE ' . self::RESULTS_TABLENAME . ' SET ' . self::DELIVERY_COLUMN . ' = ? WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
-            $paramsUpdate = array($deliveryIdentifier, $deliveryResultIdentifier);
+            $sqlUpdate = 'UPDATE ' . self::RESULTS_TABLENAME . ' SET ' . $relatedField . ' = ? WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
+            $paramsUpdate = array($relatedIdentifier, $deliveryResultIdentifier);
             $this->getPersistence()->exec($sqlUpdate, $paramsUpdate);
         }
     }
@@ -277,14 +258,24 @@ class RdsResultStorage extends ConfigurableService
 
     public function getTestTaker($deliveryResultIdentifier)
     {
-        $sql = 'SELECT ' . self::TEST_TAKER_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
-        $params = array($deliveryResultIdentifier);
-        return $this->getPersistence()->query($sql, $params)->fetchColumn();
+        return $this->getRelatedData($deliveryResultIdentifier, self::TEST_TAKER_COLUMN);
     }
 
     public function getDelivery($deliveryResultIdentifier)
     {
-        $sql = 'SELECT ' . self::DELIVERY_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
+        return $this->getRelatedData($deliveryResultIdentifier, self::DELIVERY_COLUMN);
+    }
+
+    /**
+     * Retrieves data related to a result.
+     *
+     * @param string $deliveryResultIdentifier
+     * @param string $field
+     * @return mixed
+     */
+    public function getRelatedData($deliveryResultIdentifier, $field)
+    {
+        $sql = 'SELECT ' . $field . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
         $params = array($deliveryResultIdentifier);
         return $this->getPersistence()->query($sql, $params)->fetchColumn();
     }
@@ -307,32 +298,25 @@ class RdsResultStorage extends ConfigurableService
 
     public function getRelatedItemCallIds($deliveryResultIdentifier)
     {
-        $returnValue = array();
-
-        $sql = 'SELECT DISTINCT(' . self::CALL_ID_ITEM_COLUMN . ') FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::CALL_ID_ITEM_COLUMN . ' <> \'\'';
-        $params = array($deliveryResultIdentifier);
-        $results = $this->getPersistence()->query($sql, $params);
-        foreach ($results as $value) {
-            if(isset($value[self::CALL_ID_ITEM_COLUMN])){
-                $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
-            }
-        }
-
-        return $returnValue;
+        return $this->getRelatedCallIds($deliveryResultIdentifier, self::CALL_ID_ITEM_COLUMN);
     }
 
     public function getRelatedTestCallIds($deliveryResultIdentifier)
     {
+        return $this->getRelatedCallIds($deliveryResultIdentifier, self::CALL_ID_TEST_COLUMN);
+    }
+
+    public function getRelatedCallIds($deliveryResultIdentifier, $field)
+    {
         $returnValue = array();
 
-        $sql = 'SELECT DISTINCT(' . self::CALL_ID_TEST_COLUMN . ') FROM ' . self::VARIABLES_TABLENAME . '
-        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . self::CALL_ID_TEST_COLUMN . ' <> \'\'';
+        $sql = 'SELECT DISTINCT(' . $field . ') FROM ' . self::VARIABLES_TABLENAME . '
+        WHERE ' . self::VARIABLES_FK_COLUMN . ' = ? AND ' . $field . ' <> \'\'';
         $params = array($deliveryResultIdentifier);
         $results = $this->getPersistence()->query($sql, $params);
         foreach ($results as $value) {
-            if(isset($value[self::CALL_ID_TEST_COLUMN])){
-                $returnValue[] = $value[self::CALL_ID_TEST_COLUMN];
+            if(isset($value[$field])){
+                $returnValue[] = $value[$field];
             }
         }
 
@@ -341,29 +325,26 @@ class RdsResultStorage extends ConfigurableService
 
     public function getAllTestTakerIds()
     {
-        $returnValue = array();
-        $sql = 'SELECT ' . self::RESULTS_TABLE_ID . ', ' . self::TEST_TAKER_COLUMN . ' FROM ' . self::RESULTS_TABLENAME;
-        $results = $this->getPersistence()->query($sql);
-        foreach ($results as $value) {
-            $returnValue[] = array(
-                self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
-                self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN]
-            );
-        }
-
-        return $returnValue;
+        return $this->getAllIds(self::FIELD_TEST_TAKER, self::TEST_TAKER_COLUMN);
     }
 
     public function getAllDeliveryIds()
     {
-        $returnValue = array();
-        $sql = 'SELECT ' . self::RESULTS_TABLE_ID . ', ' . self::DELIVERY_COLUMN . ' FROM ' . self::RESULTS_TABLENAME;
-        $results = $this->getPersistence()->query($sql);
-        foreach ($results as $value) {
-            $returnValue[] = array(
+        return $this->getAllIds(self::FIELD_DELIVERY, self::DELIVERY_COLUMN);
+    }
+
+    public function getAllIds($fieldName, $field)
+    {
+        $qb = $this->getQueryBuilder()
+            ->select(self::RESULTS_TABLE_ID . ', ' . $field)
+            ->from(self::RESULTS_TABLENAME);
+
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $value) {
+            $returnValue[] = [
                 self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
-                self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN]
-            );
+                $fieldName => $value[$field],
+            ];
         }
 
         return $returnValue;
@@ -456,25 +437,18 @@ class RdsResultStorage extends ConfigurableService
      * @param string   $deliveryResultIdentifier
      * @param string   $test
      * @param string   $item
-     * @param Variable $itemVariable
-     * @param string   $callIdItem
+     * @param Variable $variable
+     * @param string   $callId
      *
      * @return array
      */
-    protected function prepareItemVariableData( $deliveryResultIdentifier, $test, $item, Variable $itemVariable, $callIdItem) {
-        //ensure that variable have epoch
-        if(!$itemVariable->isSetEpoch()){
-            $itemVariable->setEpoch(microtime());
-        }
+    protected function prepareItemVariableData($deliveryResultIdentifier, $test, $item, Variable $variable, $callId)
+    {
+        $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
+        $variableData[self::ITEM_COLUMN] = $item;
+        $variableData[self::CALL_ID_ITEM_COLUMN] = $callId;
 
-        return [
-            self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-            self::TEST_COLUMN => $test,
-            self::ITEM_COLUMN => $item,
-            self::CALL_ID_ITEM_COLUMN => $callIdItem,
-            self::VARIABLE_IDENTIFIER => $itemVariable->getIdentifier(),
-            self::VARIABLE_VALUE => $this->serializeVariableValue($itemVariable)
-        ];
+        return $variableData;
     }
 
     /**
@@ -482,22 +456,40 @@ class RdsResultStorage extends ConfigurableService
      *
      * @param string   $deliveryResultIdentifier
      * @param string   $test
-     * @param Variable $testVariable
-     * @param string   $callIdTest
+     * @param Variable $variable
+     * @param string   $callId
      *
      * @return array
      */
-    protected function prepareTestVariableData( $deliveryResultIdentifier, $test, Variable $testVariable, $callIdTest) {
-        if (!$testVariable->isSetEpoch()){
-            $testVariable->setEpoch(microtime());
+    protected function prepareTestVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
+    {
+        $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
+        $variableData[self::CALL_ID_TEST_COLUMN] = $callId;
+
+        return $variableData;
+    }
+
+    /**
+     * Prepares data to be inserted in database.
+     *
+     * @param string   $deliveryResultIdentifier
+     * @param string   $test
+     * @param Variable $variable
+     *
+     * @return array
+     */
+    protected function prepareVariableData($deliveryResultIdentifier, $test, Variable $variable)
+    {
+        // Ensures that variable has epoch.
+        if (!$variable->isSetEpoch()) {
+            $variable->setEpoch(microtime());
         }
 
         return [
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
             self::TEST_COLUMN => $test,
-            self::CALL_ID_TEST_COLUMN => $callIdTest,
-            self::VARIABLE_IDENTIFIER => $testVariable->getIdentifier(),
-            self::VARIABLE_VALUE => $this->serializeVariableValue($testVariable)
+            self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
+            self::VARIABLE_VALUE => $this->serializeVariableValue($variable),
         ];
     }
 
