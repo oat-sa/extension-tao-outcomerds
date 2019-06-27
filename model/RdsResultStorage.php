@@ -22,6 +22,7 @@ namespace oat\taoOutcomeRds\model;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use oat\generis\Helper\UuidPrimaryKeyTrait;
 use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
@@ -33,6 +34,7 @@ use taoResultServer_models_classes_Variable as Variable;
 class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
 {
+    use UuidPrimaryKeyTrait;
     use ResultDeliveryExecutionDelete;
 
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
@@ -53,6 +55,7 @@ class RdsResultStorage extends ConfigurableService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+    const CREATED_AT = "created_at";
 
     const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
     const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
@@ -188,7 +191,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids) OR ' . self::CALL_ID_TEST_COLUMN .' IN (:ids)')
-            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->orderBy(self::CREATED_AT)
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -209,7 +212,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::VARIABLES_FK_COLUMN .' IN (:ids)')
-            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->orderBy(self::CREATED_AT)
             ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -517,10 +520,12 @@ class RdsResultStorage extends ConfigurableService
         }
 
         return [
+            self::VARIABLES_TABLE_ID => $this->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
             self::TEST_COLUMN => $test,
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $this->serializeVariableValue($variable),
+            self::CREATED_AT => $this->getPersistence()->getPlatform()->getNowExpression(),
         ];
     }
 
