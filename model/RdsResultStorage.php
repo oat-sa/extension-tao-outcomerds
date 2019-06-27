@@ -25,10 +25,10 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
+use taoResultServer_models_classes_Variable as Variable;
 
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
- *
  */
 class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
@@ -81,56 +81,27 @@ class RdsResultStorage extends ConfigurableService
     const FIELD_TEST_TAKER = 'testTakerIdentifier';
     const FIELD_DELIVERY = 'deliveryIdentifier';
 
-    /**
-     * @return \common_persistence_SqlPersistence
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     */
-    public function getPersistence()
+    public function storeTestVariable($deliveryResultIdentifier, $test, Variable $testVariable, $callIdTest)
     {
-        $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
-            $this->getOption(self::OPTION_PERSISTENCE) : 'default';
-        return $this->getServiceLocator()->get(\common_persistence_Manager::SERVICE_ID)->getPersistenceById($persistenceId);
-    }
-
-
-    public function spawnResult()
-    {
-        \common_Logger::w('Unsupported function');
-    }
-
-    /**
-     * Store the test variable in table and its value in key/value storage
-     *
-     * @param string $deliveryResultIdentifier
-     * @param string $test
-     * @param \taoResultServer_models_classes_Variable $testVariable
-     * @param string $callIdTest
-     */
-    public function storeTestVariable(
-        $deliveryResultIdentifier,
-        $test,
-        \taoResultServer_models_classes_Variable $testVariable,
-        $callIdTest
-    ) {
         $this->getPersistence()->insert(
             self::VARIABLES_TABLENAME,
             $this->prepareTestVariableData(
                 $deliveryResultIdentifier,
-                $test, 
+                $test,
                 $testVariable,
                 $callIdTest
             )
         );
     }
-    
-    public function storeTestVariables(
-        $deliveryResultIdentifier,
-        $test,
-        array $testVariables,
-        $callIdTest
-    ) {
+
+    /**
+     * @inheritdoc
+     * Stores the test variables in table and their values in key/value storage.
+     */
+    public function storeTestVariables($deliveryResultIdentifier, $test, array $testVariables, $callIdTest)
+    {
         $dataToInsert = [];
-        
+
         foreach ($testVariables as $testVariable) {
             $dataToInsert[] = $this->prepareTestVariableData(
                 $deliveryResultIdentifier,
@@ -139,25 +110,16 @@ class RdsResultStorage extends ConfigurableService
                 $callIdTest
             );
         };
-        
+
         $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
     /**
-     * Store the item in table and its value in key/value storage
-     * @param $deliveryResultIdentifier
-     * @param $test
-     * @param $item
-     * @param \taoResultServer_models_classes_Variable $itemVariable
-     * @param $callIdItem
+     * @inheritdoc
+     * Stores the item in table and its value in key/value storage.
      */
-    public function storeItemVariable(
-        $deliveryResultIdentifier,
-        $test,
-        $item,
-        \taoResultServer_models_classes_Variable $itemVariable,
-        $callIdItem
-    ) {
+    public function storeItemVariable($deliveryResultIdentifier, $test, $item, Variable $itemVariable, $callIdItem)
+    {
         //store value in all case
         $this->getPersistence()->insert(
             self::VARIABLES_TABLENAME,
@@ -170,16 +132,19 @@ class RdsResultStorage extends ConfigurableService
             )
         );
     }
-    
-    public function storeItemVariables(
-        $deliveryResultIdentifier,
-        $test,
-        $item,
-        array $itemVariables,
-        $callIdItem
-    ) {
+
+    /**
+     * Stores the item variables in table and their values in key/value storage.
+     * @param string $deliveryResultIdentifier
+     * @param string $test
+     * @param string $item
+     * @param array $itemVariables
+     * @param string $callIdItem
+     */
+    public function storeItemVariables($deliveryResultIdentifier, $test, $item, array $itemVariables, $callIdItem)
+    {
         $dataToInsert = [];
-        
+
         foreach ($itemVariables as $itemVariable) {
             $dataToInsert[] = $this->prepareItemVariableData(
                 $deliveryResultIdentifier,
@@ -189,23 +154,10 @@ class RdsResultStorage extends ConfigurableService
                 $callIdItem
             );
         }
-        
+
         $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
     }
 
-    /*
-     * retrieve specific parameters from the resultserver to configure the storage
-     */
-    public function configure($callOptions = array())
-    {
-        \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
-    }
-
-    /**
-     * Store test-taker doing the test
-     * @param $deliveryResultIdentifier
-     * @param $testTakerIdentifier
-     */
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
     {
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
@@ -226,11 +178,6 @@ class RdsResultStorage extends ConfigurableService
         }
     }
 
-    /**
-     * Store Delivery corresponding to the current test
-     * @param $deliveryResultIdentifier
-     * @param $deliveryIdentifier
-     */
     public function storeRelatedDelivery($deliveryResultIdentifier, $deliveryIdentifier)
     {
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME .
@@ -248,22 +195,6 @@ class RdsResultStorage extends ConfigurableService
         }
     }
 
-    /**
-     * @return QueryBuilder
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     */
-    private function getQueryBuilder()
-    {
-        /**@var \common_persistence_sql_pdo_mysql_Driver $driver */
-        return $this->getPersistence()->getPlatform()->getQueryBuilder();
-    }
-
-
-    /**
-     * @param string|array $callId Either an item call id or a test call id
-     * @return array
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     */
     public function getVariables($callId)
     {
         if (!is_array($callId)) {
@@ -287,11 +218,6 @@ class RdsResultStorage extends ConfigurableService
         return $returnValue;
     }
 
-    /**
-     * @param array|string $deliveryResultIdentifier
-     * @return array
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     */
     public function getDeliveryVariables($deliveryResultIdentifier)
     {
         if (!is_array($deliveryResultIdentifier)) {
@@ -312,12 +238,6 @@ class RdsResultStorage extends ConfigurableService
         return $returnValue;
     }
 
-    /**
-     * Get a variable from callId and Variable identifier
-     * @param $callId
-     * @param $variableIdentifier
-     * @return array
-     */
     public function getVariable($callId, $variableIdentifier)
     {
         $sql = 'SELECT * FROM ' . self::VARIABLES_TABLENAME . '
@@ -333,6 +253,7 @@ class RdsResultStorage extends ConfigurableService
         foreach ($variables as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]] = $this->getResultRow($variable);
         }
+
         return $returnValue;
 
     }
@@ -346,7 +267,7 @@ class RdsResultStorage extends ConfigurableService
         $getter = 'get' . ucfirst($property);
 
         $variableValue = $this->unserializeVariableValue($variableValue);
-        if(is_callable([$variableValue, $getter])){
+        if(is_callable([$variableValue, $getter])) {
             return $variableValue->$getter();
         }
 
@@ -354,11 +275,6 @@ class RdsResultStorage extends ConfigurableService
 
     }
 
-    /**
-     * get test-taker corresponding to a result
-     * @param $deliveryResultIdentifier
-     * @return mixed
-     */
     public function getTestTaker($deliveryResultIdentifier)
     {
         $sql = 'SELECT ' . self::TEST_TAKER_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
@@ -366,11 +282,6 @@ class RdsResultStorage extends ConfigurableService
         return $this->getPersistence()->query($sql, $params)->fetchColumn();
     }
 
-    /**
-     * get delivery corresponding to a result
-     * @param $deliveryResultIdentifier
-     * @return mixed
-     */
     public function getDelivery($deliveryResultIdentifier)
     {
         $sql = 'SELECT ' . self::DELIVERY_COLUMN . ' FROM ' . self::RESULTS_TABLENAME . ' WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
@@ -379,7 +290,7 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
-     * @return array the list of item executions ids (across all results)
+     * @inheritdoc
      * o(n) do not use real time (postprocessing)
      */
     public function getAllCallIds()
@@ -394,10 +305,6 @@ class RdsResultStorage extends ConfigurableService
         return $returnValue;
     }
 
-    /**
-     * @param $deliveryResultIdentifier
-     * @return array the list of item executions ids related to a delivery result
-     */
     public function getRelatedItemCallIds($deliveryResultIdentifier)
     {
         $returnValue = array();
@@ -432,10 +339,6 @@ class RdsResultStorage extends ConfigurableService
         return $returnValue;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see taoResultServer_models_classes_ReadableResultStorage::getAllTestTakerIds()
-     */
     public function getAllTestTakerIds()
     {
         $returnValue = array();
@@ -447,13 +350,10 @@ class RdsResultStorage extends ConfigurableService
                 self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN]
             );
         }
+
         return $returnValue;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see taoResultServer_models_classes_ReadableResultStorage::getAllDeliveryIds()
-     */
     public function getAllDeliveryIds()
     {
         $returnValue = array();
@@ -465,12 +365,10 @@ class RdsResultStorage extends ConfigurableService
                 self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN]
             );
         }
+
         return $returnValue;
     }
 
-    /**
-     * order, orderdir, offset, limit
-     */
     public function getResultByDelivery($delivery, $options = array())
     {
         if (!is_array($delivery)) {
@@ -509,8 +407,8 @@ class RdsResultStorage extends ConfigurableService
                 self::FIELD_DELIVERY => $value[self::DELIVERY_COLUMN]
             );
         }
-        return $returnValue;
 
+        return $returnValue;
     }
 
     public function countResultByDelivery($delivery){
@@ -520,7 +418,6 @@ class RdsResultStorage extends ConfigurableService
 
         $sql = 'SELECT COUNT(*) FROM ' . self::RESULTS_TABLENAME;
         $params = array();
-
 
         if (count($delivery) > 0) {
             $sql .= ' WHERE ';
@@ -532,12 +429,6 @@ class RdsResultStorage extends ConfigurableService
         return $this->getPersistence()->query($sql, $params)->fetchColumn();
     }
 
-
-    /**
-     * Remove the result and all the related variables
-     * @param $deliveryResultIdentifier
-     * @return bool
-     */
     public function deleteResult($deliveryResultIdentifier)
     {
         // remove variables
@@ -559,39 +450,18 @@ class RdsResultStorage extends ConfigurableService
         return true;
     }
 
-
     /**
-     * 
-     * @param unknown $a
-     * @param unknown $b
-     * @return number
+     * Prepares data to be inserted in database.
+     *
+     * @param string   $deliveryResultIdentifier
+     * @param string   $test
+     * @param string   $item
+     * @param Variable $itemVariable
+     * @param string   $callIdItem
+     *
+     * @return array
      */
-    public static function sortTimeStamps($a, $b) {
-        list($usec, $sec) = explode(" ", $a);
-        $floata = ((float) $usec + (float) $sec);
-        list($usec, $sec) = explode(" ", $b);
-        $floatb = ((float) $usec + (float) $sec);
-        //common_Logger::i($a." ".$floata);
-        //common_Logger::i($b. " ".$floatb);
-        //the callback is expecting an int returned, for the case where the difference is of less than a second
-        //intval(round(floatval($b) - floatval($a),1, PHP_ROUND_HALF_EVEN));
-        if ((floatval($floata) - floatval($floatb)) > 0) {
-            return 1;
-        } elseif ((floatval($floata) - floatval($floatb)) < 0) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
-
-
-    protected function prepareItemVariableData(
-        $deliveryResultIdentifier,
-        $test,
-        $item,
-        \taoResultServer_models_classes_Variable $itemVariable,
-        $callIdItem
-    ) {
+    protected function prepareItemVariableData( $deliveryResultIdentifier, $test, $item, Variable $itemVariable, $callIdItem) {
         //ensure that variable have epoch
         if(!$itemVariable->isSetEpoch()){
             $itemVariable->setEpoch(microtime());
@@ -607,12 +477,17 @@ class RdsResultStorage extends ConfigurableService
         ];
     }
 
-    protected function prepareTestVariableData(
-        $deliveryResultIdentifier,
-        $test,
-        \taoResultServer_models_classes_Variable $testVariable,
-        $callIdTest
-    ) {
+    /**
+     * Prepares data to be inserted in database.
+     *
+     * @param string   $deliveryResultIdentifier
+     * @param string   $test
+     * @param Variable $testVariable
+     * @param string   $callIdTest
+     *
+     * @return array
+     */
+    protected function prepareTestVariableData( $deliveryResultIdentifier, $test, Variable $testVariable, $callIdTest) {
         if (!$testVariable->isSetEpoch()){
             $testVariable->setEpoch(microtime());
         }
@@ -627,6 +502,8 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
+     * Builds a variable from database row.
+     *
      * @param array $variable
      * @return \stdClass
      */
@@ -647,6 +524,24 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
+     * @return QueryBuilder
+     */
+    private function getQueryBuilder()
+    {
+        return $this->getPersistence()->getPlatform()->getQueryBuilder();
+    }
+
+    /**
+     * @return \common_persistence_SqlPersistence
+     */
+    public function getPersistence()
+    {
+        $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
+            $this->getOption(self::OPTION_PERSISTENCE) : 'default';
+        return $this->getServiceLocator()->get(\common_persistence_Manager::SERVICE_ID)->getPersistenceById($persistenceId);
+    }
+
+    /**
      * @param $value
      * @return mixed
      */
@@ -662,5 +557,42 @@ class RdsResultStorage extends ConfigurableService
     protected function serializeVariableValue($value)
     {
         return serialize($value);
+    }
+
+    public function spawnResult()
+    {
+        \common_Logger::w('Unsupported function');
+    }
+
+    /*
+     * retrieve specific parameters from the resultserver to configure the storage
+     */
+    public function configure($callOptions = array())
+    {
+        \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
+    }
+
+    /**
+     *
+     * @param mixed $a
+     * @param mixed $b
+     * @return number
+     */
+    public static function sortTimeStamps($a, $b) {
+        list($usec, $sec) = explode(" ", $a);
+        $floata = ((float) $usec + (float) $sec);
+        list($usec, $sec) = explode(" ", $b);
+        $floatb = ((float) $usec + (float) $sec);
+        //common_Logger::i($a." ".$floata);
+        //common_Logger::i($b. " ".$floatb);
+        //the callback is expecting an int returned, for the case where the difference is of less than a second
+        //intval(round(floatval($b) - floatval($a),1, PHP_ROUND_HALF_EVEN));
+        if ((floatval($floata) - floatval($floatb)) > 0) {
+            return 1;
+        } elseif ((floatval($floata) - floatval($floatb)) < 0) {
+            return -1;
+        } else {
+            return 0;
+        }
     }
 }
