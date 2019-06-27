@@ -26,6 +26,7 @@ use oat\generis\test\TestCase;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\taoOutcomeRds\scripts\install\createTables;
 use Prophecy\Argument;
+use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
 /**
  * Test Rds result storage
@@ -249,61 +250,240 @@ class RdsResultStorageTest extends TestCase
     public function testStoreItemVariable()
     {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
-        $test = "MyGreatTest#2";
-        $item = "MyGreatItem#2";
-        $callId = "MyCallId#2";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $callId = "MyCallId#1";
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'ItemIdentifier';
+        $value = 'MyValue';
 
-        $itemVariable = new \taoResultServer_models_classes_OutcomeVariable();
-        $itemVariable->setBaseType('float');
-        $itemVariable->setCardinality('multiple');
-        $itemVariable->setIdentifier('Identifier');
-        $itemVariable->setValue('MyValue');
+        $itemVariable = new OutcomeVariable();
+        $itemVariable->setBaseType($baseType);
+        $itemVariable->setCardinality($cardinality);
+        $itemVariable->setIdentifier($identifier);
+        $itemVariable->setValue($value);
 
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
-        $tmp = $this->instance->getVariable($callId, 'Identifier');
+        $variables = $this->instance->getVariable($callId, $identifier);
 
-        $object = array_shift($tmp);
+        $object = array_shift($variables);
         $this->assertEquals($test, $object->test);
         $this->assertEquals($item, $object->item);
-        $this->assertEquals('float', $object->variable->getBaseType());
-        $this->assertEquals('multiple', $object->variable->getCardinality());
-        $this->assertEquals('Identifier', $object->variable->getIdentifier());
-        $this->assertEquals('MyValue', $object->variable->getValue());
-        $this->assertInstanceOf('taoResultServer_models_classes_OutcomeVariable', $object->variable);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertEquals($baseType, $object->variable->getBaseType());
+        $this->assertEquals($cardinality, $object->variable->getCardinality());
+        $this->assertEquals($identifier, $object->variable->getIdentifier());
+        $this->assertEquals($value, $object->variable->getValue());
 
-        $this->assertEquals('float', $this->instance->getVariableProperty($object->uri, 'baseType'));
-        $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
-        $this->assertEquals('Identifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
-        $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertEquals($baseType, $this->instance->getVariableProperty($object->uri, 'baseType'));
+        $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
+        $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
+        $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
         $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
+    }
+
+    public function testStoreItemVariables()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $callId = "MyCallId#1";
+        $baseType1 = 'float';
+        $cardinality1 = 'multiple';
+        $identifier1 = 'ItemIdentifier1';
+        $value1 = 'MyValue1';
+        $baseType2 = 'string';
+        $cardinality2 = 'ordered';
+        $identifier2 = 'ItemIdentifier2';
+        $value2 = 'MyValue2';
+
+        $itemVariable1 = new OutcomeVariable();
+        $itemVariable1->setBaseType($baseType1);
+        $itemVariable1->setCardinality($cardinality1);
+        $itemVariable1->setIdentifier($identifier1);
+        $itemVariable1->setValue($value1);
+
+        $itemVariable2 = new OutcomeVariable();
+        $itemVariable2->setBaseType($baseType2);
+        $itemVariable2->setCardinality($cardinality2);
+        $itemVariable2->setIdentifier($identifier2);
+        $itemVariable2->setValue($value2);
+
+        $this->instance->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable1, $itemVariable2], $callId);
+        $variables = $this->instance->getVariables($callId);
+
+        $object = array_shift($variables)[0];
+        $this->assertEquals($test, $object->test);
+        $this->assertEquals($item, $object->item);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertEquals($baseType1, $object->variable->getBaseType());
+        $this->assertEquals($cardinality1, $object->variable->getCardinality());
+        $this->assertEquals($identifier1, $object->variable->getIdentifier());
+        $this->assertEquals($value1, $object->variable->getValue());
+
+        $object = array_shift($variables)[0];
+        $this->assertEquals($test, $object->test);
+        $this->assertEquals($item, $object->item);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertEquals($baseType2, $object->variable->getBaseType());
+        $this->assertEquals($cardinality2, $object->variable->getCardinality());
+        $this->assertEquals($identifier2, $object->variable->getIdentifier());
+        $this->assertEquals($value2, $object->variable->getValue());
     }
 
     public function testStoreTestVariable()
     {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
-        $test = "MyGreatTest#3";
-        $callId = "MyCallId#3";
+        $test = "MyGreatTest#1";
+        $callId = "MyCallId#1";
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'TestIdentifier';
+        $value = 'MyValue';
 
-        $testVariable = new \taoResultServer_models_classes_OutcomeVariable();
-        $testVariable->setBaseType('float');
-        $testVariable->setCardinality('multiple');
-        $testVariable->setIdentifier('TestIdentifier');
-        $testVariable->setValue('MyValue');
+        $testVariable = new OutcomeVariable();
+        $testVariable->setBaseType($baseType);
+        $testVariable->setCardinality($cardinality);
+        $testVariable->setIdentifier($identifier);
+        $testVariable->setValue($value);
 
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
-        $tmp = $this->instance->getVariable($callId, 'TestIdentifier');
-        $object = array_shift($tmp);
+        $variables = $this->instance->getVariable($callId, $identifier);
+
+        $object = array_shift($variables);
         $this->assertEquals($test, $object->test);
         $this->assertNull($object->item);
-        $this->assertEquals('float', $object->variable->getBaseType());
-        $this->assertEquals('multiple', $object->variable->getCardinality());
-        $this->assertEquals('TestIdentifier', $object->variable->getIdentifier());
-        $this->assertEquals('MyValue', $object->variable->getValue());
-        $this->assertInstanceOf('taoResultServer_models_classes_OutcomeVariable', $object->variable);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertEquals($baseType, $object->variable->getBaseType());
+        $this->assertEquals($cardinality, $object->variable->getCardinality());
+        $this->assertEquals($identifier, $object->variable->getIdentifier());
+        $this->assertEquals($value, $object->variable->getValue());
 
-        $this->assertEquals('float', $this->instance->getVariableProperty($object->uri, 'baseType'));
-        $this->assertEquals('multiple', $this->instance->getVariableProperty($object->uri, 'cardinality'));
-        $this->assertEquals('TestIdentifier', $this->instance->getVariableProperty($object->uri, 'identifier'));
-        $this->assertEquals('MyValue', $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertEquals($baseType, $this->instance->getVariableProperty($object->uri, 'baseType'));
+        $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
+        $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
+        $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
+    }
+
+    public function testStoreTestVariables()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
+        $test = "MyGreatTest#1";
+        $callId = "MyCallId#1";
+        $baseType1 = 'float';
+        $cardinality1 = 'multiple';
+        $identifier1 = 'ItemIdentifier1';
+        $value1 = 'MyValue1';
+        $baseType2 = 'string';
+        $cardinality2 = 'ordered';
+        $identifier2 = 'ItemIdentifier2';
+        $value2 = 'MyValue2';
+
+        $itemVariable1 = new OutcomeVariable();
+        $itemVariable1->setBaseType($baseType1);
+        $itemVariable1->setCardinality($cardinality1);
+        $itemVariable1->setIdentifier($identifier1);
+        $itemVariable1->setValue($value1);
+
+        $itemVariable2 = new OutcomeVariable();
+        $itemVariable2->setBaseType($baseType2);
+        $itemVariable2->setCardinality($cardinality2);
+        $itemVariable2->setIdentifier($identifier2);
+        $itemVariable2->setValue($value2);
+
+        $this->instance->storeTestVariables($deliveryResultIdentifier, $test, [$itemVariable1, $itemVariable2], $callId);
+        $variables = $this->instance->getDeliveryVariables($deliveryResultIdentifier);
+
+        $object = array_shift($variables)[0];
+        $this->assertEquals($test, $object->test);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertEquals($baseType1, $object->variable->getBaseType());
+        $this->assertEquals($cardinality1, $object->variable->getCardinality());
+        $this->assertEquals($identifier1, $object->variable->getIdentifier());
+        $this->assertEquals($value1, $object->variable->getValue());
+
+        $object = array_shift($variables)[0];
+        $this->assertEquals($test, $object->test);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertEquals($baseType2, $object->variable->getBaseType());
+        $this->assertEquals($cardinality2, $object->variable->getCardinality());
+        $this->assertEquals($identifier2, $object->variable->getIdentifier());
+        $this->assertEquals($value2, $object->variable->getValue());
+    }
+
+    public function testGetAllCallIds()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $testCallId = "testCallId#1";
+        $itemCallId = "itemCallId#1";
+
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'ItemIdentifier1';
+        $value = 'MyValue1';
+
+        $itemVariable = new OutcomeVariable();
+        $itemVariable->setBaseType($baseType);
+        $itemVariable->setCardinality($cardinality);
+        $itemVariable->setIdentifier($identifier);
+        $itemVariable->setValue($value);
+
+        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $itemVariable, $testCallId);
+
+        $this->assertSame([$testCallId, $itemCallId], $this->instance->getAllCallIds());
+    }
+
+    public function testGetRelatedItemCallIds()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $testCallId = "testCallId#1";
+        $itemCallId = "itemCallId#1";
+
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'ItemIdentifier1';
+        $value = 'MyValue1';
+
+        $itemVariable = new OutcomeVariable();
+        $itemVariable->setBaseType($baseType);
+        $itemVariable->setCardinality($cardinality);
+        $itemVariable->setIdentifier($identifier);
+        $itemVariable->setValue($value);
+
+        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $itemVariable, $testCallId);
+
+        $this->assertSame([$itemCallId], $this->instance->getRelatedItemCallIds($deliveryResultIdentifier));
+    }
+
+    public function testGetRelatedTestCallIds()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $testCallId = "testCallId#1";
+        $itemCallId = "itemCallId#1";
+
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'ItemIdentifier1';
+        $value = 'MyValue1';
+
+        $itemVariable = new OutcomeVariable();
+        $itemVariable->setBaseType($baseType);
+        $itemVariable->setCardinality($cardinality);
+        $itemVariable->setIdentifier($identifier);
+        $itemVariable->setValue($value);
+
+        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $itemVariable, $testCallId);
+
+        $this->assertSame([$testCallId], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
     }
 }
