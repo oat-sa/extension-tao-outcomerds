@@ -244,9 +244,6 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals(1, $this->instance->countResultByDelivery([]));
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    /// Variables storing
-
     public function testStoreItemVariable()
     {
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#1";
