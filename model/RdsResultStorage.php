@@ -163,7 +163,7 @@ class RdsResultStorage extends ConfigurableService
             ->from(self::RESULTS_TABLENAME)
             ->andWhere(self::RESULTS_TABLE_ID .' = :id')
             ->setParameter('id', $deliveryResultIdentifier);
-        if ($qb->execute()->fetchColumn() == 0) {
+        if ((int) $qb->execute()->fetchColumn() === 0) {
             $this->getPersistence()->insert(
                 self::RESULTS_TABLENAME,
                 [
