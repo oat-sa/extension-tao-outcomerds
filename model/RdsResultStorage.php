@@ -317,8 +317,9 @@ class RdsResultStorage extends ConfigurableService
         $qb = $this->getQueryBuilder()
             ->select('DISTINCT(' . $field . ')')
             ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::VARIABLES_FK_COLUMN . " = :id AND " . $field . " <> ''")
-            ->setParameter('id', $deliveryResultIdentifier);
+            ->andWhere(self::VARIABLES_FK_COLUMN . ' = :id AND ' . $field . ' <> :field')
+            ->setParameter('id', $deliveryResultIdentifier)
+            ->setParameter('field', '');
 
         $returnValue = [];
         foreach ($qb->execute()->fetchAll() as $value) {
