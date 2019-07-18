@@ -189,7 +189,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids) OR ' . self::CALL_ID_TEST_COLUMN .' IN (:ids)')
-            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->orderBy(self::CREATED_AT)
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -210,7 +210,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::VARIABLES_FK_COLUMN .' IN (:ids)')
-            ->orderBy(self::VARIABLES_TABLE_ID)
+            ->orderBy(self::CREATED_AT)
             ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -519,10 +519,12 @@ class RdsResultStorage extends ConfigurableService
         }
 
         return [
+            self::VARIABLES_TABLE_ID => $this->getPersistence()->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
             self::TEST_COLUMN => $test,
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $this->serializeVariableValue($variable),
+            self::CREATED_AT => $this->getPersistence()->getPlatform()->getNowExpression(),
         ];
     }
 

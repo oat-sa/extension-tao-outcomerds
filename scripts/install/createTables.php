@@ -54,7 +54,7 @@ class createTables extends AbstractAction
             $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, "string", array("notnull" => false, "length" => 255));
             $tableResults->setPrimaryKey(array(RdsResultStorage::RESULTS_TABLE_ID));
 
-            $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, "string", array("length" => 23));
             $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, "string", array("notnull" => false, "length" => 255));
             $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, "string", array("notnull" => false, "length" => 255));
             $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, "string", array("notnull" => false, "length" => 255));
@@ -62,7 +62,7 @@ class createTables extends AbstractAction
             $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
             $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, "string", array("notnull" => false, "length" => 255));
             $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, "string", array("length" => 255));
-            $tableVariables->addColumn(RdsResultStorage::CREATED_AT, 'datetime', []);
+            $tableVariables->addColumn(RdsResultStorage::CREATED_AT, "datetime", array());
             $tableVariables->setPrimaryKey(array(RdsResultStorage::VARIABLES_TABLE_ID));
             $tableVariables->addForeignKeyConstraint(
                 $tableResults,
