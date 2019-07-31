@@ -591,7 +591,7 @@ class RdsResultStorage extends ConfigurableService
     /**
      * @param string $tableName
      * @param array $data
-     * @throws UniqueConstraintViolationException
+     * @throws DuplicateVariableException
      */
     private function insertMultiple(string $tableName, array $data)
     {
@@ -604,7 +604,7 @@ class RdsResultStorage extends ConfigurableService
                 try {
                     $this->getPersistence()->insert($tableName, $row);
                 } catch (UniqueConstraintViolationException $e) {
-                    $g = 'sdf';
+                    //do nothing, just skip it
                 }
             }
         }
