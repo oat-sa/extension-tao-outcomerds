@@ -53,20 +53,22 @@ class createTables extends AbstractAction
             $tableVariables = $schema->createtable(RdsResultStorage::VARIABLES_TABLENAME);
             $tableVariables->addOption('engine', 'MyISAM');
 
-            $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, "string", ["length" => 255]);
-            $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, "string", ["notnull" => false, "length" => 255]);
-            $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, "string", ["notnull" => false, "length" => 255]);
+            $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, 'string', ['length' => 255]);
+            $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
             $tableResults->setPrimaryKey([RdsResultStorage::RESULTS_TABLE_ID]);
 
 
-            $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, "integer", ["autoincrement" => true]);
-            $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, "string", ["notnull" => false, "length" => 255]);
-            $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, "string", ["notnull" => false, "length" => 255]);
-            $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, "string", ["notnull" => false, "length" => 255]);
-            $tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, "string", ["notnull" => false, "length" => 255]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", ["notnull" => false]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, "string", ["notnull" => false, "length" => 255]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, "string", ["length" => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'integer', ['autoincrement' => true]);
+            $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, 'text', ['notnull' => false]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 128, 'notnull' => false]);
+
             $tableVariables->setPrimaryKey([RdsResultStorage::VARIABLES_TABLE_ID]);
             $tableVariables->addForeignKeyConstraint(
                 $tableResults,
@@ -78,8 +80,7 @@ class createTables extends AbstractAction
             $tableVariables->addIndex([RdsResultStorage::CALL_ID_ITEM_COLUMN], RdsResultStorage::CALL_ID_ITEM_INDEX);
             $tableVariables->addIndex([RdsResultStorage::CALL_ID_TEST_COLUMN], RdsResultStorage::CALL_ID_TEST_INDEX);
             $tableVariables->addUniqueIndex([
-                RdsResultStorage::VARIABLES_FK_COLUMN,
-                RdsResultStorage::VARIABLE_VALUE,
+                RdsResultStorage::VARIABLE_HASH
             ], RdsResultStorage::UNIQUE_VARIABLE_INDEX);
 
         } catch (SchemaException $e) {

@@ -57,6 +57,7 @@ class RdsResultStorage extends ConfigurableService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+    const VARIABLE_HASH = "variable_hash";
 
     const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
     const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
@@ -484,6 +485,7 @@ class RdsResultStorage extends ConfigurableService
         $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
         $variableData[self::ITEM_COLUMN] = $item;
         $variableData[self::CALL_ID_ITEM_COLUMN] = $callId;
+        $variableData[self::VARIABLE_HASH] = md5($deliveryResultIdentifier.$variableData[self::VARIABLE_VALUE].$callId);
 
         return $variableData;
     }
@@ -502,7 +504,7 @@ class RdsResultStorage extends ConfigurableService
     {
         $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
         $variableData[self::CALL_ID_TEST_COLUMN] = $callId;
-
+        $variableData[self::VARIABLE_HASH] = md5($deliveryResultIdentifier.$variableData[self::VARIABLE_VALUE].$callId);
         return $variableData;
     }
 
