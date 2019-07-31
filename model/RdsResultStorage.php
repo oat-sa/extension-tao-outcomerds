@@ -26,7 +26,6 @@ use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
-use Doctrine\DBAL\Exception\ConstraintViolationException;
 use taoResultServer_models_classes_Variable as Variable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
