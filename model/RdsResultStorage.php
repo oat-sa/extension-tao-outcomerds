@@ -108,7 +108,7 @@ class RdsResultStorage extends ConfigurableService
             );
         }
 
-        $this->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
+        $this->insertMultiple($dataToInsert);
     }
 
     /**
@@ -142,7 +142,7 @@ class RdsResultStorage extends ConfigurableService
             );
         }
 
-        $this->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
+        $this->insertMultiple($dataToInsert);
     }
 
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
@@ -589,20 +589,19 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
-     * @param string $tableName
      * @param array $data
      * @throws DuplicateVariableException
      */
-    private function insertMultiple(string $tableName, array $data)
+    private function insertMultiple(array $data)
     {
         $duplicatedData = false;
         try {
-            $this->getPersistence()->insertMultiple($tableName, $data);
+            $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $data);
         } catch (UniqueConstraintViolationException $e) {
             $duplicatedData = true;
             foreach ($data as $row) {
                 try {
-                    $this->getPersistence()->insert($tableName, $row);
+                    $this->getPersistence()->insert(self::VARIABLES_TABLENAME, $row);
                 } catch (UniqueConstraintViolationException $e) {
                     //do nothing, just skip it
                 }
