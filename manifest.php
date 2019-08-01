@@ -27,7 +27,7 @@ return array(
     'version' => '6.1.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
-        'taoResultServer' => '>=6.5.0',
+        'taoResultServer' => '>=9.3.0',
         'generis' => '>=11.0.0'
     ),
     // for compatibility
