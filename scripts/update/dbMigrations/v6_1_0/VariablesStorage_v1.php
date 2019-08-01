@@ -18,7 +18,7 @@
  *
  */
 
-namespace oat\taoOutcomeRds\scripts\update\dbMigrations;
+namespace oat\taoOutcomeRds\scripts\update\dbMigrations\v6_1_0;
 
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\SchemaException;

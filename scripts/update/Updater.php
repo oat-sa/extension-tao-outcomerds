@@ -135,7 +135,7 @@ class Updater extends \common_ext_ExtensionUpdater
         $this->skip('2.2.0', '6.0.2');
 
         if ($this->isVersion('6.0.2')) {
-            $this->addReport(new Report(Report::TYPE_WARNING, 'Run `\oat\taoOutcomeRds\scripts\update\dbMigrations\VariablesStorage_v1` migration script to move add unique index to variables storage.'));
+            $this->addReport(new Report(Report::TYPE_WARNING, 'Run `\oat\taoOutcomeRds\scripts\update\dbMigrations\v6_1_0\VariablesStorage_v1` migration script to move add unique index to variables storage.'));
             $this->setVersion('6.1.0');
         }
     }
