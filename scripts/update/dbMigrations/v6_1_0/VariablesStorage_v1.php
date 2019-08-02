@@ -87,9 +87,9 @@ class VariablesStorage_v1 extends AbstractAction
      */
     protected function updateData(\common_persistence_SqlPersistence $persistence)
     {
-        $persistence->exec('UPDATE variables_storage SET variable_hash=MD5(concat(results_result_id,value,call_id_test))
+        $persistence->exec('UPDATE variables_storage SET variable_hash=concat(results_result_id,MD5(concat(results_result_id,value,call_id_test)))
             WHERE call_id_test IS NOT NULL');
-        $persistence->exec('UPDATE variables_storage SET variable_hash=MD5(concat(results_result_id,value,call_id_item))
+        $persistence->exec('UPDATE variables_storage SET variable_hash=concat(results_result_id,MD5(concat(results_result_id,value,call_id_item)))
             WHERE call_id_item IS NOT NULL');
     }
 }
