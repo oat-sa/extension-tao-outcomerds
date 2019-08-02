@@ -25,6 +25,7 @@ use common_persistence_Manager;
 use oat\generis\test\TestCase;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\taoOutcomeRds\scripts\install\createTables;
+use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use Prophecy\Argument;
 use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
@@ -46,7 +47,6 @@ class RdsResultStorageTest extends TestCase
     {
         $databaseMock = $this->getSqlMock('rds_result_storage_test');
         $persistance = $databaseMock->getPersistenceById('rds_result_storage_test');
-
         (new createTables())->generateTables($persistance);
         $persistanceManagerProphecy = $this->prophesize(common_persistence_Manager::class);
         $persistanceManagerProphecy->getPersistenceById(Argument::any())->willReturn($persistance);
@@ -260,6 +260,7 @@ class RdsResultStorageTest extends TestCase
         $itemVariable->setCardinality($cardinality);
         $itemVariable->setIdentifier($identifier);
         $itemVariable->setValue($value);
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
 
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
         $variables = $this->instance->getVariable($callId, $identifier);
@@ -278,6 +279,57 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
         $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
+    }
+
+    /**
+     * @expectedException \oat\taoResultServer\models\Exceptions\DuplicateVariableException
+     */
+    public function testStoreItemVariableException()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#3";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $callId = "MyCallId#3";
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'ItemIdentifier';
+        $value = 'MyValue';
+
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
+        $itemVariable = new OutcomeVariable();
+        $itemVariable->setBaseType($baseType);
+        $itemVariable->setCardinality($cardinality);
+        $itemVariable->setIdentifier($identifier);
+        $itemVariable->setValue($value);
+
+        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
+        $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
+    }
+
+    /**
+     * @expectedException \oat\taoResultServer\models\Exceptions\DuplicateVariableException
+     */
+    public function testStoreItemVariablesException()
+    {
+        $deliveryResultIdentifier = "MyDeliveryResultIdentifier#4";
+        $test = "MyGreatTest#1";
+        $item = "MyGreatItem#1";
+        $callId = "MyCallId#3";
+        $baseType = 'float';
+        $cardinality = 'multiple';
+        $identifier = 'ItemIdentifier';
+        $value = 'MyValue';
+
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
+        $itemVariable = new OutcomeVariable();
+        $itemVariable->setBaseType($baseType);
+        $itemVariable->setCardinality($cardinality);
+        $itemVariable->setIdentifier($identifier);
+        $itemVariable->setValue($value);
+
+        $this->instance->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable, $itemVariable], $callId);
     }
 
     public function testStoreItemVariables()
@@ -307,7 +359,16 @@ class RdsResultStorageTest extends TestCase
         $itemVariable2->setIdentifier($identifier2);
         $itemVariable2->setValue($value2);
 
-        $this->instance->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable1, $itemVariable2], $callId);
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
+        $duplicateExceptionThrown = false;
+        try {
+            $this->instance->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable1, $itemVariable1, $itemVariable2], $callId);
+        } catch (DuplicateVariableException $e) {
+            $duplicateExceptionThrown = true;
+        }
+
+        $this->assertTrue($duplicateExceptionThrown, 'DuplicateVariableException has been thrown');
         $variables = $this->instance->getVariables($callId);
 
         $object = array_shift($variables)[0];
@@ -344,7 +405,7 @@ class RdsResultStorageTest extends TestCase
         $testVariable->setCardinality($cardinality);
         $testVariable->setIdentifier($identifier);
         $testVariable->setValue($value);
-
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
         $variables = $this->instance->getVariable($callId, $identifier);
 
@@ -389,6 +450,8 @@ class RdsResultStorageTest extends TestCase
         $itemVariable2->setIdentifier($identifier2);
         $itemVariable2->setValue($value2);
 
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
         $this->instance->storeTestVariables($deliveryResultIdentifier, $test, [$itemVariable1, $itemVariable2], $callId);
         $variables = $this->instance->getDeliveryVariables($deliveryResultIdentifier);
 
@@ -428,8 +491,16 @@ class RdsResultStorageTest extends TestCase
         $itemVariable->setIdentifier($identifier);
         $itemVariable->setValue($value);
 
+        $testVariable = new OutcomeVariable();
+        $testVariable->setBaseType($baseType);
+        $testVariable->setCardinality($cardinality);
+        $testVariable->setIdentifier($identifier);
+        $testVariable->setValue($value);
+
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
-        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $itemVariable, $testCallId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
         $this->assertSame([$testCallId, $itemCallId], $this->instance->getAllCallIds());
     }
@@ -453,8 +524,16 @@ class RdsResultStorageTest extends TestCase
         $itemVariable->setIdentifier($identifier);
         $itemVariable->setValue($value);
 
+        $testVariable = new OutcomeVariable();
+        $testVariable->setBaseType($baseType);
+        $testVariable->setCardinality($cardinality);
+        $testVariable->setIdentifier($identifier);
+        $testVariable->setValue($value);
+
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
-        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $itemVariable, $testCallId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
         $this->assertSame([$itemCallId], $this->instance->getRelatedItemCallIds($deliveryResultIdentifier));
     }
@@ -478,8 +557,16 @@ class RdsResultStorageTest extends TestCase
         $itemVariable->setIdentifier($identifier);
         $itemVariable->setValue($value);
 
+        $testVariable = new OutcomeVariable();
+        $testVariable->setBaseType($baseType);
+        $testVariable->setCardinality($cardinality);
+        $testVariable->setIdentifier($identifier);
+        $testVariable->setValue($value);
+
+        $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
+
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
-        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $itemVariable, $testCallId);
+        $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
         $this->assertSame([$testCallId], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
     }
