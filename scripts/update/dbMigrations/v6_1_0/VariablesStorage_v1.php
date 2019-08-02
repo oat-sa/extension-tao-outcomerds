@@ -69,7 +69,6 @@ class VariablesStorage_v1 extends AbstractAction
 
         try {
             $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-            $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 128, 'notnull' => false]);
             $table->addUniqueIndex([RdsResultStorage::VARIABLE_HASH], RdsResultStorage::UNIQUE_VARIABLE_INDEX);
         } catch (SchemaException $e) {
             \common_Logger::i('Database schema of RdsResultStorage service is already up to date.');

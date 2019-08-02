@@ -24,6 +24,9 @@ namespace oat\taoOutcomeRds\scripts\update;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\tao\scripts\update\OntologyUpdater;
 use common_report_Report as Report;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\SchemaException;
+use Doctrine\DBAL\Schema\Schema;
 
 class Updater extends \common_ext_ExtensionUpdater
 {
@@ -135,6 +138,27 @@ class Updater extends \common_ext_ExtensionUpdater
         $this->skip('2.2.0', '6.0.2');
 
         if ($this->isVersion('6.0.2')) {
+            $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
+            $persistence = $service->getPersistence();
+            /** @var AbstractSchemaManager $schemaManager */
+            $schemaManager = $persistence->getDriver()->getSchemaManager();
+
+            /** @var Schema $schema */
+            $schema = $schemaManager->createSchema();
+            $fromSchema = clone $schema;
+
+            try {
+                $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
+                $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 128, 'notnull' => false]);
+            } catch (SchemaException $e) {
+                \common_Logger::i('Database schema of RdsResultStorage service is already up to date.');
+            }
+
+            $queries = $persistence->getPlatForm()->getMigrateSchemaSql($fromSchema, $schema);
+
+            foreach ($queries as $query) {
+                $persistence->exec($query);
+            }
             $this->addReport(new Report(Report::TYPE_WARNING, 'Run `\oat\taoOutcomeRds\scripts\update\dbMigrations\v6_1_0\VariablesStorage_v1` migration script to move add unique index to variables storage.'));
             $this->setVersion('6.1.0');
         }
