@@ -149,7 +149,7 @@ class Updater extends \common_ext_ExtensionUpdater
 
             try {
                 $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-                $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 128, 'notnull' => false]);
+                $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
             } catch (SchemaException $e) {
                 \common_Logger::i('Database schema of RdsResultStorage service is already up to date.');
             }

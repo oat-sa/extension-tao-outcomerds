@@ -67,7 +67,7 @@ class createTables extends AbstractAction
             $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, 'text', ['notnull' => false]);
             $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
             $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 128, 'notnull' => false]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
 
             $tableVariables->setPrimaryKey([RdsResultStorage::VARIABLES_TABLE_ID]);
             $tableVariables->addForeignKeyConstraint(
