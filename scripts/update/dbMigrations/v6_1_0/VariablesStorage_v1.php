@@ -49,7 +49,6 @@ class VariablesStorage_v1 extends AbstractAction
         $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
         $persistence = $service->getPersistence();
         $this->alterTable($persistence);
-        $this->updateData($persistence);
 
         return \common_report_Report::createSuccess('RDS variables storage was successfully migrated to v1');
     }
@@ -79,17 +78,5 @@ class VariablesStorage_v1 extends AbstractAction
         foreach ($queries as $query) {
             $persistence->exec($query);
         }
-    }
-
-    /**
-     * Create table in database
-     * @param \common_persistence_SqlPersistence $persistence
-     */
-    protected function updateData(\common_persistence_SqlPersistence $persistence)
-    {
-        $persistence->exec('UPDATE variables_storage SET variable_hash=concat(results_result_id,MD5(concat(results_result_id,value,call_id_test)))
-            WHERE call_id_test IS NOT NULL');
-        $persistence->exec('UPDATE variables_storage SET variable_hash=concat(results_result_id,MD5(concat(results_result_id,value,call_id_item)))
-            WHERE call_id_item IS NOT NULL');
     }
 }

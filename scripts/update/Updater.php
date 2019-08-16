@@ -162,5 +162,7 @@ class Updater extends \common_ext_ExtensionUpdater
             $this->addReport(new Report(Report::TYPE_WARNING, 'Run `\oat\taoOutcomeRds\scripts\update\dbMigrations\v6_1_0\VariablesStorage_v1` migration script to move add unique index to variables storage.'));
             $this->setVersion('6.1.0');
         }
+
+        $this->skip('6.1.0', '6.1.1');
     }
 }
