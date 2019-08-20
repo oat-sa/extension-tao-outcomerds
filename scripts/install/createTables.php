@@ -39,6 +39,7 @@ class createTables extends AbstractAction
      */
     public function generateTables(\common_persistence_SqlPersistence $persistence)
     {
+        /** @var \common_persistence_sql_dbal_SchemaManager $schemaManager */
         $schemaManager = $persistence->getDriver()->getSchemaManager();
         $schema = $schemaManager->createSchema();
         $fromSchema = clone $schema;
@@ -49,30 +50,37 @@ class createTables extends AbstractAction
             $tableVariables = $schema->createtable(RdsResultStorage::VARIABLES_TABLENAME);
             $tableVariables->addOption('engine', 'MyISAM');
 
-            $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, "string", array("length" => 255));
-            $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, "string", array("notnull" => false, "length" => 255));
-            $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, "string", array("notnull" => false, "length" => 255));
-            $tableResults->setPrimaryKey(array(RdsResultStorage::RESULTS_TABLE_ID));
+            $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, 'string', ['length' => 255]);
+            $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableResults->setPrimaryKey([RdsResultStorage::RESULTS_TABLE_ID]);
 
             $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
-            $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, "string", array("notnull" => false, "length" => 255));
-            $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, "string", array("notnull" => false, "length" => 255));
-            $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, "string", array("notnull" => false, "length" => 255));
-            $tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, "string", array("notnull" => false, "length" => 255));
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, "string", array("notnull" => false, "length" => 255));
-            $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, "string", array("length" => 255));
+
+            $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'integer', ['autoincrement' => true]);
+            $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, 'text', ['notnull' => false]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
+            $tableVariables->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
             $tableVariables->addColumn(RdsResultStorage::CREATED_AT, 'datetime', []);
-            $tableVariables->setPrimaryKey(array(RdsResultStorage::VARIABLES_TABLE_ID));
+
+            $tableVariables->setPrimaryKey([RdsResultStorage::VARIABLES_TABLE_ID]);
             $tableVariables->addForeignKeyConstraint(
                 $tableResults,
-                array(RdsResultStorage::VARIABLES_FK_COLUMN),
-                array(RdsResultStorage::RESULTS_TABLE_ID),
-                array(),
+                [RdsResultStorage::VARIABLES_FK_COLUMN],
+                [RdsResultStorage::RESULTS_TABLE_ID],
+                [],
                 RdsResultStorage::VARIABLES_FK_NAME
             );
-            $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_ITEM_COLUMN), RdsResultStorage::CALL_ID_ITEM_INDEX);
-            $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_TEST_COLUMN), RdsResultStorage::CALL_ID_TEST_INDEX);
+            $tableVariables->addIndex([RdsResultStorage::CALL_ID_ITEM_COLUMN], RdsResultStorage::CALL_ID_ITEM_INDEX);
+            $tableVariables->addIndex([RdsResultStorage::CALL_ID_TEST_COLUMN], RdsResultStorage::CALL_ID_TEST_INDEX);
+            $tableVariables->addUniqueIndex([
+                RdsResultStorage::VARIABLE_HASH
+            ], RdsResultStorage::UNIQUE_VARIABLE_INDEX);
 
         } catch (SchemaException $e) {
             common_Logger::i('Database Schema already up to date.');

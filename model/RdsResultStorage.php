@@ -25,7 +25,10 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
+use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use taoResultServer_models_classes_Variable as Variable;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+
 
 /**
  * Implements tao results storage using the configured persistency "taoOutcomeRds"
@@ -53,10 +56,12 @@ class RdsResultStorage extends ConfigurableService
     const ITEM_COLUMN = "item";
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
+    const VARIABLE_HASH = "variable_hash";
     const CREATED_AT = "created_at";
 
     const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
     const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
+    const UNIQUE_VARIABLE_INDEX = "idx_unique_variables_storage";
 
     /** @deprecated */
     const VARIABLE_CLASS = "class";
@@ -102,9 +107,9 @@ class RdsResultStorage extends ConfigurableService
                 $testVariable,
                 $callIdTest
             );
-        };
+        }
 
-        $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
+        $this->insertMultiple($dataToInsert);
     }
 
     /**
@@ -138,7 +143,7 @@ class RdsResultStorage extends ConfigurableService
             );
         }
 
-        $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $dataToInsert);
+        $this->insertMultiple($dataToInsert);
     }
 
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
@@ -480,6 +485,7 @@ class RdsResultStorage extends ConfigurableService
         $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
         $variableData[self::ITEM_COLUMN] = $item;
         $variableData[self::CALL_ID_ITEM_COLUMN] = $callId;
+        $variableData[self::VARIABLE_HASH] = $deliveryResultIdentifier.md5($deliveryResultIdentifier.$variableData[self::VARIABLE_VALUE].$callId);
 
         return $variableData;
     }
@@ -498,7 +504,7 @@ class RdsResultStorage extends ConfigurableService
     {
         $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
         $variableData[self::CALL_ID_TEST_COLUMN] = $callId;
-
+        $variableData[self::VARIABLE_HASH] = $deliveryResultIdentifier.md5($deliveryResultIdentifier.$variableData[self::VARIABLE_VALUE].$callId);
         return $variableData;
     }
 
@@ -582,6 +588,31 @@ class RdsResultStorage extends ConfigurableService
     protected function serializeVariableValue($value)
     {
         return serialize($value);
+    }
+
+    /**
+     * @param array $data
+     * @throws DuplicateVariableException
+     */
+    private function insertMultiple(array $data)
+    {
+        $duplicatedData = false;
+        try {
+            $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $data);
+        } catch (UniqueConstraintViolationException $e) {
+            $duplicatedData = true;
+            foreach ($data as $row) {
+                try {
+                    $this->getPersistence()->insert(self::VARIABLES_TABLENAME, $row);
+                } catch (UniqueConstraintViolationException $e) {
+                    //do nothing, just skip it
+                }
+            }
+        }
+
+        if ($duplicatedData) {
+            throw new DuplicateVariableException(sprintf('An identical result variable already exists.'));
+        }
     }
 
     public function spawnResult()
