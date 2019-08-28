@@ -371,9 +371,13 @@ class RdsResultStorage extends ConfigurableService
         $qb = $this->getQueryBuilder()
             ->select('*')
             ->from(self::RESULTS_TABLENAME)
-            ->orderBy($this->getOrderField($options), $this->getOrderDirection($options))
-            ->setMaxResults(isset($options['limit']) ? $options['limit'] : 1000)
-            ->setFirstResult(isset($options['offset']) ? $options['offset'] : 0);
+            ->orderBy($this->getOrderField($options), $this->getOrderDirection($options));
+
+        if (isset($options['offset']) || isset($options['limit'])) {
+            $qb
+                ->setMaxResults(isset($options['limit']) ? $options['limit'] : 1000)
+                ->setFirstResult(isset($options['offset']) ? $options['offset'] : 0);
+        }
 
         if (count($delivery) > 0) {
             $qb
