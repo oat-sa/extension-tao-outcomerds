@@ -164,9 +164,9 @@ class Updater extends \common_ext_ExtensionUpdater
             $this->setVersion('6.1.0');
         }
 
-        $this->skip('6.1.0', '6.1.1');
+        $this->skip('6.1.0', '6.1.2');
 
-        if ($this->isVersion('6.1.1')) {
+        if ($this->isVersion('6.1.2')) {
             $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([
                 RdsResultStorage::OPTION_PERSISTENCE => 'default',
                 RdsResultStorage::OPTION_COMPATIBLE_SCHEMA => new RdsCompatibleSchema(),
