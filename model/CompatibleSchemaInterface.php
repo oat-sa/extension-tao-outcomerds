@@ -20,6 +20,7 @@
 namespace oat\taoOutcomeRds\model;
 
 use common_persistence_SqlPersistence as Persistence;
+use Doctrine\DBAL\Schema\Table;
 
 interface CompatibleSchemaInterface
 {
@@ -35,4 +36,10 @@ interface CompatibleSchemaInterface
      * @return array
      */
     public function getAdditionalFieldForInsert(Persistence $persistence);
+
+    /**
+     * Returns column definitions for the table "variables".
+     * @return array
+     */
+    public function addColumnsForTableVariables(Table $tableVariables);
 }

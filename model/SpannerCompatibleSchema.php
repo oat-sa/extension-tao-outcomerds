@@ -20,8 +20,9 @@
 namespace oat\taoOutcomeRds\model;
 
 use common_persistence_SqlPersistence as Persistence;
+use Doctrine\DBAL\Schema\Table;
 
-class SpannerCompatibleSchema implements CompatibleSchemaInterface
+class SpannerCompatibleSchema extends RdsCompatibleSchema
 {
     /**
      * @inheritDoc
@@ -40,5 +41,15 @@ class SpannerCompatibleSchema implements CompatibleSchemaInterface
             RdsResultStorage::CREATED_AT => $persistence->getPlatform()->getNowExpression(),
             RdsResultStorage::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
         ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addColumnsForTableVariables(Table $tableVariables)
+    {
+        $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
+        $this->addCommonColumnsForTableVariables($tableVariables);
+        $tableVariables->addColumn(RdsResultStorage::CREATED_AT, 'datetime', []);
     }
 }

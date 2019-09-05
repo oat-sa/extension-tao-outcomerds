@@ -639,7 +639,7 @@ class RdsResultStorage extends ConfigurableService
      * Get compatible schema.
      * @return CompatibleSchemaInterface
      */
-    protected function getCompatibleSchema()
+    public function getCompatibleSchema()
     {
         if ($this->compatibleSchema === null) {
             $this->compatibleSchema = $this->getOption(self::OPTION_COMPATIBLE_SCHEMA);

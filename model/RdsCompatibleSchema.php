@@ -20,6 +20,7 @@
 namespace oat\taoOutcomeRds\model;
 
 use common_persistence_SqlPersistence as Persistence;
+use Doctrine\DBAL\Schema\Table;
 
 class RdsCompatibleSchema implements CompatibleSchemaInterface
 {
@@ -37,5 +38,29 @@ class RdsCompatibleSchema implements CompatibleSchemaInterface
     public function getAdditionalFieldForInsert(Persistence $persistence)
     {
         return [];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addColumnsForTableVariables(Table $tableVariables)
+    {
+        $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'integer', ['autoincrement' => true]);
+        $this->addCommonColumnsForTableVariables($tableVariables);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function addCommonColumnsForTableVariables(Table $tableVariables)
+    {
+        $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, 'text', ['notnull' => false]);
+        $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
+        $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
+        $tableVariables->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
     }
 }

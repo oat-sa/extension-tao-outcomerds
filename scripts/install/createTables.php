@@ -21,7 +21,9 @@
 namespace oat\taoOutcomeRds\scripts\install;
 
 use common_Logger;
+use common_persistence_SqlPersistence as Persistence;
 use oat\oatbox\extension\AbstractAction;
+use oat\taoOutcomeRds\model\CompatibleSchemaInterface;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use Doctrine\DBAL\Schema\SchemaException;
 
@@ -29,15 +31,19 @@ class createTables extends AbstractAction
 {
     public function __invoke($params)
     {
-        $persistence = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID)->getPersistence();
+        /** @var RdsResultStorage $rdsResultStorage */
+        $rdsResultStorage = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
+        $persistence = $rdsResultStorage->getPersistence();
+        $compatibleSchema = $rdsResultStorage->getCompatibleSchema();
 
-        $this->generateTables($persistence);
+        $this->generateTables($persistence, $compatibleSchema);
     }
 
     /**
      * @param \common_persistence_SqlPersistence $persistence
+     * @param CompatibleSchemaInterface $compatibleSchema
      */
-    public function generateTables(\common_persistence_SqlPersistence $persistence)
+    public function generateTables(Persistence $persistence, CompatibleSchemaInterface $compatibleSchema)
     {
         /** @var \common_persistence_sql_dbal_SchemaManager $schemaManager */
         $schemaManager = $persistence->getDriver()->getSchemaManager();
@@ -47,26 +53,17 @@ class createTables extends AbstractAction
         try {
             $tableResults = $schema->createtable(RdsResultStorage::RESULTS_TABLENAME);
             $tableResults->addOption('engine', 'MyISAM');
-            $tableVariables = $schema->createtable(RdsResultStorage::VARIABLES_TABLENAME);
-            $tableVariables->addOption('engine', 'MyISAM');
-
             $tableResults->addColumn(RdsResultStorage::RESULTS_TABLE_ID, 'string', ['length' => 255]);
             $tableResults->addColumn(RdsResultStorage::TEST_TAKER_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
             $tableResults->addColumn(RdsResultStorage::DELIVERY_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
             $tableResults->setPrimaryKey([RdsResultStorage::RESULTS_TABLE_ID]);
 
-            $tableVariables->addColumn(RdsResultStorage::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
-            $tableVariables->addColumn(RdsResultStorage::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, 'text', ['notnull' => false]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
-            $tableVariables->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
-            $tableVariables->addColumn(RdsResultStorage::CREATED_AT, 'datetime', []);
-            $tableVariables->setPrimaryKey([RdsResultStorage::VARIABLES_TABLE_ID]);
+            $tableVariables = $schema->createtable(RdsResultStorage::VARIABLES_TABLENAME);
+            $tableVariables->addOption('engine', 'MyISAM');
 
+            $compatibleSchema->getFieldDefinitionsForTableVariables($tableVariables);
+
+            $tableVariables->setPrimaryKey([RdsResultStorage::VARIABLES_TABLE_ID]);
             $tableVariables->addForeignKeyConstraint(
                 $tableResults,
                 [RdsResultStorage::VARIABLES_FK_COLUMN],
