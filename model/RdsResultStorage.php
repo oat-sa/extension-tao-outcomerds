@@ -31,7 +31,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 
 /**
- * Implements tao results storage using the configured persistency "taoOutcomeRds"
+ * Implements tao results storage using the configured persistence "taoOutcomeRds"
  */
 class RdsResultStorage extends ConfigurableService
     implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
@@ -39,6 +39,7 @@ class RdsResultStorage extends ConfigurableService
     use ResultDeliveryExecutionDelete;
 
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
+    const OPTION_COMPATIBLE_SCHEMA = 'option_compatible_schema';
 
     /**
      * Constants for the database creation and data access
@@ -86,6 +87,9 @@ class RdsResultStorage extends ConfigurableService
     const FIELD_DELIVERY_RESULT = 'deliveryResultIdentifier';
     const FIELD_TEST_TAKER = 'testTakerIdentifier';
     const FIELD_DELIVERY = 'deliveryIdentifier';
+
+    /** @var CompatibleSchemaInterface */
+    private $compatibleSchema;
 
     public function storeTestVariable($deliveryResultIdentifier, $test, Variable $testVariable, $callIdTest)
     {
@@ -194,7 +198,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids) OR ' . self::CALL_ID_TEST_COLUMN .' IN (:ids)')
-            ->orderBy(self::CREATED_AT)
+            ->orderBy($this->getCompatibleSchema()->getSortingField())
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -215,7 +219,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::VARIABLES_FK_COLUMN .' IN (:ids)')
-            ->orderBy(self::CREATED_AT)
+            ->orderBy($this->getCompatibleSchema()->getSortingField())
             ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -524,14 +528,15 @@ class RdsResultStorage extends ConfigurableService
             $variable->setEpoch(microtime());
         }
 
-        return [
-            self::VARIABLES_TABLE_ID => $this->getPersistence()->getUniquePrimaryKey(),
-            self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-            self::TEST_COLUMN => $test,
-            self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
-            self::VARIABLE_VALUE => $this->serializeVariableValue($variable),
-            self::CREATED_AT => $this->getPersistence()->getPlatform()->getNowExpression(),
-        ];
+        return array_merge(
+            [
+                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+                self::TEST_COLUMN => $test,
+                self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
+                self::VARIABLE_VALUE => $this->serializeVariableValue($variable),
+            ],
+            $this->getCompatibleSchema()->getAdditionalFieldForInsert($this->getPersistence()),
+        );
     }
 
     /**
@@ -628,6 +633,18 @@ class RdsResultStorage extends ConfigurableService
     public function configure($callOptions = array())
     {
         \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
+    }
+
+    /**
+     * Get compatible schema.
+     * @return CompatibleSchemaInterface
+     */
+    protected function getCompatibleSchema()
+    {
+        if ($this->compatibleSchema === null) {
+            $this->compatibleSchema = $this->getOption(self::OPTION_COMPATIBLE_SCHEMA);
+        }
+        return $this->compatibleSchema;
     }
 
     /**

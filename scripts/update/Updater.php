@@ -22,6 +22,7 @@
 namespace oat\taoOutcomeRds\scripts\update;
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\model\RdsCompatibleSchema;
 use oat\tao\scripts\update\OntologyUpdater;
 use common_report_Report as Report;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -164,5 +165,13 @@ class Updater extends \common_ext_ExtensionUpdater
         }
 
         $this->skip('6.1.0', '6.1.1');
+
+        if ($this->isVersion('6.1.1')) {
+            $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([
+                RdsResultStorage::OPTION_PERSISTENCE => 'default',
+                RdsResultStorage::OPTION_COMPATIBLE_SCHEMA => new RdsCompatibleSchema(),
+            ]));
+            $this->setVersion('6.2.0');
+        }
     }
 }
