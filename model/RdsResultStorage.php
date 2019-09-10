@@ -21,14 +21,15 @@
 namespace oat\taoOutcomeRds\model;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Table;
 use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use taoResultServer_models_classes_Variable as Variable;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-
 
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
@@ -39,7 +40,6 @@ class RdsResultStorage extends ConfigurableService
     use ResultDeliveryExecutionDelete;
 
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
-    const OPTION_COMPATIBLE_SCHEMA = 'option_compatible_schema';
 
     /**
      * Constants for the database creation and data access
@@ -58,7 +58,6 @@ class RdsResultStorage extends ConfigurableService
     const VARIABLE_VALUE = "value";
     const VARIABLE_IDENTIFIER = "identifier";
     const VARIABLE_HASH = "variable_hash";
-    const CREATED_AT = "created_at";
 
     const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
     const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
@@ -88,8 +87,8 @@ class RdsResultStorage extends ConfigurableService
     const FIELD_TEST_TAKER = 'testTakerIdentifier';
     const FIELD_DELIVERY = 'deliveryIdentifier';
 
-    /** @var CompatibleSchemaInterface */
-    private $compatibleSchema;
+    /** @var  */
+    protected $persistence;
 
     public function storeTestVariable($deliveryResultIdentifier, $test, Variable $testVariable, $callIdTest)
     {
@@ -126,12 +125,8 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
+     * @inheritdoc
      * Stores the item variables in table and their values in key/value storage.
-     * @param string $deliveryResultIdentifier
-     * @param string $test
-     * @param string $item
-     * @param array $itemVariables
-     * @param string $callIdItem
      */
     public function storeItemVariables($deliveryResultIdentifier, $test, $item, array $itemVariables, $callIdItem)
     {
@@ -198,7 +193,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids) OR ' . self::CALL_ID_TEST_COLUMN .' IN (:ids)')
-            ->orderBy($this->getCompatibleSchema()->getSortingField())
+            ->orderBy($this->getVariablesSortingField())
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -219,7 +214,7 @@ class RdsResultStorage extends ConfigurableService
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
             ->andWhere(self::VARIABLES_FK_COLUMN .' IN (:ids)')
-            ->orderBy($this->getCompatibleSchema()->getSortingField())
+            ->orderBy($this->getVariablesSortingField())
             ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
@@ -266,6 +261,15 @@ class RdsResultStorage extends ConfigurableService
         return null;
     }
 
+    /**
+     * Returns the field to sort item and test variables.
+     * @return string
+     */
+    public function getVariablesSortingField()
+    {
+        return RdsResultStorage::VARIABLES_TABLE_ID;
+    }
+
     public function getTestTaker($deliveryResultIdentifier)
     {
         return $this->getRelatedData($deliveryResultIdentifier, self::TEST_TAKER_COLUMN);
@@ -306,7 +310,9 @@ class RdsResultStorage extends ConfigurableService
 
         $returnValue = [];
         foreach ($qb->execute()->fetchAll() as $value) {
-            $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "") ? $value[self::CALL_ID_ITEM_COLUMN] : $value[self::CALL_ID_TEST_COLUMN];
+            $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "")
+                ? $value[self::CALL_ID_ITEM_COLUMN]
+                : $value[self::CALL_ID_TEST_COLUMN];
         }
 
         return $returnValue;
@@ -491,10 +497,9 @@ class RdsResultStorage extends ConfigurableService
      */
     protected function prepareItemVariableData($deliveryResultIdentifier, $test, $item, Variable $variable, $callId)
     {
-        $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
+        $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable, $callId);
         $variableData[self::ITEM_COLUMN] = $item;
         $variableData[self::CALL_ID_ITEM_COLUMN] = $callId;
-        $variableData[self::VARIABLE_HASH] = $deliveryResultIdentifier.md5($deliveryResultIdentifier.$variableData[self::VARIABLE_VALUE].$callId);
 
         return $variableData;
     }
@@ -511,9 +516,8 @@ class RdsResultStorage extends ConfigurableService
      */
     protected function prepareTestVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
     {
-        $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable);
+        $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable, $callId);
         $variableData[self::CALL_ID_TEST_COLUMN] = $callId;
-        $variableData[self::VARIABLE_HASH] = $deliveryResultIdentifier.md5($deliveryResultIdentifier.$variableData[self::VARIABLE_VALUE].$callId);
         return $variableData;
     }
 
@@ -523,25 +527,26 @@ class RdsResultStorage extends ConfigurableService
      * @param string   $deliveryResultIdentifier
      * @param string   $test
      * @param Variable $variable
+     * @param string   $callId
      *
      * @return array
      */
-    protected function prepareVariableData($deliveryResultIdentifier, $test, Variable $variable)
+    protected function prepareVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
     {
         // Ensures that variable has epoch.
         if (!$variable->isSetEpoch()) {
             $variable->setEpoch(microtime());
         }
 
-        return array_merge(
-            [
-                self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-                self::TEST_COLUMN => $test,
-                self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
-                self::VARIABLE_VALUE => $this->serializeVariableValue($variable),
-            ],
-            $this->getCompatibleSchema()->getAdditionalFieldForInsert($this->getPersistence()),
-        );
+        $serializedVariable = $this->serializeVariableValue($variable);
+
+        return [
+            self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+            self::TEST_COLUMN => $test,
+            self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
+            self::VARIABLE_VALUE => $serializedVariable,
+            self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
+        ];
     }
 
     /**
@@ -579,9 +584,14 @@ class RdsResultStorage extends ConfigurableService
      */
     public function getPersistence()
     {
-        $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
-            $this->getOption(self::OPTION_PERSISTENCE) : 'default';
-        return $this->getServiceLocator()->get(\common_persistence_Manager::SERVICE_ID)->getPersistenceById($persistenceId);
+        if ($this->persistence !== null) {
+            $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
+                $this->getOption(self::OPTION_PERSISTENCE)
+                : 'default';
+            $this->persistence = $this->getServiceLocator()->get(\common_persistence_Manager::SERVICE_ID)->getPersistenceById($persistenceId);
+        }
+
+        return $this->persistence;
     }
 
     /**
@@ -641,18 +651,6 @@ class RdsResultStorage extends ConfigurableService
     }
 
     /**
-     * Get compatible schema.
-     * @return CompatibleSchemaInterface
-     */
-    public function getCompatibleSchema()
-    {
-        if ($this->compatibleSchema === null) {
-            $this->compatibleSchema = $this->getOption(self::OPTION_COMPATIBLE_SCHEMA);
-        }
-        return $this->compatibleSchema;
-    }
-
-    /**
      *
      * @param mixed $a
      * @param mixed $b
@@ -674,5 +672,73 @@ class RdsResultStorage extends ConfigurableService
         } else {
             return 0;
         }
+    }
+
+    /**
+     * Creates the table for results storage.
+     *
+     * @param Schema $schema
+     *
+     * @return Table
+     */
+    public function createResultsTable(Schema $schema)
+    {
+        $table = $schema->createtable(self::RESULTS_TABLENAME);
+        $table->addOption('engine', 'MyISAM');
+
+        $table->addColumn(self::RESULTS_TABLE_ID, 'string', ['length' => 255]);
+        $table->addColumn(self::TEST_TAKER_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::DELIVERY_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+
+        $table->setPrimaryKey([self::RESULTS_TABLE_ID]);
+
+        return $table;
+    }
+
+    /**
+     * Creates the table for variables storage.
+     *
+     * @param Schema $schema
+     *
+     * @return Table
+     */
+    public function createVariablesTable(Schema $schema)
+    {
+        $table = $schema->createtable(self::VARIABLES_TABLENAME);
+        $table->addOption('engine', 'MyISAM');
+
+        $table->addColumn(self::VARIABLES_TABLE_ID, 'integer', ['autoincrement' => true]);
+        $table->addColumn(self::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::VARIABLE_VALUE, 'text', ['notnull' => false]);
+        $table->addColumn(self::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
+        $table->addColumn(self::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
+
+        $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
+        $table->addUniqueIndex([self::VARIABLE_HASH], self::UNIQUE_VARIABLE_INDEX);
+        $table->addIndex([self::CALL_ID_ITEM_COLUMN], self::CALL_ID_ITEM_INDEX);
+        $table->addIndex([self::CALL_ID_TEST_COLUMN], self::CALL_ID_TEST_INDEX);
+
+        return $table;
+    }
+
+    /**
+     * Adds constraints for the tables.
+     *
+     * @param Table $variablesTable
+     * @param Table $resultsTable
+     */
+    public function createTableConstraints(Table $variablesTable, Table $resultsTable)
+    {
+        $variablesTable->addForeignKeyConstraint(
+            $resultsTable,
+            [self::VARIABLES_FK_COLUMN],
+            [self::RESULTS_TABLE_ID],
+            [],
+            self::VARIABLES_FK_NAME
+        );
     }
 }
