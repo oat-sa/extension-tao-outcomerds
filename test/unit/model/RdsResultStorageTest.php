@@ -47,7 +47,6 @@ class RdsResultStorageTest extends TestCase
     {
         $databaseMock = $this->getSqlMock('rds_result_storage_test');
         $persistance = $databaseMock->getPersistenceById('rds_result_storage_test');
-        (new createTables())->generateTables($persistance);
         $persistanceManagerProphecy = $this->prophesize(common_persistence_Manager::class);
         $persistanceManagerProphecy->getPersistenceById(Argument::any())->willReturn($persistance);
         $serviceManagerMock = $this->getServiceLocatorMock([
@@ -57,6 +56,8 @@ class RdsResultStorageTest extends TestCase
         $this->instance = new RdsResultStorage();
         $this->instance->setOption(RdsResultStorage::OPTION_PERSISTENCE, $persistance);
         $this->instance->setServiceLocator($serviceManagerMock);
+
+        (new createTables())->generateTables($persistance, $this->instance);
     }
 
     public function tearDown()

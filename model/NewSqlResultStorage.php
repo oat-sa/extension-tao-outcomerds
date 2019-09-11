@@ -23,7 +23,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use taoResultServer_models_classes_Variable as Variable;
 
-class SpannerResultStorage extends RdsResultStorage
+class NewSqlResultStorage extends RdsResultStorage
 {
     const CREATED_AT = "created_at";
 
