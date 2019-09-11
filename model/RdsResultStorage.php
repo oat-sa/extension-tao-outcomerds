@@ -574,7 +574,7 @@ class RdsResultStorage extends ConfigurableService
     /**
      * @return QueryBuilder
      */
-    private function getQueryBuilder()
+    protected function getQueryBuilder()
     {
         return $this->getPersistence()->getPlatform()->getQueryBuilder();
     }

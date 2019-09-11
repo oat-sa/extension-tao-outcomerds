@@ -19,6 +19,7 @@
 
 namespace oat\taoOutcomeRds\model;
 
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use taoResultServer_models_classes_Variable as Variable;
 
@@ -32,6 +33,14 @@ class SpannerResultStorage extends RdsResultStorage
     public function getVariablesSortingField()
     {
         return self::CREATED_AT;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function prepareTestVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
+    {
+        return $this->prepareVariableData($deliveryResultIdentifier, $test, $variable, $callId);
     }
 
     /**
@@ -56,6 +65,86 @@ class SpannerResultStorage extends RdsResultStorage
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
             self::CREATED_AT => $this->microTimeToMicroSeconds($variable->getEpoch(),$persistence->getPlatform()->getDateTimeFormatString()),
         ];
+    }
+
+    public function getVariables($callId)
+    {
+        if (!is_array($callId)) {
+            $callId = [$callId];
+        }
+
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids)')
+            ->orderBy($this->getVariablesSortingField())
+            ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
+
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $variable) {
+            $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
+        }
+
+        return $returnValue;
+    }
+
+    public function getVariable($callId, $variableIdentifier)
+    {
+        $qb = $this->getQueryBuilder()
+            ->select('*')
+            ->from(self::VARIABLES_TABLENAME)
+            ->andWhere(self::CALL_ID_ITEM_COLUMN .' = :callId')
+            ->andWhere(self::VARIABLE_IDENTIFIER . ' = :variableId')
+            ->setParameter('callId', $callId)
+            ->setParameter('variableId', $variableIdentifier);
+
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $variable) {
+            $returnValue[$variable[self::VARIABLES_TABLE_ID]] = $this->getResultRow($variable);
+        }
+
+        return $returnValue;
+    }
+
+    public function getAllCallIds()
+    {
+        $qb = $this->getQueryBuilder()
+            ->select('DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' . self::VARIABLES_FK_COLUMN)
+            ->from(self::VARIABLES_TABLENAME);
+
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $value) {
+            $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
+        }
+
+        return $returnValue;
+    }
+
+    public function getRelatedTestCallIds($deliveryResultIdentifier)
+    {
+        return [];
+    }
+
+    /**
+     * Builds a variable from database row.
+     *
+     * @param array $variable
+     * @return \stdClass
+     */
+    protected function getResultRow($variable)
+    {
+        $resultVariable = $this->unserializeVariableValue($variable[self::VARIABLE_VALUE]);
+        $object = new \stdClass();
+        $object->uri = $variable[self::VARIABLES_TABLE_ID];
+        $object->class = get_class($resultVariable);
+        $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
+        $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
+        $object->callIdTest = '';
+        $object->test = '';
+        $object->item = $variable[self::ITEM_COLUMN];
+        $object->variable = clone $resultVariable;
+
+        return $object;
     }
 
     /**
