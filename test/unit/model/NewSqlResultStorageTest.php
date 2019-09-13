@@ -23,23 +23,19 @@ namespace oat\taoOutcomeRds\test\unit\model;
 
 use common_persistence_Manager;
 use oat\generis\test\TestCase;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\model\NewSqlResultStorage;
 use oat\taoOutcomeRds\scripts\install\CreateTables;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use Prophecy\Argument;
 use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
 /**
- * Test Rds result storage
- *
- * @author  Antoine Robin, <antoine.robin@vesperiagroup.com>
- * @package taoOutcomeRds
- *
+ * Test NewSql result storage
  */
-class RdsResultStorageTest extends TestCase
+class NewSqlResultStorageTest extends TestCase
 {
     /**
-     * @var RdsResultStorage
+     * @var NewSqlResultStorage
      */
     protected $instance;
 
@@ -53,8 +49,8 @@ class RdsResultStorageTest extends TestCase
             common_persistence_Manager::SERVICE_ID => $persistanceManagerProphecy,
         ]);
 
-        $this->instance = new RdsResultStorage();
-        $this->instance->setOption(RdsResultStorage::OPTION_PERSISTENCE, $persistance);
+        $this->instance = new NewSqlResultStorage();
+        $this->instance->setOption(NewSqlResultStorage::OPTION_PERSISTENCE, $persistance);
         $this->instance->setServiceLocator($serviceManagerMock);
 
         (new CreateTables())->generateTables($persistance, $this->instance);
@@ -136,10 +132,10 @@ class RdsResultStorageTest extends TestCase
     /**
      * @dataProvider resultByDeliveryToTest
      *
-     * @param array $ids
+     * @param array        $ids
      * @param array|string $selected
-     * @param array $options
-     * @param array $expected
+     * @param array        $options
+     * @param array        $expected
      */
     public function testGetResultByDelivery(array $ids, $selected, array $options, array $expected)
     {
@@ -154,9 +150,9 @@ class RdsResultStorageTest extends TestCase
 
         foreach ($expected as &$fields) {
             $fields = [
-                RdsResultStorage::FIELD_DELIVERY_RESULT => $ids[$fields[0]],
-                RdsResultStorage::FIELD_TEST_TAKER => $ids[$fields[1]],
-                RdsResultStorage::FIELD_DELIVERY => $ids[$fields[2]],
+                NewSqlResultStorage::FIELD_DELIVERY_RESULT => $ids[$fields[0]],
+                NewSqlResultStorage::FIELD_TEST_TAKER => $ids[$fields[1]],
+                NewSqlResultStorage::FIELD_DELIVERY => $ids[$fields[2]],
             ];
         }
 
@@ -191,7 +187,7 @@ class RdsResultStorageTest extends TestCase
             'delivery1' => [
                 $ids,
                 [$ids['d1']],
-                ['order' => RdsResultStorage::DELIVERY_COLUMN],
+                ['order' => NewSqlResultStorage::DELIVERY_COLUMN],
                 [
                     ['dr11', 'tt1', 'd1'],
                     ['dr12', 'tt2', 'd1'],
@@ -200,7 +196,7 @@ class RdsResultStorageTest extends TestCase
             'delivery1+2 by testtaker desc' => [
                 $ids,
                 [$ids['d1'], $ids['d2']],
-                ['order' => RdsResultStorage::TEST_TAKER_COLUMN, 'orderdir' => 'desc'],
+                ['order' => NewSqlResultStorage::TEST_TAKER_COLUMN, 'orderdir' => 'desc'],
                 [
                     ['dr12', 'tt2', 'd1'],
                     ['dr22', 'tt2', 'd2'],
@@ -211,7 +207,7 @@ class RdsResultStorageTest extends TestCase
             'limit + offset' => [
                 $ids,
                 [],
-                ['order' => RdsResultStorage::RESULTS_TABLE_ID, 'limit' => 2, 'offset' => 1],
+                ['order' => NewSqlResultStorage::RESULTS_TABLE_ID, 'limit' => 2, 'offset' => 1],
                 [
                     ['dr12', 'tt2', 'd1'],
                     ['dr21', 'tt1', 'd2'],
@@ -267,7 +263,8 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getVariable($callId, $identifier);
 
         $object = array_shift($variables);
-        $this->assertEquals($test, $object->test);
+        // Test name is not stored anymore.
+        $this->assertEquals('', $object->test);
         $this->assertEquals($item, $object->item);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
         $this->assertEquals($baseType, $object->variable->getBaseType());
@@ -373,7 +370,8 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getVariables($callId);
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
+        // Test name is not stored anymore.
+        $this->assertEquals('', $object->test);
         $this->assertEquals($item, $object->item);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
         $this->assertEquals($baseType1, $object->variable->getBaseType());
@@ -382,7 +380,8 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals($value1, $object->variable->getValue());
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
+        // Test name is not stored anymore.
+        $this->assertEquals('', $object->test);
         $this->assertEquals($item, $object->item);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
         $this->assertEquals($baseType2, $object->variable->getBaseType());
@@ -410,8 +409,13 @@ class RdsResultStorageTest extends TestCase
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
         $variables = $this->instance->getVariable($callId, $identifier);
 
+        // Test call id is not used anymore
+        $this->assertEquals([], $variables);
+
+        /*
         $object = array_shift($variables);
-        $this->assertEquals($test, $object->test);
+        // Test name is not stored anymore.
+        $this->assertEquals('', $object->test);
         $this->assertNull($object->item);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
         $this->assertEquals($baseType, $object->variable->getBaseType());
@@ -423,6 +427,7 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
+        */
     }
 
     public function testStoreTestVariables()
@@ -457,7 +462,8 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getDeliveryVariables($deliveryResultIdentifier);
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
+        // Test name is not stored anymore.
+        $this->assertEquals('', $object->test);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
         $this->assertEquals($baseType1, $object->variable->getBaseType());
         $this->assertEquals($cardinality1, $object->variable->getCardinality());
@@ -465,7 +471,8 @@ class RdsResultStorageTest extends TestCase
         $this->assertEquals($value1, $object->variable->getValue());
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
+        // Test name is not stored anymore.
+        $this->assertEquals('', $object->test);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
         $this->assertEquals($baseType2, $object->variable->getBaseType());
         $this->assertEquals($cardinality2, $object->variable->getCardinality());
@@ -503,7 +510,8 @@ class RdsResultStorageTest extends TestCase
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
-        $this->assertSame([$testCallId, $itemCallId], $this->instance->getAllCallIds());
+        // Test call id is not stored anymore.
+        $this->assertSame([$itemCallId], $this->instance->getAllCallIds());
     }
 
     public function testGetRelatedItemCallIds()
@@ -569,6 +577,25 @@ class RdsResultStorageTest extends TestCase
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $itemCallId);
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
-        $this->assertSame([$testCallId], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
+        // Test call id is not stored anymore.
+        $this->assertSame([], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
+    }
+
+    /**
+     * @dataProvider microTimeToTest
+     * @param $microTime
+     * @param $expected
+     */
+    public function testMicroTimeToMicroSeconds($microTime, $expected)
+    {
+        $this->assertEquals($expected, $this->instance->microTimeToMicroSeconds($microTime, 'Y-m-d\TH:i:s.u\Z'));
+    }
+
+    public function microTimeToTest()
+    {
+        return [
+            ['0.0 0', '1970-01-01T00:00:00.000000Z'],
+            ['0.12345600 1234567890', '2009-02-13T23:31:30.123456Z'],
+        ];
     }
 }

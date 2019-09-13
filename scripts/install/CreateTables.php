@@ -27,7 +27,7 @@ use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 
-class createTables extends AbstractAction
+class CreateTables extends AbstractAction
 {
     public function __invoke($params)
     {

@@ -63,7 +63,7 @@ class NewSqlResultStorage extends RdsResultStorage
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
-            self::CREATED_AT => $this->microTimeToMicroSeconds($variable->getEpoch(),$persistence->getPlatform()->getDateTimeFormatString()),
+            self::CREATED_AT => $this->microTimeToMicroSeconds($variable->getEpoch(), $persistence->getPlatform()->getDateTimeFormatString()),
         ];
     }
 
@@ -76,7 +76,7 @@ class NewSqlResultStorage extends RdsResultStorage
         $qb = $this->getQueryBuilder()
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::CALL_ID_ITEM_COLUMN .' IN (:ids)')
+            ->andWhere(self::CALL_ID_ITEM_COLUMN . ' IN (:ids)')
             ->orderBy($this->getVariablesSortingField())
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
@@ -93,7 +93,7 @@ class NewSqlResultStorage extends RdsResultStorage
         $qb = $this->getQueryBuilder()
             ->select('*')
             ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::CALL_ID_ITEM_COLUMN .' = :callId')
+            ->andWhere(self::CALL_ID_ITEM_COLUMN . ' = :callId')
             ->andWhere(self::VARIABLE_IDENTIFIER . ' = :variableId')
             ->setParameter('callId', $callId)
             ->setParameter('variableId', $variableIdentifier);
@@ -114,7 +114,9 @@ class NewSqlResultStorage extends RdsResultStorage
 
         $returnValue = [];
         foreach ($qb->execute()->fetchAll() as $value) {
-            $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
+            if ($value[self::CALL_ID_ITEM_COLUMN] !== null) {
+                $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
+            }
         }
 
         return $returnValue;
@@ -129,6 +131,7 @@ class NewSqlResultStorage extends RdsResultStorage
      * Builds a variable from database row.
      *
      * @param array $variable
+     *
      * @return \stdClass
      */
     protected function getResultRow($variable)
@@ -176,7 +179,6 @@ class NewSqlResultStorage extends RdsResultStorage
         list($usec, $sec) = explode(" ", $microTime);
         $microDate = (float)$sec + (float)$usec;
         $d = date_create_from_format('U.u', number_format($microDate, 6, '.', ''));
-        $d->setTimezone(new \DateTimeZone('UTC'));
         return $d->format($format);
     }
 }

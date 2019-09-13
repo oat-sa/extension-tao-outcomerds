@@ -40,7 +40,7 @@ return array(
             dirname(__FILE__) . '/scripts/install/taoOutcomeRds.rdf'
         ),
         'php' => array(
-            \oat\taoOutcomeRds\scripts\install\createTables::class,
+            \oat\taoOutcomeRds\scripts\install\CreateTables::class,
             dirname(__FILE__) . '/scripts/install/setDefault.php',
         )
     ),
