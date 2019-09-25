@@ -84,6 +84,36 @@ class NewSqlResultStorage extends RdsResultStorage
         foreach ($qb->execute()->fetchAll() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
+        foreach ($callId as $id) {
+            if (substr($id, 0, 4) == 'ttt-') {
+                $testVariables = $this->getTestVariables(substr($id, 4));
+                $returnValue = array_merge_recursive($returnValue, $testVariables);
+                break;
+            }
+        }
+        return $returnValue;
+    }
+
+    /**
+     * Retireve all test variables for a result
+     * @param string $resultId
+     * @return array
+     */
+    private function getTestVariables($resultId)
+    {
+        $qb = $this->getQueryBuilder()
+        ->select('*')
+        ->from(self::VARIABLES_TABLENAME)
+        ->where(self::VARIABLES_FK_COLUMN. ' = :resultid')
+        ->andWhere($this->getQueryBuilder()->expr()->isNull(self::CALL_ID_ITEM_COLUMN))
+        ->orderBy($this->getVariablesSortingField())
+        ->setParameter('resultid', $resultId);
+
+        $returnValue = [];
+        foreach ($qb->execute()->fetchAll() as $variable) {
+            $variable[self::CALL_ID_TEST_COLUMN] = 'dummy';
+            $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
+        }
 
         return $returnValue;
     }
@@ -124,7 +154,7 @@ class NewSqlResultStorage extends RdsResultStorage
 
     public function getRelatedTestCallIds($deliveryResultIdentifier)
     {
-        return [];
+        return ['ttt-'.$deliveryResultIdentifier];
     }
 
     /**
@@ -142,7 +172,7 @@ class NewSqlResultStorage extends RdsResultStorage
         $object->class = get_class($resultVariable);
         $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
         $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
-        $object->callIdTest = '';
+        $object->callIdTest = isset($variable[self::CALL_ID_TEST_COLUMN]) ? $variable[self::CALL_ID_TEST_COLUMN] : '';
         $object->test = '';
         $object->item = $variable[self::ITEM_COLUMN];
         $object->variable = clone $resultVariable;
