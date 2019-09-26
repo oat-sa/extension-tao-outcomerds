@@ -38,14 +38,6 @@ class NewSqlResultStorage extends RdsResultStorage
     /**
      * @inheritdoc
      */
-    protected function prepareTestVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
-    {
-        return $this->prepareVariableData($deliveryResultIdentifier, $test, $variable, $callId);
-    }
-
-    /**
-     * @inheritdoc
-     */
     protected function prepareVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
     {
         // Ensures that variable has epoch.
@@ -67,66 +59,6 @@ class NewSqlResultStorage extends RdsResultStorage
         ];
     }
 
-    public function getVariables($callId)
-    {
-        if (!is_array($callId)) {
-            $callId = [$callId];
-        }
-
-        $qb = $this->getQueryBuilder()
-            ->select('*')
-            ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::CALL_ID_ITEM_COLUMN . ' IN (:ids)')
-            ->orderBy($this->getVariablesSortingField())
-            ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
-
-        $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $variable) {
-            $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
-        }
-
-        return $returnValue;
-    }
-
-    public function getVariable($callId, $variableIdentifier)
-    {
-        $qb = $this->getQueryBuilder()
-            ->select('*')
-            ->from(self::VARIABLES_TABLENAME)
-            ->andWhere(self::CALL_ID_ITEM_COLUMN . ' = :callId')
-            ->andWhere(self::VARIABLE_IDENTIFIER . ' = :variableId')
-            ->setParameter('callId', $callId)
-            ->setParameter('variableId', $variableIdentifier);
-
-        $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $variable) {
-            $returnValue[$variable[self::VARIABLES_TABLE_ID]] = $this->getResultRow($variable);
-        }
-
-        return $returnValue;
-    }
-
-    public function getAllCallIds()
-    {
-        $qb = $this->getQueryBuilder()
-            ->select('DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' . self::VARIABLES_FK_COLUMN)
-            ->from(self::VARIABLES_TABLENAME);
-
-        $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $value) {
-            if ($value[self::CALL_ID_ITEM_COLUMN] !== null) {
-                $returnValue[] = $value[self::CALL_ID_ITEM_COLUMN];
-            }
-        }
-
-        return $returnValue;
-    }
-
-    public function getRelatedTestCallIds($deliveryResultIdentifier)
-    {
-        return [];
-    }
-
     /**
      * Builds a variable from database row.
      *
@@ -142,7 +74,7 @@ class NewSqlResultStorage extends RdsResultStorage
         $object->class = get_class($resultVariable);
         $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
         $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
-        $object->callIdTest = '';
+        $object->callIdTest = $variable[self::CALL_ID_TEST_COLUMN];
         $object->test = '';
         $object->item = $variable[self::ITEM_COLUMN];
         $object->variable = clone $resultVariable;
@@ -159,6 +91,7 @@ class NewSqlResultStorage extends RdsResultStorage
         $table->addOption('engine', 'MyISAM');
 
         $table->addColumn(self::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
+        $table->addColumn(self::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::VARIABLE_VALUE, 'text', ['notnull' => false]);
