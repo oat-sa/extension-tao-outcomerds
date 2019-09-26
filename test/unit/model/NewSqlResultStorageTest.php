@@ -409,12 +409,7 @@ class NewSqlResultStorageTest extends TestCase
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $callId);
         $variables = $this->instance->getVariable($callId, $identifier);
 
-        // Test call id is not used anymore
-        $this->assertEquals([], $variables);
-
-        /*
         $object = array_shift($variables);
-        // Test name is not stored anymore.
         $this->assertEquals('', $object->test);
         $this->assertNull($object->item);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
@@ -427,7 +422,6 @@ class NewSqlResultStorageTest extends TestCase
         $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
         $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
         $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
-        */
     }
 
     public function testStoreTestVariables()
@@ -511,7 +505,7 @@ class NewSqlResultStorageTest extends TestCase
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
         // Test call id is not stored anymore.
-        $this->assertSame([$itemCallId], $this->instance->getAllCallIds());
+        $this->assertSame([$testCallId, $itemCallId], $this->instance->getAllCallIds());
     }
 
     public function testGetRelatedItemCallIds()
@@ -578,7 +572,7 @@ class NewSqlResultStorageTest extends TestCase
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
         // Test call id is not stored anymore.
-        $this->assertSame([], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
+        $this->assertSame([$testCallId], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
     }
 
     /**

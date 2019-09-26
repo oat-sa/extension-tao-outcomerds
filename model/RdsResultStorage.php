@@ -25,6 +25,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
+use oat\generis\persistence\PersistenceManager;
 use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
@@ -588,7 +589,7 @@ class RdsResultStorage extends ConfigurableService
             $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
                 $this->getOption(self::OPTION_PERSISTENCE)
                 : 'default';
-            $this->persistence = $this->getServiceLocator()->get(\common_persistence_Manager::SERVICE_ID)->getPersistenceById($persistenceId);
+            $this->persistence = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID)->getPersistenceById($persistenceId);
         }
 
         return $this->persistence;

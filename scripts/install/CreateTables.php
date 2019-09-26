@@ -32,7 +32,7 @@ class CreateTables extends AbstractAction
     public function __invoke($params)
     {
         /** @var RdsResultStorage $resultStorage */
-        $resultStorage = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
+        $resultStorage = $this->getServiceLocator()->get(RdsResultStorage::SERVICE_ID);
         $persistence = $resultStorage->getPersistence();
 
         $this->generateTables($persistence, $resultStorage);
