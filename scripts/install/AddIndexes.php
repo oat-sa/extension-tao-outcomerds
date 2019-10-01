@@ -14,64 +14,60 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2017 (original work) Open Assessment Technologies SA;
- *
+ * Copyright (c) 2017-2019 (original work) Open Assessment Technologies SA;
  */
 
 namespace oat\taoOutcomeRds\scripts\install;
 
-use Doctrine\DBAL\DBALException;
-use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use common_report_Report as Report;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaException;
+use Doctrine\DBAL\Schema\Table;
+use oat\taoOutcomeRds\scripts\SchemaChange\ResultStorageSchemaChangeAction;
+use oat\taoOutcomeRds\scripts\SchemaChange\SchemaChangeException;
 
-class AddIndexes extends AbstractAction
+class AddIndexes extends ResultStorageSchemaChangeAction
 {
+    const ACTION_NAME = 'index addition';
+
     /**
-     *
-     * @param $params
-     * @return \common_report_Report
+     * @inheritdoc
+     * Creates the new tables.
+     * @throws SchemaChangeException when the variable table doesn't exist.
      */
-    public function __invoke($params)
+    protected function changeSchema(Schema $schema)
     {
-        $persistence = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID)->getPersistence();
-
-        $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
-        $fromSchema = clone $schema;
-
-
-        if($schema->hasTable(RdsResultStorage::VARIABLES_TABLENAME)){
-            try{
-            $tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-            $i = 0;
-            if(!$tableVariables->hasIndex(RdsResultStorage::CALL_ID_ITEM_INDEX)){
-                $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_ITEM_COLUMN), RdsResultStorage::CALL_ID_ITEM_INDEX);
-                $i++;
-            }
-
-            if(!$tableVariables->hasIndex(RdsResultStorage::CALL_ID_TEST_INDEX)){
-                $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_TEST_COLUMN), RdsResultStorage::CALL_ID_TEST_INDEX);
-                $i++;
-            }
-
-            $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-
-
-            foreach ($queries as $query) {
-                $persistence->exec($query);
-            }
-
-            } catch(DBALException $e){
-                \common_Logger::w($e->getMessage());
-                return \common_report_Report::createFailure(__('Something went wrong during indexes addition'));
-            }
-
-            if($i === 0){
-                return \common_report_Report::createInfo(__('No indexes to add'));
-            } else {
-                return \common_report_Report::createSuccess(__('Successfully added %s indexes', $i));
-            }
+        try {
+            $tableVariables = $schema->getTable($this->resultStorage::VARIABLES_TABLENAME);
+        } catch (SchemaException $exception) {
+            throw new SchemaChangeException(sprintf(__('The table %s doesn\'t exist', $this->resultStorage::VARIABLES_TABLENAME)));
         }
 
-        return \common_report_Report::createFailure(__('The table %s doesn\'t exist', RdsResultStorage::VARIABLES_TABLENAME));
+        $addedIndexes = 0;
+        $addedIndexes += $this->createIndex($tableVariables, $this->resultStorage::CALL_ID_ITEM_INDEX, [$this->resultStorage::CALL_ID_ITEM_COLUMN]);
+        $addedIndexes += $this->createIndex($tableVariables, $this->resultStorage::CALL_ID_TEST_INDEX, [$this->resultStorage::CALL_ID_TEST_COLUMN]);
+
+        if ($addedIndexes) {
+            return Report::createSuccess(__('Successfully added %s indexes', $addedIndexes));
+        }
+
+        return Report::createInfo(__('No indexes to add'));
+    }
+
+    /**
+     * @param Table  $table
+     * @param string $indexName
+     * @param array  $fields
+     *
+     * @return int number of indexes created
+     */
+    private function createIndex(Table $table, $indexName, array $fields)
+    {
+        if ($table->hasIndex($indexName)) {
+            return 0;
+        }
+        
+        $table->addIndex($fields, $indexName);
+        return 1;
     }
 }

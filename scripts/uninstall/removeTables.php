@@ -18,45 +18,42 @@
  *
  *
  */
+
 namespace oat\taoOutcomeRds\scripts\uninstall;
 
-use Doctrine\DBAL\DBALException;
-use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use common_ext_ExtensionsManager as ExtensionsManager;
+use Doctrine\DBAL\Schema\Schema;
 use oat\generis\model\data\ModelManager;
 use oat\tao\model\extension\ExtensionModel;
+use oat\taoOutcomeRds\scripts\SchemaChange\ResultStorageSchemaChangeAction;
 
-class removeTables extends AbstractAction
+class removeTables extends ResultStorageSchemaChangeAction
 {
+    const ACTION_NAME = 'table removal';
 
     /**
-     * @param $params
-     * @throws \common_exception_InconsistentData
-     * @throws \common_ext_ExtensionException
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     * @throws DBALException
+     * @inheritdoc
+     * Removes tables in the new schema.
      */
-    public function __invoke($params)
+    protected function changeSchema(Schema $schema)
     {
-        $persistence = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID)->getPersistence();
+        $schema->dropTable($this->resultStorage::VARIABLES_TABLENAME);
+        $schema->dropTable($this->resultStorage::RESULTS_TABLENAME);
+    }
 
-        $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
-        $fromSchema = clone $schema;
+    /**
+     * @inheritdoc
+     * Removes statement entries for this extension.
+     */
+    protected function afterChange()
+    {
+        /** @var ExtensionsManager $extensionManager */
+        $extensionManager = $this->getServiceLocator()->get(ExtensionsManager::SERVICE_ID);
+        $model = new ExtensionModel($extensionManager->getExtensionById('taoOutcomeRds'));
 
-        $tableVariables = $schema->dropTable(RdsResultStorage::VARIABLES_TABLENAME);
-        $tableResults = $schema->dropTable(RdsResultStorage::RESULTS_TABLENAME);
-        $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-        foreach ($queries as $query) {
-            $persistence->exec($query);
-        }
-
-// remove statement entries for this extension
-        $model = new ExtensionModel(\common_ext_ExtensionsManager::singleton()->getExtensionById('taoOutcomeRds'));
         $modelRdf = ModelManager::getModel()->getRdfInterface();
         foreach ($model as $triple) {
             $modelRdf->remove($triple);
         }
-
-
     }
 }

@@ -14,52 +14,59 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014-2017 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
- *
+ * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoOutcomeRds\scripts\install;
 
-use common_Logger;
-use common_persistence_SqlPersistence as Persistence;
+use common_report_Report as Report;
+use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
-use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use Doctrine\DBAL\Schema\Table;
+use oat\taoOutcomeRds\scripts\SchemaChange\ResultStorageSchemaChangeAction;
 
-class CreateTables extends AbstractAction
+class CreateTables extends ResultStorageSchemaChangeAction
 {
-    public function __invoke($params)
-    {
-        /** @var RdsResultStorage $resultStorage */
-        $resultStorage = $this->getServiceLocator()->get(RdsResultStorage::SERVICE_ID);
-        $persistence = $resultStorage->getPersistence();
+    const ACTION_NAME = 'table creation';
 
-        $this->generateTables($persistence, $resultStorage);
+    /**
+     * @inheritdoc
+     * Creates tables in the new schema.
+     */
+    protected function changeSchema(Schema $schema)
+    {
+        $resultsTable = $this->getOrCreateTable($schema, $this->resultStorage::RESULTS_TABLENAME, 'createResultsTable');
+        $variablesTable = $this->getOrCreateTable($schema, $this->resultStorage::VARIABLES_TABLENAME, 'createVariablesTable');
+
+        try {
+            $this->resultStorage->createTableConstraints($variablesTable, $resultsTable);
+        } catch (SchemaException $e) {
+            return Report::createFailure('Database Schema already up to date.');
+        }
+
+        return Report::createSuccess(__('2 tables created.'));
     }
 
     /**
-     * @param Persistence $persistence
-     * @param RdsResultStorage $resultStorage
+     * @param Schema $schema
+     * @param string $tableName
+     * @param string $creationMethodName
+     *
+     * @return Table
      */
-    public function generateTables(Persistence $persistence, RdsResultStorage $resultStorage)
+    private function getOrCreateTable(Schema $schema, $tableName, $creationMethodName)
     {
-        /** @var \common_persistence_sql_dbal_SchemaManager $schemaManager */
-        $schemaManager = $persistence->getDriver()->getSchemaManager();
-        $schema = $schemaManager->createSchema();
-        $fromSchema = clone $schema;
-
         try {
-            $resultsTable = $resultStorage->createResultsTable($schema);
-            $variablesTable = $resultStorage->createVariablesTable($schema);
-            $resultStorage->createTableConstraints($variablesTable, $resultsTable);
-        } catch (SchemaException $e) {
-            common_Logger::i('Database Schema already up to date.');
+            $table = $schema->getTable($tableName);
+        } catch (SchemaException $exception) {
+            try {
+                $table = $this->resultStorage->$creationMethodName($schema);
+            } catch (SchemaException $exception) {
+                // Table already exists. How can this happen, since we're doing this because
+                // it doesn't exist in the first place?
+            }
         }
 
-        $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-        foreach ($queries as $query) {
-            $persistence->exec($query);
-        }
+        return $table;
     }
 }
