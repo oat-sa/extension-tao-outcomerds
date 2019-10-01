@@ -21,20 +21,17 @@
 
 namespace oat\taoOutcomeRds\test\unit\model;
 
-use common_persistence_Manager;
+use oat\generis\persistence\PersistenceManager;
 use oat\generis\test\TestCase;
+use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\taoOutcomeRds\scripts\install\CreateTables;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
-use Prophecy\Argument;
+use PHPUnit_Framework_MockObject_MockObject as MockObject;
 use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
 /**
  * Test Rds result storage
- *
- * @author  Antoine Robin, <antoine.robin@vesperiagroup.com>
- * @package taoOutcomeRds
- *
  */
 class RdsResultStorageTest extends TestCase
 {
@@ -46,23 +43,37 @@ class RdsResultStorageTest extends TestCase
     public function setUp()
     {
         $databaseMock = $this->getSqlMock('rds_result_storage_test');
-        $persistance = $databaseMock->getPersistenceById('rds_result_storage_test');
-        $persistanceManagerProphecy = $this->prophesize(common_persistence_Manager::class);
-        $persistanceManagerProphecy->getPersistenceById(Argument::any())->willReturn($persistance);
-        $serviceManagerMock = $this->getServiceLocatorMock([
-            common_persistence_Manager::SERVICE_ID => $persistanceManagerProphecy,
-        ]);
+        $persistence = $databaseMock->getPersistenceById('rds_result_storage_test');
+        
+        /** @var PersistenceManager|MockObject $persistenceManager */
+        $persistenceManager = $this->getMockBuilder(PersistenceManager::class)
+        ->disableOriginalConstructor()
+        ->setMethods(['getPersistenceById'])
+        ->getMock();
+        $persistenceManager->method('getPersistenceById')->willReturn($persistence);
+        
+        $testedClass = $this->getTestedClass();
+        $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistence]);
 
-        $this->instance = new RdsResultStorage();
-        $this->instance->setOption(RdsResultStorage::OPTION_PERSISTENCE, $persistance);
+        $serviceManagerMock = $this->getServiceLocatorMock([
+            PersistenceManager::SERVICE_ID => $persistenceManager,
+            $testedClass::SERVICE_ID => $this->instance,
+        ]);
         $this->instance->setServiceLocator($serviceManagerMock);
 
-        (new CreateTables())->generateTables($persistance, $this->instance);
+        $createTableAction = new CreateTables();
+        $createTableAction->setServiceLocator($serviceManagerMock);
+        $createTableAction(null);
     }
 
     public function tearDown()
     {
         $this->instance = null;
+    }
+
+    protected function getTestedClass()
+    {
+        return RdsResultStorage::class;
     }
 
     public function testStoreRelatedTestTaker()
@@ -154,9 +165,9 @@ class RdsResultStorageTest extends TestCase
 
         foreach ($expected as &$fields) {
             $fields = [
-                RdsResultStorage::FIELD_DELIVERY_RESULT => $ids[$fields[0]],
-                RdsResultStorage::FIELD_TEST_TAKER => $ids[$fields[1]],
-                RdsResultStorage::FIELD_DELIVERY => $ids[$fields[2]],
+                AbstractRdsResultStorage::FIELD_DELIVERY_RESULT => $ids[$fields[0]],
+                AbstractRdsResultStorage::FIELD_TEST_TAKER => $ids[$fields[1]],
+                AbstractRdsResultStorage::FIELD_DELIVERY => $ids[$fields[2]],
             ];
         }
 
@@ -191,7 +202,7 @@ class RdsResultStorageTest extends TestCase
             'delivery1' => [
                 $ids,
                 [$ids['d1']],
-                ['order' => RdsResultStorage::DELIVERY_COLUMN],
+                ['order' => AbstractRdsResultStorage::DELIVERY_COLUMN],
                 [
                     ['dr11', 'tt1', 'd1'],
                     ['dr12', 'tt2', 'd1'],
@@ -200,7 +211,7 @@ class RdsResultStorageTest extends TestCase
             'delivery1+2 by testtaker desc' => [
                 $ids,
                 [$ids['d1'], $ids['d2']],
-                ['order' => RdsResultStorage::TEST_TAKER_COLUMN, 'orderdir' => 'desc'],
+                ['order' => AbstractRdsResultStorage::TEST_TAKER_COLUMN, 'orderdir' => 'desc'],
                 [
                     ['dr12', 'tt2', 'd1'],
                     ['dr22', 'tt2', 'd2'],
@@ -211,7 +222,7 @@ class RdsResultStorageTest extends TestCase
             'limit + offset' => [
                 $ids,
                 [],
-                ['order' => RdsResultStorage::RESULTS_TABLE_ID, 'limit' => 2, 'offset' => 1],
+                ['order' => AbstractRdsResultStorage::RESULTS_TABLE_ID, 'limit' => 2, 'offset' => 1],
                 [
                     ['dr12', 'tt2', 'd1'],
                     ['dr21', 'tt1', 'd2'],

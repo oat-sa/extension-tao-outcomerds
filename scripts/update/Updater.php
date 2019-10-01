@@ -21,8 +21,8 @@
 
 namespace oat\taoOutcomeRds\scripts\update;
 
+use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use oat\taoOutcomeRds\model\RdsResultStorage;
-use oat\taoOutcomeRds\model\RdsCompatibleSchema;
 use oat\tao\scripts\update\OntologyUpdater;
 use common_report_Report as Report;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -48,24 +48,24 @@ class Updater extends \common_ext_ExtensionUpdater
 
             //get variables
             $persistence = \common_persistence_Manager::getPersistence('default');
-            $sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL';
-            $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL';
+            $sql = 'SELECT * FROM ' . AbstractRdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. AbstractRdsResultStorage::VARIABLE_VALUE .' IS NULL';
+            $countSql = 'SELECT count(*) FROM ' . AbstractRdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. AbstractRdsResultStorage::VARIABLE_VALUE .' IS NULL';
 
             //update variable storage table schema
             $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
             $fromSchema = clone $schema;
 
-            $tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-            if(!$tableVariables->hasColumn(RdsResultStorage::VARIABLE_VALUE)){
-                $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
+            $tableVariables = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
+            if(!$tableVariables->hasColumn(AbstractRdsResultStorage::VARIABLE_VALUE)){
+                $tableVariables->addColumn(AbstractRdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
                 $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
 
                 foreach ($queries as $query) {
                     $persistence->exec($query);
                 }
 
-                $sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME;
-                $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME;
+                $sql = 'SELECT * FROM ' . AbstractRdsResultStorage::VARIABLES_TABLENAME;
+                $countSql = 'SELECT count(*) FROM ' . AbstractRdsResultStorage::VARIABLES_TABLENAME;
             }
 
             $params = array();
@@ -73,29 +73,29 @@ class Updater extends \common_ext_ExtensionUpdater
 
             $limit = 1000;
             for($i = 0; $i <= $entries; $i+=$limit){
-                $newSql = $sql . ' ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
+                $newSql = $sql . ' ORDER BY ' . AbstractRdsResultStorage::VARIABLES_TABLE_ID;
                 $query = $persistence->getPlatform()->limitStatement($newSql, $limit,$i);
                 $variables = $persistence->query($query);
 
                 //store information the new way
                 foreach($variables as $variable){
                     //get Variable informations
-                    $variableSql = 'SELECT * FROM ' . RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME . '
-                WHERE ' . RdsResultStorage::RESULTSKV_FK_COLUMN .' = ?';
-                    $params = array($variable[RdsResultStorage::VARIABLES_TABLE_ID]);
+                    $variableSql = 'SELECT * FROM ' . AbstractRdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME . '
+                WHERE ' . AbstractRdsResultStorage::RESULTSKV_FK_COLUMN .' = ?';
+                    $params = array($variable[AbstractRdsResultStorage::VARIABLES_TABLE_ID]);
                     $variableValues = $persistence->query($variableSql, $params);
 
-                    if (class_exists($variable[RdsResultStorage::VARIABLE_CLASS])) {
-                        $resultVariable = new $variable[RdsResultStorage::VARIABLE_CLASS]();
+                    if (class_exists($variable[AbstractRdsResultStorage::VARIABLE_CLASS])) {
+                        $resultVariable = new $variable[AbstractRdsResultStorage::VARIABLE_CLASS]();
                     } else {
                         $resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
                     }
 
                     foreach($variableValues as $variableValue){
-                        $setter = 'set' . ucfirst($variableValue[RdsResultStorage::KEY_COLUMN]);
-                        $value = $variableValue[RdsResultStorage::VALUE_COLUMN];
+                        $setter = 'set' . ucfirst($variableValue[AbstractRdsResultStorage::KEY_COLUMN]);
+                        $value = $variableValue[AbstractRdsResultStorage::VALUE_COLUMN];
                         if (method_exists($resultVariable, $setter) && !is_null($value)) {
-                            if ($variableValue[RdsResultStorage::KEY_COLUMN] == 'value' || $variableValue[RdsResultStorage::KEY_COLUMN] == 'candidateResponse') {
+                            if ($variableValue[AbstractRdsResultStorage::KEY_COLUMN] == 'value' || $variableValue[AbstractRdsResultStorage::KEY_COLUMN] == 'candidateResponse') {
                                 $value = base64_decode($value);
                             }
 
@@ -103,8 +103,8 @@ class Updater extends \common_ext_ExtensionUpdater
                         }
                     }
 
-                    $sqlUpdate = 'UPDATE ' . RdsResultStorage::VARIABLES_TABLENAME . ' SET ' . RdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . RdsResultStorage::VARIABLES_TABLE_ID . ' = ?';
-                    $paramsUpdate = array(serialize($resultVariable), $variable[RdsResultStorage::VARIABLES_TABLE_ID]);
+                    $sqlUpdate = 'UPDATE ' . AbstractRdsResultStorage::VARIABLES_TABLENAME . ' SET ' . AbstractRdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . AbstractRdsResultStorage::VARIABLES_TABLE_ID . ' = ?';
+                    $paramsUpdate = array(serialize($resultVariable), $variable[AbstractRdsResultStorage::VARIABLES_TABLE_ID]);
                     $persistence->exec($sqlUpdate, $paramsUpdate);
 
                 }
@@ -114,9 +114,9 @@ class Updater extends \common_ext_ExtensionUpdater
             $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
             $fromSchema = clone $schema;
 
-            $tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-            $resultKv = $schema->dropTable(RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
-            $tableVariables->dropColumn(RdsResultStorage::VARIABLE_CLASS);
+            $tableVariables = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
+            $resultKv = $schema->dropTable(AbstractRdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME);
+            $tableVariables->dropColumn(AbstractRdsResultStorage::VARIABLE_CLASS);
             $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
             foreach ($queries as $query) {
                 $persistence->exec($query);
@@ -130,8 +130,8 @@ class Updater extends \common_ext_ExtensionUpdater
 
         if ($this->isVersion('2.1.0')) {
             OntologyUpdater::syncModels();
-            $this->getServiceManager()->register(RdsResultStorage::SERVICE_ID, new RdsResultStorage([
-                RdsResultStorage::OPTION_PERSISTENCE => 'default'
+            $this->getServiceManager()->register(AbstractRdsResultStorage::SERVICE_ID, new RdsResultStorage([
+                AbstractRdsResultStorage::OPTION_PERSISTENCE => 'default'
             ]));
             $this->setVersion('2.2.0');
         }
@@ -139,7 +139,7 @@ class Updater extends \common_ext_ExtensionUpdater
         $this->skip('2.2.0', '6.0.2');
 
         if ($this->isVersion('6.0.2')) {
-            $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
+            $service = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
             $persistence = $service->getPersistence();
             /** @var AbstractSchemaManager $schemaManager */
             $schemaManager = $persistence->getDriver()->getSchemaManager();
@@ -149,10 +149,10 @@ class Updater extends \common_ext_ExtensionUpdater
             $fromSchema = clone $schema;
 
             try {
-                $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-                $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
+                $table = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
+                $table->addColumn(AbstractRdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
             } catch (SchemaException $e) {
-                \common_Logger::i('Database schema of RdsResultStorage service is already up to date.');
+                \common_Logger::i('Database schema of AbstractResultStorage service is already up to date.');
             }
 
             $queries = $persistence->getPlatForm()->getMigrateSchemaSql($fromSchema, $schema);

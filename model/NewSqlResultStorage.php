@@ -14,23 +14,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2019 Open Assessment Technologies SA
+ * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoOutcomeRds\model;
 
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use taoResultServer_models_classes_Variable as Variable;
 
-class NewSqlResultStorage extends RdsResultStorage
+/**
+ * Implements tao results storage for NewSql
+ */
+class NewSqlResultStorage extends AbstractRdsResultStorage
 {
     const CREATED_AT = "created_at";
 
     /**
      * @inheritDoc
      */
-    public function getVariablesSortingField()
+    protected function getVariablesSortingField()
     {
         return self::CREATED_AT;
     }
@@ -38,13 +40,8 @@ class NewSqlResultStorage extends RdsResultStorage
     /**
      * @inheritdoc
      */
-    protected function prepareVariableData($deliveryResultIdentifier, $test, Variable $variable, $callId)
+    protected function prepareVariableDataForSchema($deliveryResultIdentifier, $test, Variable $variable, $callId)
     {
-        // Ensures that variable has epoch.
-        if (!$variable->isSetEpoch()) {
-            $variable->setEpoch(microtime());
-        }
-
         $serializedVariable = $this->serializeVariableValue($variable);
 
         $persistence = $this->getPersistence();
@@ -52,6 +49,7 @@ class NewSqlResultStorage extends RdsResultStorage
         return [
             self::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
+            self::TEST_COLUMN => $test,
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
@@ -60,26 +58,18 @@ class NewSqlResultStorage extends RdsResultStorage
     }
 
     /**
-     * Builds a variable from database row.
+     * Converts result of microtime with false parameter (microseconds + " " + seconds)  to a usable format.
+     * @param $microTime
+     * @param $format
      *
-     * @param array $variable
-     *
-     * @return \stdClass
+     * @return string
      */
-    protected function getResultRow($variable)
+    public function microTimeToMicroSeconds($microTime, $format)
     {
-        $resultVariable = $this->unserializeVariableValue($variable[self::VARIABLE_VALUE]);
-        $object = new \stdClass();
-        $object->uri = $variable[self::VARIABLES_TABLE_ID];
-        $object->class = get_class($resultVariable);
-        $object->deliveryResultIdentifier = $variable[self::VARIABLES_FK_COLUMN];
-        $object->callIdItem = $variable[self::CALL_ID_ITEM_COLUMN];
-        $object->callIdTest = $variable[self::CALL_ID_TEST_COLUMN];
-        $object->test = '';
-        $object->item = $variable[self::ITEM_COLUMN];
-        $object->variable = clone $resultVariable;
-
-        return $object;
+        list($usec, $sec) = explode(" ", $microTime);
+        $microDate = (float)$sec + (float)$usec;
+        $d = date_create_from_format('U.u', number_format($microDate, 6, '.', ''));
+        return $d->format($format);
     }
 
     /**
@@ -93,6 +83,7 @@ class NewSqlResultStorage extends RdsResultStorage
         $table->addColumn(self::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
         $table->addColumn(self::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::VARIABLE_VALUE, 'text', ['notnull' => false]);
         $table->addColumn(self::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
@@ -103,15 +94,8 @@ class NewSqlResultStorage extends RdsResultStorage
         $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
         $table->addUniqueIndex([self::VARIABLE_HASH], self::UNIQUE_VARIABLE_INDEX);
         $table->addIndex([self::CALL_ID_ITEM_COLUMN], self::CALL_ID_ITEM_INDEX);
+        $table->addIndex([self::CALL_ID_TEST_COLUMN], self::CALL_ID_TEST_INDEX);
 
         return $table;
-    }
-
-    public function microTimeToMicroSeconds($microTime, $format)
-    {
-        list($usec, $sec) = explode(" ", $microTime);
-        $microDate = (float)$sec + (float)$usec;
-        $d = date_create_from_format('U.u', number_format($microDate, 6, '.', ''));
-        return $d->format($format);
     }
 }
