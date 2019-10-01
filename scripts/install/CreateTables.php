@@ -25,14 +25,14 @@ use common_Logger;
 use common_persistence_SqlPersistence as Persistence;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 
 class CreateTables extends AbstractAction
 {
     public function __invoke($params)
     {
-        /** @var RdsResultStorage $resultStorage */
-        $resultStorage = $this->getServiceLocator()->get(RdsResultStorage::SERVICE_ID);
+        /** @var AbstractRdsResultStorage $resultStorage */
+        $resultStorage = $this->getServiceLocator()->get(AbstractRdsResultStorage::SERVICE_ID);
         $persistence = $resultStorage->getPersistence();
 
         $this->generateTables($persistence, $resultStorage);
@@ -40,9 +40,9 @@ class CreateTables extends AbstractAction
 
     /**
      * @param Persistence $persistence
-     * @param RdsResultStorage $resultStorage
+     * @param AbstractRdsResultStorage $resultStorage
      */
-    public function generateTables(Persistence $persistence, RdsResultStorage $resultStorage)
+    public function generateTables(Persistence $persistence, AbstractRdsResultStorage $resultStorage)
     {
         /** @var \common_persistence_sql_dbal_SchemaManager $schemaManager */
         $schemaManager = $persistence->getDriver()->getSchemaManager();

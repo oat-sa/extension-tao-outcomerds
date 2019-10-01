@@ -22,7 +22,7 @@ namespace oat\taoOutcomeRds\scripts\install;
 
 use Doctrine\DBAL\DBALException;
 use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 
 class AddIndexes extends AbstractAction
 {
@@ -33,23 +33,23 @@ class AddIndexes extends AbstractAction
      */
     public function __invoke($params)
     {
-        $persistence = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID)->getPersistence();
+        $persistence = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID)->getPersistence();
 
         $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
         $fromSchema = clone $schema;
 
 
-        if($schema->hasTable(RdsResultStorage::VARIABLES_TABLENAME)){
+        if($schema->hasTable(AbstractRdsResultStorage::VARIABLES_TABLENAME)){
             try{
-            $tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
+            $tableVariables = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
             $i = 0;
-            if(!$tableVariables->hasIndex(RdsResultStorage::CALL_ID_ITEM_INDEX)){
-                $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_ITEM_COLUMN), RdsResultStorage::CALL_ID_ITEM_INDEX);
+            if(!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_ITEM_INDEX)){
+                $tableVariables->addIndex(array(AbstractRdsResultStorage::CALL_ID_ITEM_COLUMN), AbstractRdsResultStorage::CALL_ID_ITEM_INDEX);
                 $i++;
             }
 
-            if(!$tableVariables->hasIndex(RdsResultStorage::CALL_ID_TEST_INDEX)){
-                $tableVariables->addIndex(array(RdsResultStorage::CALL_ID_TEST_COLUMN), RdsResultStorage::CALL_ID_TEST_INDEX);
+            if(!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_TEST_INDEX)){
+                $tableVariables->addIndex(array(AbstractRdsResultStorage::CALL_ID_TEST_COLUMN), AbstractRdsResultStorage::CALL_ID_TEST_INDEX);
                 $i++;
             }
 
@@ -72,6 +72,6 @@ class AddIndexes extends AbstractAction
             }
         }
 
-        return \common_report_Report::createFailure(__('The table %s doesn\'t exist', RdsResultStorage::VARIABLES_TABLENAME));
+        return \common_report_Report::createFailure(__('The table %s doesn\'t exist', AbstractRdsResultStorage::VARIABLES_TABLENAME));
     }
 }
