@@ -14,14 +14,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
- *
+ * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoOutcomeRds\scripts\uninstall;
 
 use common_ext_ExtensionsManager as ExtensionsManager;
+use common_report_Report as Report;
 use Doctrine\DBAL\Schema\Schema;
 use oat\generis\model\data\ModelManager;
 use oat\tao\model\extension\ExtensionModel;
@@ -39,6 +38,8 @@ class removeTables extends ResultStorageSchemaChangeAction
     {
         $schema->dropTable($this->resultStorage::VARIABLES_TABLENAME);
         $schema->dropTable($this->resultStorage::RESULTS_TABLENAME);
+
+        return Report::createSuccess(__('2 tables removed.'));
     }
 
     /**

@@ -14,21 +14,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014-2017 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
- *
+ * Copyright (c) 2019 Open Assessment Technologies SA
  */
 
 namespace oat\taoOutcomeRds\scripts\SchemaChange;
 
-use common_Logger as Logger;
-use common_persistence_Persistence as Persistence;
-use common_report_Report as Report;
-use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\SchemaException;
-use oat\generis\persistence\PersistenceManager;
-use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 
 abstract class ResultStorageSchemaChangeAction extends SchemaChangeAction

@@ -29,7 +29,6 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\generis\persistence\PersistenceManager;
 use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 
 abstract class SchemaChangeAction extends AbstractAction
 {
@@ -42,10 +41,6 @@ abstract class SchemaChangeAction extends AbstractAction
      * @param $params
      *
      * @return Report
-     * @throws \common_exception_InconsistentData
-     * @throws \common_ext_ExtensionException
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     * @throws DBALException
      */
     public function __invoke($params)
     {
@@ -74,6 +69,7 @@ abstract class SchemaChangeAction extends AbstractAction
     /**
      * Actions to be done before schema change.
      * This must return the persistence
+     *
      * @return Persistence
      */
     protected function beforeChange()
