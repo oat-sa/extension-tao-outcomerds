@@ -14,49 +14,47 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
- *
+ * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
+
 namespace oat\taoOutcomeRds\scripts\uninstall;
 
-use Doctrine\DBAL\DBALException;
-use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
+use common_ext_ExtensionsManager as ExtensionsManager;
+use common_report_Report as Report;
+use Doctrine\DBAL\Schema\Schema;
 use oat\generis\model\data\ModelManager;
 use oat\tao\model\extension\ExtensionModel;
+use oat\taoOutcomeRds\scripts\SchemaChange\ResultStorageSchemaChangeAction;
 
-class removeTables extends AbstractAction
+class removeTables extends ResultStorageSchemaChangeAction
 {
+    const ACTION_NAME = 'table removal';
 
     /**
-     * @param $params
-     * @throws \common_exception_InconsistentData
-     * @throws \common_ext_ExtensionException
-     * @throws \oat\oatbox\service\exception\InvalidServiceManagerException
-     * @throws DBALException
+     * @inheritdoc
+     * Removes tables in the new schema.
      */
-    public function __invoke($params)
+    protected function changeSchema(Schema $schema)
     {
-        $persistence = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID)->getPersistence();
+        $schema->dropTable($this->resultStorage::VARIABLES_TABLENAME);
+        $schema->dropTable($this->resultStorage::RESULTS_TABLENAME);
 
-        $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
-        $fromSchema = clone $schema;
+        return Report::createSuccess(__('2 tables removed.'));
+    }
 
-        $tableVariables = $schema->dropTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
-        $tableResults = $schema->dropTable(AbstractRdsResultStorage::RESULTS_TABLENAME);
-        $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-        foreach ($queries as $query) {
-            $persistence->exec($query);
-        }
+    /**
+     * @inheritdoc
+     * Removes statement entries for this extension.
+     */
+    protected function afterChange()
+    {
+        /** @var ExtensionsManager $extensionManager */
+        $extensionManager = $this->getServiceLocator()->get(ExtensionsManager::SERVICE_ID);
+        $model = new ExtensionModel($extensionManager->getExtensionById('taoOutcomeRds'));
 
-// remove statement entries for this extension
-        $model = new ExtensionModel(\common_ext_ExtensionsManager::singleton()->getExtensionById('taoOutcomeRds'));
         $modelRdf = ModelManager::getModel()->getRdfInterface();
         foreach ($model as $triple) {
             $modelRdf->remove($triple);
         }
-
-
     }
 }
