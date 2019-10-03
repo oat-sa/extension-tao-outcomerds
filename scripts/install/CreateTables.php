@@ -14,14 +14,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014-2017 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
- *
- *
+ * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoOutcomeRds\scripts\install;
 
 use common_Logger;
+use common_persistence_sql_dbal_SchemaManager as SchemaManager;
 use common_persistence_SqlPersistence as Persistence;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\extension\AbstractAction;
@@ -44,8 +43,8 @@ class CreateTables extends AbstractAction
      */
     public function generateTables(Persistence $persistence, AbstractRdsResultStorage $resultStorage)
     {
-        /** @var \common_persistence_sql_dbal_SchemaManager $schemaManager */
-        $schemaManager = $persistence->getDriver()->getSchemaManager();
+        /** @var SchemaManager $schemaManager */
+        $schemaManager = $persistence->getSchemaManager();
         $schema = $schemaManager->createSchema();
         $fromSchema = clone $schema;
 

@@ -142,7 +142,7 @@ class Updater extends \common_ext_ExtensionUpdater
             $service = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
             $persistence = $service->getPersistence();
             /** @var AbstractSchemaManager $schemaManager */
-            $schemaManager = $persistence->getDriver()->getSchemaManager();
+            $schemaManager = $persistence->getSchemaManager();
 
             /** @var Schema $schema */
             $schema = $schemaManager->createSchema();

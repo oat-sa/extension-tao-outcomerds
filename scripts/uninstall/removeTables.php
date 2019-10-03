@@ -20,6 +20,7 @@
  */
 namespace oat\taoOutcomeRds\scripts\uninstall;
 
+use common_persistence_SqlPersistence as SqlPersistence;
 use Doctrine\DBAL\DBALException;
 use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
@@ -38,9 +39,11 @@ class removeTables extends AbstractAction
      */
     public function __invoke($params)
     {
-        $persistence = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID)->getPersistence();
+        /** @var AbstractRdsResultStorage $resultStorage */
+        $resultStorage = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
+        $persistence = $resultStorage->getPersistence(); 
 
-        $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
+        $schema = $persistence->getSchemaManager()->createSchema();
         $fromSchema = clone $schema;
 
         $tableVariables = $schema->dropTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);

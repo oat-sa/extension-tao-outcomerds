@@ -27,7 +27,7 @@ use taoResultServer_models_classes_Variable as Variable;
  */
 class NewSqlResultStorage extends AbstractRdsResultStorage
 {
-    const CREATED_AT = "created_at";
+    const CREATED_AT = 'created_at';
 
     /**
      * @inheritDoc
@@ -59,14 +59,14 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
 
     /**
      * Converts result of microtime with false parameter (microseconds + " " + seconds)  to a usable format.
-     * @param $microTime
-     * @param $format
+     * @param string $microTime
+     * @param string $format
      *
      * @return string
      */
     public function microTimeToMicroSeconds($microTime, $format)
     {
-        list($usec, $sec) = explode(" ", $microTime);
+        list($usec, $sec) = explode(' ', $microTime);
         $microDate = (float)$sec + (float)$usec;
         $d = date_create_from_format('U.u', number_format($microDate, 6, '.', ''));
         return $d->format($format);

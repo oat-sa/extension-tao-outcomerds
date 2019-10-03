@@ -33,11 +33,12 @@ class AddIndexes extends AbstractAction
      */
     public function __invoke($params)
     {
-        $persistence = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID)->getPersistence();
+        /** @var AbstractRdsResultStorage $resultStorage */
+        $resultStorage = $this->getServiceLocator()->get(AbstractRdsResultStorage::SERVICE_ID);
+        $persistence = $resultStorage->getPersistence();
 
-        $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
+        $schema = $persistence->getSchemaManager()->createSchema();
         $fromSchema = clone $schema;
-
 
         if($schema->hasTable(AbstractRdsResultStorage::VARIABLES_TABLENAME)){
             try{
