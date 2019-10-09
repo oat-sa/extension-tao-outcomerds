@@ -20,6 +20,7 @@
 
 namespace oat\taoOutcomeRds\model;
 
+use common_Logger as Logger;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -32,48 +33,50 @@ use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use taoResultServer_models_classes_Variable as Variable;
+use taoResultServer_models_classes_WritableResultStorage as WritableResultStorage;
+use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
 
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
  */
 abstract class AbstractRdsResultStorage extends ConfigurableService
-    implements \taoResultServer_models_classes_WritableResultStorage, \taoResultServer_models_classes_ReadableResultStorage, ResultManagement
+    implements WritableResultStorage, ReadableResultStorage, ResultManagement
 {
     use ResultDeliveryExecutionDelete;
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
     /**
      * Constants for the database creation and data access
      */
-    const RESULTS_TABLENAME = "results_storage";
+    const RESULTS_TABLENAME = 'results_storage';
     const RESULTS_TABLE_ID = 'result_id';
     const TEST_TAKER_COLUMN = 'test_taker';
     const DELIVERY_COLUMN = 'delivery';
-    const VARIABLES_TABLENAME = "variables_storage";
-    const VARIABLES_TABLE_ID = "variable_id";
-    const CALL_ID_ITEM_COLUMN = "call_id_item";
-    const CALL_ID_TEST_COLUMN = "call_id_test";
-    const TEST_COLUMN = "test";
-    const ITEM_COLUMN = "item";
-    const VARIABLE_VALUE = "value";
-    const VARIABLE_IDENTIFIER = "identifier";
-    const VARIABLE_HASH = "variable_hash";
-    const CALL_ID_ITEM_INDEX = "idx_variables_storage_call_id_item";
-    const CALL_ID_TEST_INDEX = "idx_variables_storage_call_id_test";
-    const UNIQUE_VARIABLE_INDEX = "idx_unique_variables_storage";
+    const VARIABLES_TABLENAME = 'variables_storage';
+    const VARIABLES_TABLE_ID = 'variable_id';
+    const CALL_ID_ITEM_COLUMN = 'call_id_item';
+    const CALL_ID_TEST_COLUMN = 'call_id_test';
+    const TEST_COLUMN = 'test';
+    const ITEM_COLUMN = 'item';
+    const VARIABLE_VALUE = 'value';
+    const VARIABLE_IDENTIFIER = 'identifier';
+    const VARIABLE_HASH = 'variable_hash';
+    const CALL_ID_ITEM_INDEX = 'idx_variables_storage_call_id_item';
+    const CALL_ID_TEST_INDEX = 'idx_variables_storage_call_id_test';
+    const UNIQUE_VARIABLE_INDEX = 'idx_unique_variables_storage';
     /** @deprecated */
-    const VARIABLE_CLASS = "class";
-    const VARIABLES_FK_COLUMN = "results_result_id";
-    const VARIABLES_FK_NAME = "fk_variables_results";
+    const VARIABLE_CLASS = 'class';
+    const VARIABLES_FK_COLUMN = 'results_result_id';
+    const VARIABLES_FK_NAME = 'fk_variables_results';
     /** @deprecated */
-    const RESULT_KEY_VALUE_TABLE_NAME = "results_kv_storage";
+    const RESULT_KEY_VALUE_TABLE_NAME = 'results_kv_storage';
     /** @deprecated */
-    const KEY_COLUMN = "result_key";
+    const KEY_COLUMN = 'result_key';
     /** @deprecated */
-    const VALUE_COLUMN = "result_value";
+    const VALUE_COLUMN = 'result_value';
     /** @deprecated */
-    const RESULTSKV_FK_COLUMN = "variables_variable_id";
+    const RESULTSKV_FK_COLUMN = 'variables_variable_id';
     /** @deprecated */
-    const RESULTSKV_FK_NAME = "fk_resultsKv_variables";
+    const RESULTSKV_FK_NAME = 'fk_resultsKv_variables';
     /** result storage persistence identifier */
     const OPTION_PERSISTENCE = 'persistence';
     // Fields for results retrieval.
@@ -304,7 +307,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
 
         $returnValue = [];
         foreach ($qb->execute()->fetchAll() as $value) {
-            $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != "")
+            $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != '')
                 ? $value[self::CALL_ID_ITEM_COLUMN]
                 : $value[self::CALL_ID_TEST_COLUMN];
         }
@@ -641,7 +644,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
 
     public function spawnResult()
     {
-        \common_Logger::w('Unsupported function');
+        Logger::w('Unsupported function');
     }
 
     /*
@@ -649,7 +652,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
      */
     public function configure($callOptions = [])
     {
-        \common_Logger::d('configure  RdsResultStorage with options : ' . implode(" ", $callOptions));
+        Logger::d('configure  RdsResultStorage with options : ' . implode(' ', $callOptions));
     }
 
     /**
@@ -661,14 +664,11 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
      */
     public static function sortTimeStamps($a, $b)
     {
-        list($usec, $sec) = explode(" ", $a);
+        list($usec, $sec) = explode(' ', $a);
         $floata = ((float)$usec + (float)$sec);
-        list($usec, $sec) = explode(" ", $b);
+        list($usec, $sec) = explode(' ', $b);
         $floatb = ((float)$usec + (float)$sec);
-        //common_Logger::i($a." ".$floata);
-        //common_Logger::i($b. " ".$floatb);
         //the callback is expecting an int returned, for the case where the difference is of less than a second
-        //intval(round(floatval($b) - floatval($a),1, PHP_ROUND_HALF_EVEN));
         if ((floatval($floata) - floatval($floatb)) > 0) {
             return 1;
         } elseif ((floatval($floata) - floatval($floatb)) < 0) {
