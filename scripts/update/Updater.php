@@ -22,7 +22,6 @@
 namespace oat\taoOutcomeRds\scripts\update;
 
 use oat\taoOutcomeRds\model\RdsResultStorage;
-use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\tao\scripts\update\OntologyUpdater;
 use common_report_Report as Report;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
@@ -152,7 +151,7 @@ class Updater extends \common_ext_ExtensionUpdater
                 $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
                 $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
             } catch (SchemaException $e) {
-                \common_Logger::i('Database schema of AbstractResultStorage service is already up to date.');
+                \common_Logger::i('Database schema of ResultStorage service is already up to date.');
             }
 
             $queries = $persistence->getPlatForm()->getMigrateSchemaSql($fromSchema, $schema);
