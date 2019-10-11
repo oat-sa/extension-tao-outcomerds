@@ -24,7 +24,7 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Schema;
 use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
+use oat\taoOutcomeRds\model\RdsResultStorage;
 
 /**
  * Class VariablesStorage_v1
@@ -36,7 +36,6 @@ use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
  */
 class VariablesStorage_v1 extends AbstractAction
 {
-
     /**
      * @param $params
      * @return \common_report_Report
@@ -45,8 +44,8 @@ class VariablesStorage_v1 extends AbstractAction
      */
     public function __invoke($params)
     {
-        /** @var AbstractRdsResultStorage $service */
-        $service = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
+        /** @var RdsResultStorage $service */
+        $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
         $persistence = $service->getPersistence();
         $this->alterTable($persistence);
 
@@ -67,8 +66,8 @@ class VariablesStorage_v1 extends AbstractAction
         $fromSchema = clone $schema;
 
         try {
-            $table = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
-            $table->addUniqueIndex([AbstractRdsResultStorage::VARIABLE_HASH], AbstractRdsResultStorage::UNIQUE_VARIABLE_INDEX);
+            $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
+            $table->addUniqueIndex([RdsResultStorage::VARIABLE_HASH], RdsResultStorage::UNIQUE_VARIABLE_INDEX);
         } catch (SchemaException $e) {
             \common_Logger::i('Database schema of RdsResultStorage service is already up to date.');
         }
