@@ -28,11 +28,6 @@ use oat\taoOutcomeRds\model\NewSqlResultStorage;
  */
 class NewSqlResultStorageTest extends RdsResultStorageTest
 {
-    /**
-     * @var NewSqlResultStorage
-     */
-    protected $instance;
-
     protected function getTestedClass()
     {
         return NewSqlResultStorage::class;
