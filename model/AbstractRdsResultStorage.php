@@ -20,7 +20,6 @@
 
 namespace oat\taoOutcomeRds\model;
 
-use common_Logger as Logger;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -28,10 +27,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use oat\generis\persistence\PersistenceManager;
+use oat\oatbox\log\LoggerAwareTrait;
 use oat\oatbox\service\ConfigurableService;
 use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
+use Psr\Log\LoggerAwareInterface;
 use taoResultServer_models_classes_Variable as Variable;
 use taoResultServer_models_classes_WritableResultStorage as WritableResultStorage;
 use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
@@ -40,8 +41,9 @@ use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorag
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
  */
 abstract class AbstractRdsResultStorage extends ConfigurableService
-    implements WritableResultStorage, ReadableResultStorage, ResultManagement
+    implements WritableResultStorage, ReadableResultStorage, ResultManagement, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
     use ResultDeliveryExecutionDelete;
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
     /**
@@ -644,7 +646,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
 
     public function spawnResult()
     {
-        Logger::w('Unsupported function');
+        $this->getLogger()->error('Unsupported function');
     }
 
     /*
@@ -652,7 +654,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
      */
     public function configure($callOptions = [])
     {
-        Logger::d('configure  RdsResultStorage with options : ' . implode(' ', $callOptions));
+        $this->getLogger()->info('configure  RdsResultStorage with options : ' . implode(' ', $callOptions));
     }
 
     /**
