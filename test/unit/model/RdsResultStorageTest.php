@@ -42,18 +42,11 @@ class RdsResultStorageTest extends TestCase
 
     public function setUp()
     {
-        $databaseMock = $this->getSqlMock('rds_result_storage_test');
-        $persistence = $databaseMock->getPersistenceById('rds_result_storage_test');
-        
-        /** @var PersistenceManager|MockObject $persistenceManager */
-        $persistenceManager = $this->getMockBuilder(PersistenceManager::class)
-        ->disableOriginalConstructor()
-        ->setMethods(['getPersistenceById'])
-        ->getMock();
-        $persistenceManager->method('getPersistenceById')->willReturn($persistence);
+        $persistenceId = 'rds_result_storage_test';
+        $persistenceManager = $this->getSqlMock($persistenceId);
         
         $testedClass = $this->getTestedClass();
-        $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistence]);
+        $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistenceId]);
 
         $serviceManagerMock = $this->getServiceLocatorMock([
             PersistenceManager::SERVICE_ID => $persistenceManager,
