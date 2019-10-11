@@ -36,7 +36,6 @@ use oat\taoOutcomeRds\model\RdsResultStorage;
  */
 class VariablesStorage_v1 extends AbstractAction
 {
-
     /**
      * @param $params
      * @return \common_report_Report
@@ -60,7 +59,7 @@ class VariablesStorage_v1 extends AbstractAction
     protected function alterTable(\common_persistence_SqlPersistence $persistence)
     {
         /** @var AbstractSchemaManager $schemaManager */
-        $schemaManager = $persistence->getDriver()->getSchemaManager();
+        $schemaManager = $persistence->getSchemaManager();
 
         /** @var Schema $schema */
         $schema = $schemaManager->createSchema();

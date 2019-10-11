@@ -21,12 +21,12 @@
 namespace oat\taoOutcomeRds\scripts\bench;
 
 use oat\oatbox\extension\AbstractAction;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use common_report_Report as Report;
 
 abstract class AbstractStoreItemVariable extends AbstractAction
 {
-    /** @var  RdsResultStorage */
+    /** @var  AbstractRdsResultStorage */
     protected $storage;
     
     public function __invoke($params)
@@ -56,7 +56,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
             "The script ended gracefully."
         );
         
-        $this->storage = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
+        $this->storage = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
         
         $time = [];
         
@@ -142,7 +142,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
             $dbPlatform = $sqlPersistence->getPlatform();
             
             if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {
-                foreach ([RdsResultStorage::VARIABLES_TABLENAME, RdsResultStorage::RESULTS_TABLENAME] as $tbl) {
+                foreach ([AbstractRdsResultStorage::VARIABLES_TABLENAME, AbstractRdsResultStorage::RESULTS_TABLENAME] as $tbl) {
                     $dbTruncateSql = $dbPlatform->getTruncateTableSql($tbl);
                     $sqlPersistence->exec($dbTruncateSql . " CASCADE");
                 }

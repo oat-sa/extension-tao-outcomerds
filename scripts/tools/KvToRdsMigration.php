@@ -23,7 +23,7 @@ namespace oat\taoOutcomeRds\scripts\tools;
 use oat\generis\model\OntologyAwareTrait;
 use oat\oatbox\extension\script\ScriptAction;
 use oat\taoDelivery\model\execution\ServiceProxy;
-use oat\taoOutcomeRds\model\RdsResultStorage;
+use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use oat\taoResultServer\models\classes\implementation\ResultServerService;
 
 /**
@@ -37,7 +37,7 @@ class KvToRdsMigration extends ScriptAction
 {
     use OntologyAwareTrait;
 
-    /** @var RdsResultStorage $kvStorageService */
+    /** @var AbstractRdsResultStorage $kvStorageService */
     protected $rdsStorage;
 
     /** @var \taoResultServer_models_classes_ReadableResultStorage $kvStorageService */
@@ -82,7 +82,7 @@ class KvToRdsMigration extends ScriptAction
     {
         $this->kvStorage = $this->getCurrentKvResultStorage();
 
-        $this->rdsStorage = $this->getServiceLocator()->get(RdsResultStorage::SERVICE_ID);
+        $this->rdsStorage = $this->getServiceLocator()->get(AbstractRdsResultStorage::SERVICE_ID);
 
         $this->report = \common_report_Report::createInfo('Starting migration...');
 
@@ -218,7 +218,7 @@ class KvToRdsMigration extends ScriptAction
         }
         /** @var ResultServerService $resultService */
         $resultService = $this->getServiceLocator()->get(ResultServerService::SERVICE_ID);
-        $resultService->setOption(ResultServerService::OPTION_RESULT_STORAGE, RdsResultStorage::SERVICE_ID);
+        $resultService->setOption(ResultServerService::OPTION_RESULT_STORAGE, AbstractRdsResultStorage::SERVICE_ID);
         $this->registerService(ResultServerService::SERVICE_ID, $resultService);
         $this->report->add(\common_report_Report::createSuccess('Storage type successfully updated to RDS Storage'));
     }
