@@ -27,7 +27,6 @@ use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\taoOutcomeRds\scripts\install\CreateTables;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
-use PHPUnit_Framework_MockObject_MockObject as MockObject;
 use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
 /**
@@ -56,7 +55,7 @@ class RdsResultStorageTest extends TestCase
 
         $createTableAction = new CreateTables();
         $createTableAction->setServiceLocator($serviceManagerMock);
-        $createTableAction(null);
+        $createTableAction->__invoke(null);
     }
 
     public function tearDown()
