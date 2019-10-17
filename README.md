@@ -6,7 +6,7 @@
 ![GitHub release](https://img.shields.io/github/release/oat-sa/extension-tao-outcomerds.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/oat-sa/extension-tao-outcomerds.svg)
 
-> Extension implements resultServer interface to store results using ontology/statements table
+> Extension that allows a storage in relational database
 
 ## Installation instructions
 
