@@ -141,7 +141,7 @@ class Updater extends \common_ext_ExtensionUpdater
             $service = $this->getServiceManager()->get(RdsResultStorage::SERVICE_ID);
             $persistence = $service->getPersistence();
             /** @var AbstractSchemaManager $schemaManager */
-            $schemaManager = $persistence->getDriver()->getSchemaManager();
+            $schemaManager = $persistence->getSchemaManager();
 
             /** @var Schema $schema */
             $schema = $schemaManager->createSchema();
@@ -151,7 +151,7 @@ class Updater extends \common_ext_ExtensionUpdater
                 $table = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
                 $table->addColumn(RdsResultStorage::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
             } catch (SchemaException $e) {
-                \common_Logger::i('Database schema of RdsResultStorage service is already up to date.');
+                \common_Logger::i('Database schema of ResultStorage service is already up to date.');
             }
 
             $queries = $persistence->getPlatForm()->getMigrateSchemaSql($fromSchema, $schema);
@@ -163,6 +163,6 @@ class Updater extends \common_ext_ExtensionUpdater
             $this->setVersion('6.1.0');
         }
 
-        $this->skip('6.1.0', '6.1.2');
+        $this->skip('6.1.0', '6.2.0');
     }
 }

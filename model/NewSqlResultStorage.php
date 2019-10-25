@@ -23,16 +23,18 @@ use Doctrine\DBAL\Schema\Schema;
 use taoResultServer_models_classes_Variable as Variable;
 
 /**
- * Implements tao results storage for RDS
+ * Implements tao results storage for NewSql
  */
-class RdsResultStorage extends AbstractRdsResultStorage
+class NewSqlResultStorage extends AbstractRdsResultStorage
 {
+    const CREATED_AT = 'created_at';
+
     /**
      * @inheritDoc
      */
     protected function getVariablesSortingField()
     {
-        return self::VARIABLES_TABLE_ID;
+        return self::CREATED_AT;
     }
 
     /**
@@ -42,13 +44,30 @@ class RdsResultStorage extends AbstractRdsResultStorage
     {
         $serializedVariable = $this->serializeVariableValue($variable);
 
+        $persistence = $this->getPersistence();
+
+        $createdAt = $this->getDateFromMicroTime($variable->getCreationTime());
+        
         return [
+            self::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
             self::TEST_COLUMN => $test,
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
+            self::CREATED_AT => $createdAt->format($persistence->getPlatform()->getDateTimeFormatString()),
         ];
+    }
+
+    /**
+     * Converts float microtime to a DateTime.
+     * @param string $microTime
+     *
+     * @return \DateTime
+     */
+    public function getDateFromMicroTime($microTime)
+    {
+        return date_create_from_format('U.u', number_format($microTime, 6, '.', ''));
     }
 
     /**
@@ -59,7 +78,7 @@ class RdsResultStorage extends AbstractRdsResultStorage
         $table = $schema->createtable(self::VARIABLES_TABLENAME);
         $table->addOption('engine', 'MyISAM');
 
-        $table->addColumn(self::VARIABLES_TABLE_ID, 'integer', ['autoincrement' => true]);
+        $table->addColumn(self::VARIABLES_TABLE_ID, 'string', ['length' => 36]);
         $table->addColumn(self::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
@@ -68,6 +87,7 @@ class RdsResultStorage extends AbstractRdsResultStorage
         $table->addColumn(self::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
         $table->addColumn(self::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
+        $table->addColumn(self::CREATED_AT, 'datetime', []);
 
         $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
         $table->addUniqueIndex([self::VARIABLE_HASH], self::UNIQUE_VARIABLE_INDEX);
