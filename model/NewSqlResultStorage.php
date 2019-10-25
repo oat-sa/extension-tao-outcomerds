@@ -80,7 +80,7 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $table = $schema->createtable(self::VARIABLES_TABLENAME);
         $table->addOption('engine', 'MyISAM');
 
-        $table->addColumn(self::VARIABLES_TABLE_ID, 'string', ['length' => 23]);
+        $table->addColumn(self::VARIABLES_TABLE_ID, 'string', ['length' => 36]);
         $table->addColumn(self::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
