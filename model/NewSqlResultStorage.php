@@ -46,6 +46,8 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
 
         $persistence = $this->getPersistence();
 
+        $createdAt = $this->getDateFromMicroTime($variable->getCreationTime());
+        
         return [
             self::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
@@ -53,23 +55,19 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
-            self::CREATED_AT => $this->microTimeToMicroSeconds($variable->getEpoch(), $persistence->getPlatform()->getDateTimeFormatString()),
+            self::CREATED_AT => $createdAt->format($persistence->getPlatform()->getDateTimeFormatString()),
         ];
     }
 
     /**
-     * Converts result of microtime with false parameter (microseconds + " " + seconds)  to a usable format.
+     * Converts float microtime to a DateTime.
      * @param string $microTime
-     * @param string $format
      *
-     * @return string
+     * @return \DateTime
      */
-    public function microTimeToMicroSeconds($microTime, $format)
+    public function getDateFromMicroTime($microTime)
     {
-        list($usec, $sec) = explode(' ', $microTime);
-        $microDate = (float)$sec + (float)$usec;
-        $d = date_create_from_format('U.u', number_format($microDate, 6, '.', ''));
-        return $d->format($format);
+        return date_create_from_format('U.u', number_format($microTime, 6, '.', ''));
     }
 
     /**

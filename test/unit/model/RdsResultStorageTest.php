@@ -27,7 +27,6 @@ use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use oat\taoOutcomeRds\model\RdsResultStorage;
 use oat\taoOutcomeRds\scripts\install\CreateTables;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
-use PHPUnit_Framework_MockObject_MockObject as MockObject;
 use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
 /**
@@ -42,18 +41,11 @@ class RdsResultStorageTest extends TestCase
 
     public function setUp()
     {
-        $databaseMock = $this->getSqlMock('rds_result_storage_test');
-        $persistence = $databaseMock->getPersistenceById('rds_result_storage_test');
-        
-        /** @var PersistenceManager|MockObject $persistenceManager */
-        $persistenceManager = $this->getMockBuilder(PersistenceManager::class)
-        ->disableOriginalConstructor()
-        ->setMethods(['getPersistenceById'])
-        ->getMock();
-        $persistenceManager->method('getPersistenceById')->willReturn($persistence);
+        $persistenceId = 'rds_result_storage_test';
+        $persistenceManager = $this->getSqlMock($persistenceId);
         
         $testedClass = $this->getTestedClass();
-        $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistence]);
+        $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistenceId]);
 
         $serviceManagerMock = $this->getServiceLocatorMock([
             PersistenceManager::SERVICE_ID => $persistenceManager,
@@ -63,7 +55,7 @@ class RdsResultStorageTest extends TestCase
 
         $createTableAction = new CreateTables();
         $createTableAction->setServiceLocator($serviceManagerMock);
-        $createTableAction(null);
+        $createTableAction->__invoke(null);
     }
 
     public function tearDown()

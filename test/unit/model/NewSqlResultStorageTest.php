@@ -40,14 +40,14 @@ class NewSqlResultStorageTest extends RdsResultStorageTest
      */
     public function testMicroTimeToMicroSeconds($microTime, $expected)
     {
-        $this->assertEquals($expected, $this->instance->microTimeToMicroSeconds($microTime, 'Y-m-d\TH:i:s.u\Z'));
+        $this->assertEquals($expected, $this->instance->getDateFromMicroTime($microTime, 'Y-m-d\TH:i:s.u\Z'));
     }
 
     public function microTimeToTest()
     {
         return [
-            ['0.0 0', '1970-01-01T00:00:00.000000Z'],
-            ['0.12345600 1234567890', '2009-02-13T23:31:30.123456Z'],
+            [0.0, new \DateTime('1970-01-01T00:00:00.000000Z')],
+            [1234567890.12345600, new \DateTime('2009-02-13T23:31:30.123456Z')],
         ];
     }
 }
