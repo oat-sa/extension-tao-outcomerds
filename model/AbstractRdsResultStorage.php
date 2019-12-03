@@ -33,9 +33,9 @@ use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use Psr\Log\LoggerAwareInterface;
+use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
 use taoResultServer_models_classes_Variable as Variable;
 use taoResultServer_models_classes_WritableResultStorage as WritableResultStorage;
-use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
 
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
@@ -621,18 +621,22 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
     /**
      * @param array $data
      *
+     * @param array $types
      * @throws DuplicateVariableException
      */
-    private function insertMultiple(array $data)
+    private function insertMultiple(array $data, array $types = [])
     {
+        if (empty($types)) {
+            $types = $this->getTypes($data);
+        }
         $duplicatedData = false;
         try {
-            $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $data);
+            $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $data, $types);
         } catch (UniqueConstraintViolationException $e) {
             $duplicatedData = true;
             foreach ($data as $row) {
                 try {
-                    $this->getPersistence()->insert(self::VARIABLES_TABLENAME, $row);
+                    $this->getPersistence()->insert(self::VARIABLES_TABLENAME, $row, $types);
                 } catch (UniqueConstraintViolationException $e) {
                     //do nothing, just skip it
                 }
@@ -725,5 +729,14 @@ abstract class AbstractRdsResultStorage extends ConfigurableService
             [],
             self::VARIABLES_FK_NAME
         );
+    }
+
+    /**
+     * @param array $data
+     * @return array
+     */
+    protected function getTypes(array $data = [])
+    {
+        return [];
     }
 }
