@@ -19,6 +19,7 @@
 
 namespace oat\taoOutcomeRds\model;
 
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\Schema;
 use taoResultServer_models_classes_Variable as Variable;
 
@@ -47,7 +48,7 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $persistence = $this->getPersistence();
 
         $createdAt = $this->getDateFromMicroTime($variable->getCreationTime());
-        
+
         return [
             self::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
@@ -95,5 +96,22 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $table->addIndex([self::CALL_ID_TEST_COLUMN], self::CALL_ID_TEST_INDEX);
 
         return $table;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function getTypes(array $data = [])
+    {
+        return [
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            null,
+            ParameterType::STRING,
+        ];
     }
 }
