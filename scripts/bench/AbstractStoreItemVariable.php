@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -61,7 +62,6 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         $time = [];
         
         for ($i = 0; $i < $deliveryExecutionCount; $i++) {
-            
             $this->storage->storeRelatedTestTaker("deliveryResultIdentifier${i}", "testTakerIdentifier${i}");
             $this->storage->storeRelatedDelivery("deliveryResultIdentifier${i}", "deliveryIdentifier");
             
@@ -137,7 +137,6 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         );
 
         if ($purge) {
-
             $sqlPersistence = $this->storage->getPersistence();
             $dbPlatform = $sqlPersistence->getPlatform();
             

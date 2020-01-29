@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,27 +37,27 @@ class Updater extends \common_ext_ExtensionUpdater
      * @return string|void
      * @throws \common_Exception
      */
-    public function update($initialVersion) {
+    public function update($initialVersion)
+    {
 
         $currentVersion = $initialVersion;
-        if ($currentVersion == '1.0' || $currentVersion == '1.0.1' || $currentVersion == '1.0.2' ) {
+        if ($currentVersion == '1.0' || $currentVersion == '1.0.1' || $currentVersion == '1.0.2') {
             $currentVersion = '1.0.3';
         }
 
         if ($currentVersion == '1.0.3') {
-
             //get variables
             $persistence = \common_persistence_Manager::getPersistence('default');
-            $sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL';
-            $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '. RdsResultStorage::VARIABLE_VALUE .' IS NULL';
+            $sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE ' . RdsResultStorage::VARIABLE_VALUE . ' IS NULL';
+            $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE ' . RdsResultStorage::VARIABLE_VALUE . ' IS NULL';
 
             //update variable storage table schema
             $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
             $fromSchema = clone $schema;
 
             $tableVariables = $schema->getTable(RdsResultStorage::VARIABLES_TABLENAME);
-            if(!$tableVariables->hasColumn(RdsResultStorage::VARIABLE_VALUE)){
-                $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", array("notnull" => false));
+            if (!$tableVariables->hasColumn(RdsResultStorage::VARIABLE_VALUE)) {
+                $tableVariables->addColumn(RdsResultStorage::VARIABLE_VALUE, "text", ["notnull" => false]);
                 $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
 
                 foreach ($queries as $query) {
@@ -67,21 +68,21 @@ class Updater extends \common_ext_ExtensionUpdater
                 $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME;
             }
 
-            $params = array();
+            $params = [];
             $entries = $persistence->query($countSql, $params)->fetchColumn();
 
             $limit = 1000;
-            for($i = 0; $i <= $entries; $i+=$limit){
+            for ($i = 0; $i <= $entries; $i += $limit) {
                 $newSql = $sql . ' ORDER BY ' . RdsResultStorage::VARIABLES_TABLE_ID;
-                $query = $persistence->getPlatform()->limitStatement($newSql, $limit,$i);
+                $query = $persistence->getPlatform()->limitStatement($newSql, $limit, $i);
                 $variables = $persistence->query($query);
 
                 //store information the new way
-                foreach($variables as $variable){
+                foreach ($variables as $variable) {
                     //get Variable informations
                     $variableSql = 'SELECT * FROM ' . RdsResultStorage::RESULT_KEY_VALUE_TABLE_NAME . '
-                WHERE ' . RdsResultStorage::RESULTSKV_FK_COLUMN .' = ?';
-                    $params = array($variable[RdsResultStorage::VARIABLES_TABLE_ID]);
+                WHERE ' . RdsResultStorage::RESULTSKV_FK_COLUMN . ' = ?';
+                    $params = [$variable[RdsResultStorage::VARIABLES_TABLE_ID]];
                     $variableValues = $persistence->query($variableSql, $params);
 
                     if (class_exists($variable[RdsResultStorage::VARIABLE_CLASS])) {
@@ -90,7 +91,7 @@ class Updater extends \common_ext_ExtensionUpdater
                         $resultVariable = new \taoResultServer_models_classes_OutcomeVariable();
                     }
 
-                    foreach($variableValues as $variableValue){
+                    foreach ($variableValues as $variableValue) {
                         $setter = 'set' . ucfirst($variableValue[RdsResultStorage::KEY_COLUMN]);
                         $value = $variableValue[RdsResultStorage::VALUE_COLUMN];
                         if (method_exists($resultVariable, $setter) && !is_null($value)) {
@@ -103,9 +104,8 @@ class Updater extends \common_ext_ExtensionUpdater
                     }
 
                     $sqlUpdate = 'UPDATE ' . RdsResultStorage::VARIABLES_TABLENAME . ' SET ' . RdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . RdsResultStorage::VARIABLES_TABLE_ID . ' = ?';
-                    $paramsUpdate = array(serialize($resultVariable), $variable[RdsResultStorage::VARIABLES_TABLE_ID]);
+                    $paramsUpdate = [serialize($resultVariable), $variable[RdsResultStorage::VARIABLES_TABLE_ID]];
                     $persistence->exec($sqlUpdate, $paramsUpdate);
-
                 }
             }
 

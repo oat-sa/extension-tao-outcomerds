@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,49 +20,49 @@
  *
  */
 
-return array(
+return [
     'name' => 'taoOutcomeRds',
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
     'version' => '6.3.0',
     'author' => 'Open Assessment Technologies SA',
-    'requires' => array(
+    'requires' => [
         'taoResultServer' => '>=9.3.0',
         'generis' => '>=11.0.0'
-    ),
+    ],
     // for compatibility
-    'dependencies' => array('tao', 'taoResultServer'),
-    'models' => array(
+    'dependencies' => ['tao', 'taoResultServer'],
+    'models' => [
         'http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#'
-    ),
-    'install' => array(
-        'rdf' => array(
+    ],
+    'install' => [
+        'rdf' => [
             dirname(__FILE__) . '/scripts/install/taoOutcomeRds.rdf'
-        ),
-        'php' => array(
+        ],
+        'php' => [
             \oat\taoOutcomeRds\scripts\install\CreateTables::class,
             dirname(__FILE__) . '/scripts/install/setDefault.php',
-        )
-    ),
-    'uninstall' => array(
-        'php' => array(
+        ]
+    ],
+    'uninstall' => [
+        'php' => [
             \oat\taoOutcomeRds\scripts\uninstall\removeTables::class
-        )
-    ),
+        ]
+    ],
     'update' => 'oat\\taoOutcomeRds\\scripts\\update\\Updater',
-    'autoload' => array(
-        'psr-4' => array(
+    'autoload' => [
+        'psr-4' => [
             'oat\\taoOutcomeRds\\' => dirname(__FILE__) . DIRECTORY_SEPARATOR
-        )
-    ),
-    'routes' => array(
+        ]
+    ],
+    'routes' => [
         '/taoOutcomeRds' => 'oat\\taoOutcomeRds\\controller'
-    ),
-    'constants' => array(
+    ],
+    'constants' => [
         # views directory
         "DIR_VIEWS" => dirname(__FILE__) . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR,
         #BASE URL (usually the domain root)
         'BASE_URL' => ROOT_URL . 'taoOutcomeRds/',
-    ),
-);
+    ],
+];
