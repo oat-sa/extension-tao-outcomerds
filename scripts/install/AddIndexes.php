@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,33 +41,32 @@ class AddIndexes extends AbstractAction
         $schema = $persistence->getSchemaManager()->createSchema();
         $fromSchema = clone $schema;
 
-        if($schema->hasTable(AbstractRdsResultStorage::VARIABLES_TABLENAME)){
-            try{
-            $tableVariables = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
-            $i = 0;
-            if(!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_ITEM_INDEX)){
-                $tableVariables->addIndex(array(AbstractRdsResultStorage::CALL_ID_ITEM_COLUMN), AbstractRdsResultStorage::CALL_ID_ITEM_INDEX);
-                $i++;
-            }
+        if ($schema->hasTable(AbstractRdsResultStorage::VARIABLES_TABLENAME)) {
+            try {
+                $tableVariables = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
+                $i = 0;
+                if (!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_ITEM_INDEX)) {
+                    $tableVariables->addIndex([AbstractRdsResultStorage::CALL_ID_ITEM_COLUMN], AbstractRdsResultStorage::CALL_ID_ITEM_INDEX);
+                    $i++;
+                }
 
-            if(!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_TEST_INDEX)){
-                $tableVariables->addIndex(array(AbstractRdsResultStorage::CALL_ID_TEST_COLUMN), AbstractRdsResultStorage::CALL_ID_TEST_INDEX);
-                $i++;
-            }
+                if (!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_TEST_INDEX)) {
+                    $tableVariables->addIndex([AbstractRdsResultStorage::CALL_ID_TEST_COLUMN], AbstractRdsResultStorage::CALL_ID_TEST_INDEX);
+                    $i++;
+                }
 
-            $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
+                $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
 
 
-            foreach ($queries as $query) {
-                $persistence->exec($query);
-            }
-
-            } catch(DBALException $e){
+                foreach ($queries as $query) {
+                    $persistence->exec($query);
+                }
+            } catch (DBALException $e) {
                 \common_Logger::w($e->getMessage());
                 return \common_report_Report::createFailure(__('Something went wrong during indexes addition'));
             }
 
-            if($i === 0){
+            if ($i === 0) {
                 return \common_report_Report::createInfo(__('No indexes to add'));
             } else {
                 return \common_report_Report::createSuccess(__('Successfully added %s indexes', $i));
