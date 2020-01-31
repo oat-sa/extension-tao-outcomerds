@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,6 +19,7 @@
  *
  *
  */
+
 namespace oat\taoOutcomeRds\scripts\uninstall;
 
 use common_persistence_SqlPersistence as SqlPersistence;
@@ -41,7 +43,7 @@ class removeTables extends AbstractAction
     {
         /** @var AbstractRdsResultStorage $resultStorage */
         $resultStorage = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
-        $persistence = $resultStorage->getPersistence(); 
+        $persistence = $resultStorage->getPersistence();
 
         $schema = $persistence->getSchemaManager()->createSchema();
         $fromSchema = clone $schema;
@@ -53,13 +55,11 @@ class removeTables extends AbstractAction
             $persistence->exec($query);
         }
 
-// remove statement entries for this extension
+        // remove statement entries for this extension
         $model = new ExtensionModel(\common_ext_ExtensionsManager::singleton()->getExtensionById('taoOutcomeRds'));
         $modelRdf = ModelManager::getModel()->getRdfInterface();
         foreach ($model as $triple) {
             $modelRdf->remove($triple);
         }
-
-
     }
 }
