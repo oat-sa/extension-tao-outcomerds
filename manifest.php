@@ -29,7 +29,7 @@ return [
     'author' => 'Open Assessment Technologies SA',
     'requires' => [
         'taoResultServer' => '>=9.3.0',
-        'generis' => '>=11.0.0'
+        'generis' => '>=12.15.0'
     ],
     // for compatibility
     'dependencies' => ['tao', 'taoResultServer'],
