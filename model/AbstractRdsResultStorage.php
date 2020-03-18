@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,11 +41,11 @@ use taoResultServer_models_classes_WritableResultStorage as WritableResultStorag
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
  */
-abstract class AbstractRdsResultStorage extends ConfigurableService
-    implements WritableResultStorage, ReadableResultStorage, ResultManagement, LoggerAwareInterface
+abstract class AbstractRdsResultStorage extends ConfigurableService implements WritableResultStorage, ReadableResultStorage, ResultManagement, LoggerAwareInterface
 {
     use LoggerAwareTrait;
     use ResultDeliveryExecutionDelete;
+
     const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
     /**
      * Constants for the database creation and data access
