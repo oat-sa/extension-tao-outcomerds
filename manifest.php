@@ -25,11 +25,11 @@ return [
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '6.3.1',
+    'version' => '6.4.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => [
         'taoResultServer' => '>=9.3.0',
-        'generis' => '>=11.0.0'
+        'generis' => '>=12.15.0'
     ],
     // for compatibility
     'dependencies' => ['tao', 'taoResultServer'],
