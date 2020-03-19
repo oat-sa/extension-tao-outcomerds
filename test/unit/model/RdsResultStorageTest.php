@@ -40,11 +40,11 @@ class RdsResultStorageTest extends TestCase
      */
     protected $instance;
 
-    public function setUp()
+    public function setUp(): void
     {
         $persistenceId = 'rds_result_storage_test';
         $persistenceManager = $this->getSqlMock($persistenceId);
-        
+
         $testedClass = $this->getTestedClass();
         $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistenceId]);
 
@@ -59,7 +59,7 @@ class RdsResultStorageTest extends TestCase
         $createTableAction->__invoke(null);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->instance = null;
     }
@@ -286,11 +286,9 @@ class RdsResultStorageTest extends TestCase
         $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
     }
 
-    /**
-     * @expectedException \oat\taoResultServer\models\Exceptions\DuplicateVariableException
-     */
     public function testStoreItemVariableException()
     {
+        $this->expectException(DuplicateVariableException::class);
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#3";
         $test = "MyGreatTest#1";
         $item = "MyGreatItem#1";
@@ -312,11 +310,9 @@ class RdsResultStorageTest extends TestCase
         $this->instance->storeItemVariable($deliveryResultIdentifier, $test, $item, $itemVariable, $callId);
     }
 
-    /**
-     * @expectedException \oat\taoResultServer\models\Exceptions\DuplicateVariableException
-     */
     public function testStoreItemVariablesException()
     {
+        $this->expectException(DuplicateVariableException::class);
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#4";
         $test = "MyGreatTest#1";
         $item = "MyGreatItem#1";
