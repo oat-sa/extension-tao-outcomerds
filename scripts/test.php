@@ -11,22 +11,20 @@ $bootStrap = new BootStrap('taoOutcomeRds');
 $bootStrap->start();
 $timeTot = 0;
 for ($a = 0; $a < 10; $a++) {
-
     $time_start = microtime(true);
 
-//done ahead of your code
+    //done ahead of your code
     $rs = new \oat\taoOutcomeRds\model\RdsResultStorage();
-//    $rs = taoResults_models_classes_ResultsService::singleton();
-//optional control on Ids
+    //    $rs = taoResults_models_classes_ResultsService::singleton();
+    //optional control on Ids
     for ($i = 0; $i < 1000; $i++) {
-
         // store results value (id, test taker, delivery)
         $deliverIdentifier = "myCoolId#" . $i . $time_start;
         $rs->storeRelatedTestTaker($deliverIdentifier, "MyTestTaker#" . $i);
         $rs->storeRelatedDelivery($deliverIdentifier, "MyDelivery#" . $i);
-//        $deliveryResult = $rs->storeDeliveryResult($deliverIdentifier);
-//        $rs->storeTestTaker($deliveryResult, "MyTestTaker#".$i);
-//        $rs->storeDelivery($deliveryResult,"MyDelivery#".$i);
+        //        $deliveryResult = $rs->storeDeliveryResult($deliverIdentifier);
+        //        $rs->storeTestTaker($deliveryResult, "MyTestTaker#".$i);
+        //        $rs->storeDelivery($deliveryResult,"MyDelivery#".$i);
 
         $test = "myTestid" . $i;
 
@@ -40,7 +38,6 @@ for ($a = 0; $a < 10; $a++) {
                 $itemVariable->setIdentifier("identifier" . $i . $j);
                 $itemVariable->setCardinality("single");
                 $itemVariable->setBaseType("float");
-
             } else {
                 $itemVariable = new taoResultServer_models_classes_ResponseVariable();
                 $itemVariable->setCandidateResponse("[Jerome Awesome]");
@@ -54,7 +51,7 @@ for ($a = 0; $a < 10; $a++) {
 
 
             $rs->storeItemVariable($deliverIdentifier, $test, $item, $itemVariable, $callIdItem);
-//            $rs->storeItemVariable($deliveryResult, $test, $item, $itemVariable, $callIdItem);
+            //            $rs->storeItemVariable($deliveryResult, $test, $item, $itemVariable, $callIdItem);
         }
 
         $callIdTest = "Great Test Id#134589";
@@ -63,8 +60,7 @@ for ($a = 0; $a < 10; $a++) {
         $testVariable->setCardinality("single");
         $testVariable->setBaseType("pair");
         $rs->storeTestVariable($deliverIdentifier, $test, $testVariable, $callIdTest);
-//        $rs->storeTestVariable($deliveryResult, $test, $testVariable, $callIdTest);
-
+        //        $rs->storeTestVariable($deliveryResult, $test, $testVariable, $callIdTest);
     }
 
     $time_end = microtime(true);
@@ -72,8 +68,6 @@ for ($a = 0; $a < 10; $a++) {
 
     echo "\n$time\n";
     $timeTot += $time;
-
 }
 
 echo "$timeTot\n";
-
