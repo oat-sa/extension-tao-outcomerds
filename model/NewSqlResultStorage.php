@@ -53,7 +53,7 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         return [
             self::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-            self::TEST_COLUMN => 'test',
+            self::TEST_COLUMN => 'deprecated',
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
