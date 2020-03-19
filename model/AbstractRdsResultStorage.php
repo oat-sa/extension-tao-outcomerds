@@ -633,21 +633,32 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     protected function serializeVariableValue($value)
     {
         $serializedValue = json_decode(json_encode($value), true);
-        if (!$value instanceof \taoResultServer_models_classes_Variable) {
-            throw new \LogicException(sprintf(
-                    "Value cannot be serialized. Expected instance of '%s', '%s' received.",
-                    \taoResultServer_models_classes_Variable::class,
-                    gettype($value)
-                )
-            );
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \LogicException('JSON encoding error: ' . json_last_error());
         }
+
         switch ($value) {
             case $value instanceof \taoResultServer_models_classes_ResponseVariable:
+                $serializedValue['type'] = \taoResultServer_models_classes_ResponseVariable::class;
                 break;
+            case $value instanceof \taoResultServer_models_classes_OutcomeVariable:
+                $serializedValue['type'] = \taoResultServer_models_classes_OutcomeVariable::class;
+                break;
+            case $value instanceof \taoResultServer_models_classes_TraceVariable:
+                $serializedValue['type'] = \taoResultServer_models_classes_TraceVariable::class;
+                break;
+            default:
+                throw new \LogicException(
+                    sprintf(
+                        "Value cannot be serialized. Expected instance of '%s', '%s' received.",
+                        \taoResultServer_models_classes_Variable::class,
+                        gettype($value)
+                    )
+                );
         }
-        $serializedValue['type'] = get_class($value);
 
-        return $serializedValue;
+        return json_encode($serializedValue);
     }
 
     /**
