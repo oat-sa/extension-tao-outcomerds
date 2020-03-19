@@ -23,6 +23,7 @@
 namespace oat\taoOutcomeRds\test\unit\model;
 
 use oat\taoOutcomeRds\model\NewSqlResultStorage;
+use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
 
 /**
  * Test NewSql result storage
@@ -51,4 +52,28 @@ class NewSqlResultStorageTest extends RdsResultStorageTest
             [1234567890.12345600, new \DateTime('2009-02-13T23:31:30.123456Z')],
         ];
     }
+
+    /**
+     * @param string $test
+     * @param $object
+     * @param string $item
+     */
+    protected function assertItemVariableBasics(string $test, $object, string $item): void
+    {
+        $this->assertEquals('deprecated', $object->test);
+        $this->assertEquals($item, $object->item);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+    }
+
+    /**
+     * @param string $test
+     * @param $object
+     */
+    protected function assertTestVariableBasics(string $test, $object): void
+    {
+        $this->assertEquals('deprecated', $object->test);
+        $this->assertNull($object->item);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+    }
+
 }
