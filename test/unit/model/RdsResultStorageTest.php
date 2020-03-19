@@ -288,7 +288,7 @@ class RdsResultStorageTest extends TestCase
 
     public function testStoreItemVariableException()
     {
-        $this->expectException(DuplicateVariableException::class);
+        $this->setExpectedException(DuplicateVariableException::class);
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#3";
         $test = "MyGreatTest#1";
         $item = "MyGreatItem#1";
@@ -312,7 +312,7 @@ class RdsResultStorageTest extends TestCase
 
     public function testStoreItemVariablesException()
     {
-        $this->expectException(DuplicateVariableException::class);
+        $this->setExpectedException(DuplicateVariableException::class);
         $deliveryResultIdentifier = "MyDeliveryResultIdentifier#4";
         $test = "MyGreatTest#1";
         $item = "MyGreatItem#1";
