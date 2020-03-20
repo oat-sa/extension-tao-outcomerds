@@ -75,5 +75,4 @@ class NewSqlResultStorageTest extends RdsResultStorageTest
         $this->assertNull($object->item);
         $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
     }
-
 }
