@@ -274,8 +274,6 @@ class RdsResultStorageTest extends TestCase
         $this->assertItemVariableBasics($test, $object, $item);
 
         $this->assertVariable($baseType, $object, $cardinality, $identifier, $value);
-
-
     }
 
     public function testStoreItemVariableException()

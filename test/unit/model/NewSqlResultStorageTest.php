@@ -54,9 +54,7 @@ class NewSqlResultStorageTest extends RdsResultStorageTest
     }
 
     /**
-     * @param string $test
-     * @param $object
-     * @param string $item
+     * @inheritDoc
      */
     protected function assertItemVariableBasics(string $test, $object, string $item): void
     {
@@ -66,8 +64,7 @@ class NewSqlResultStorageTest extends RdsResultStorageTest
     }
 
     /**
-     * @param string $test
-     * @param $object
+     * @inheritDoc
      */
     protected function assertTestVariableBasics(string $test, $object): void
     {
