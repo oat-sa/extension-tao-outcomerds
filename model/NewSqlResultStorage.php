@@ -20,7 +20,6 @@
 
 namespace oat\taoOutcomeRds\model;
 
-use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Schema\Schema;
 use taoResultServer_models_classes_Variable as Variable;
 
@@ -97,22 +96,5 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $table->addIndex([self::CALL_ID_TEST_COLUMN], self::CALL_ID_TEST_INDEX);
 
         return $table;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function getTypes(array $data = []): array
-    {
-        return [
-            ParameterType::STRING,
-            ParameterType::STRING,
-            ParameterType::STRING,
-            ParameterType::STRING,
-            ParameterType::STRING,
-            ParameterType::STRING,
-            null,
-            ParameterType::STRING,
-        ];
     }
 }
