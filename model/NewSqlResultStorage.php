@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2014-2020 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoOutcomeRds\model;
@@ -102,7 +102,7 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
     /**
      * @inheritDoc
      */
-    protected function getTypes(array $data = [])
+    protected function getTypes(array $data = []): array
     {
         return [
             ParameterType::STRING,

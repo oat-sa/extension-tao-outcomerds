@@ -736,7 +736,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      * @param array $data
      * @return array
      */
-    protected function getTypes(array $data = [])
+    protected function getTypes(array $data = []): array
     {
         return [];
     }
