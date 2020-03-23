@@ -632,12 +632,6 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      */
     protected function serializeVariableValue($value)
     {
-        $serializedValue = json_decode(json_encode($value), true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \LogicException('JSON encoding error: ' . json_last_error());
-        }
-
         if (!$value instanceof \taoResultServer_models_classes_Variable) {
             throw new \LogicException(
                 sprintf(
@@ -648,7 +642,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
             );
         }
 
-        return json_encode($serializedValue);
+        return json_encode($value);
     }
 
     /**
