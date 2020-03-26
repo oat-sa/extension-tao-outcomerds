@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2014-2020 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  *
  */
 
@@ -23,6 +23,7 @@ namespace oat\taoOutcomeRds\model;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
@@ -34,9 +35,9 @@ use oat\taoResultServer\models\classes\ResultDeliveryExecutionDelete;
 use oat\taoResultServer\models\classes\ResultManagement;
 use oat\taoResultServer\models\Exceptions\DuplicateVariableException;
 use Psr\Log\LoggerAwareInterface;
+use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
 use taoResultServer_models_classes_Variable as Variable;
 use taoResultServer_models_classes_WritableResultStorage as WritableResultStorage;
-use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
 
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
@@ -622,18 +623,22 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     /**
      * @param array $data
      *
+     * @param array $types
      * @throws DuplicateVariableException
      */
-    private function insertMultiple(array $data)
+    private function insertMultiple(array $data, array $types = [])
     {
+        if (empty($types)) {
+            $types = $this->getTypes($data);
+        }
         $duplicatedData = false;
         try {
-            $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $data);
+            $this->getPersistence()->insertMultiple(self::VARIABLES_TABLENAME, $data, $types);
         } catch (UniqueConstraintViolationException $e) {
             $duplicatedData = true;
             foreach ($data as $row) {
                 try {
-                    $this->getPersistence()->insert(self::VARIABLES_TABLENAME, $row);
+                    $this->getPersistence()->insert(self::VARIABLES_TABLENAME, $row, $types);
                 } catch (UniqueConstraintViolationException $e) {
                     //do nothing, just skip it
                 }
@@ -726,5 +731,18 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
             [],
             self::VARIABLES_FK_NAME
         );
+    }
+    protected function getTypes(array $data = []): array
+    {
+        return [
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            ParameterType::STRING,
+            null,
+            ParameterType::STRING,
+        ];
     }
 }
