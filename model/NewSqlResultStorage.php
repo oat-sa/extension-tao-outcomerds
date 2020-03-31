@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014-2019 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2014-2020 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  */
 
 namespace oat\taoOutcomeRds\model;
@@ -48,11 +48,11 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $persistence = $this->getPersistence();
 
         $createdAt = $this->getDateFromMicroTime($variable->getCreationTime());
-        
+
         return [
             self::VARIABLES_TABLE_ID => $persistence->getUniquePrimaryKey(),
             self::VARIABLES_FK_COLUMN => $deliveryResultIdentifier,
-            self::TEST_COLUMN => $test,
+            self::TEST_COLUMN => 'deprecated',
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),

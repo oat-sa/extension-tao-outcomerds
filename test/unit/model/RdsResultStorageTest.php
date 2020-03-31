@@ -271,19 +271,9 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getVariable($callId, $identifier);
 
         $object = array_shift($variables);
-        $this->assertEquals($test, $object->test);
-        $this->assertEquals($item, $object->item);
-        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
-        $this->assertEquals($baseType, $object->variable->getBaseType());
-        $this->assertEquals($cardinality, $object->variable->getCardinality());
-        $this->assertEquals($identifier, $object->variable->getIdentifier());
-        $this->assertEquals($value, $object->variable->getValue());
+        $this->assertItemVariableBasics($test, $object, $item);
 
-        $this->assertEquals($baseType, $this->instance->getVariableProperty($object->uri, 'baseType'));
-        $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
-        $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
-        $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
-        $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
+        $this->assertVariable($baseType, $object, $cardinality, $identifier, $value);
     }
 
     public function testStoreItemVariableException()
@@ -373,18 +363,14 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getVariables($callId);
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
-        $this->assertEquals($item, $object->item);
-        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertItemVariableBasics($test, $object, $item);
         $this->assertEquals($baseType1, $object->variable->getBaseType());
         $this->assertEquals($cardinality1, $object->variable->getCardinality());
         $this->assertEquals($identifier1, $object->variable->getIdentifier());
         $this->assertEquals($value1, $object->variable->getValue());
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
-        $this->assertEquals($item, $object->item);
-        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+        $this->assertItemVariableBasics($test, $object, $item);
         $this->assertEquals($baseType2, $object->variable->getBaseType());
         $this->assertEquals($cardinality2, $object->variable->getCardinality());
         $this->assertEquals($identifier2, $object->variable->getIdentifier());
@@ -411,18 +397,8 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getVariable($callId, $identifier);
 
         $object = array_shift($variables);
-        $this->assertEquals($test, $object->test);
-        $this->assertNull($object->item);
-        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
-        $this->assertEquals($baseType, $object->variable->getBaseType());
-        $this->assertEquals($cardinality, $object->variable->getCardinality());
-        $this->assertEquals($identifier, $object->variable->getIdentifier());
-        $this->assertEquals($value, $object->variable->getValue());
-
-        $this->assertEquals($baseType, $this->instance->getVariableProperty($object->uri, 'baseType'));
-        $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
-        $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
-        $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertTestVariableBasics($test, $object);
+        $this->assertVariable($baseType, $object, $cardinality, $identifier, $value);
     }
 
     public function testStoreTestVariables()
@@ -457,20 +433,12 @@ class RdsResultStorageTest extends TestCase
         $variables = $this->instance->getDeliveryVariables($deliveryResultIdentifier);
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
-        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
-        $this->assertEquals($baseType1, $object->variable->getBaseType());
-        $this->assertEquals($cardinality1, $object->variable->getCardinality());
-        $this->assertEquals($identifier1, $object->variable->getIdentifier());
-        $this->assertEquals($value1, $object->variable->getValue());
+        $this->assertTestVariableBasics($test, $object);
+        $this->assertVariable($baseType1, $object, $cardinality1, $identifier1, $value1);
 
         $object = array_shift($variables)[0];
-        $this->assertEquals($test, $object->test);
-        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
-        $this->assertEquals($baseType2, $object->variable->getBaseType());
-        $this->assertEquals($cardinality2, $object->variable->getCardinality());
-        $this->assertEquals($identifier2, $object->variable->getIdentifier());
-        $this->assertEquals($value2, $object->variable->getValue());
+        $this->assertTestVariableBasics($test, $object);
+        $this->assertVariable($baseType2, $object, $cardinality2, $identifier2, $value2);
     }
 
     public function testGetAllCallIds()
@@ -570,5 +538,48 @@ class RdsResultStorageTest extends TestCase
         $this->instance->storeTestVariable($deliveryResultIdentifier, $test, $testVariable, $testCallId);
 
         $this->assertSame([$testCallId], $this->instance->getRelatedTestCallIds($deliveryResultIdentifier));
+    }
+
+    /**
+     * @param string $baseType
+     * @param $object
+     * @param string $cardinality
+     * @param string $identifier
+     * @param string $value
+     */
+    protected function assertVariable( string $baseType, $object, string $cardinality, string $identifier, string $value ): void {
+        $this->assertEquals($baseType, $object->variable->getBaseType());
+        $this->assertEquals($cardinality, $object->variable->getCardinality());
+        $this->assertEquals($identifier, $object->variable->getIdentifier());
+        $this->assertEquals($value, $object->variable->getValue());
+
+        $this->assertEquals($baseType, $this->instance->getVariableProperty($object->uri, 'baseType'));
+        $this->assertEquals($cardinality, $this->instance->getVariableProperty($object->uri, 'cardinality'));
+        $this->assertEquals($identifier, $this->instance->getVariableProperty($object->uri, 'identifier'));
+        $this->assertEquals($value, $this->instance->getVariableProperty($object->uri, 'value'));
+        $this->assertNull($this->instance->getVariableProperty($object->uri, 'unknownProperty'));
+    }
+
+    /**
+     * @param string $test
+     * @param $object
+     * @param string $item
+     */
+    protected function assertItemVariableBasics(string $test, $object, string $item): void
+    {
+        $this->assertEquals($test, $object->test);
+        $this->assertEquals($item, $object->item);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
+    }
+
+    /**
+     * @param string $test
+     * @param $object
+     */
+    protected function assertTestVariableBasics(string $test, $object): void
+    {
+        $this->assertEquals($test, $object->test);
+        $this->assertNull($object->item);
+        $this->assertInstanceOf(OutcomeVariable::class, $object->variable);
     }
 }
