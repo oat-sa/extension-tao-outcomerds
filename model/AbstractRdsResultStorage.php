@@ -488,11 +488,11 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     /**
      * Prepares data to be inserted in database.
      *
-     * @param string   $deliveryResultIdentifier
-     * @param string   $test
-     * @param string   $item
+     * @param string $deliveryResultIdentifier
+     * @param string $test
+     * @param string $item
      * @param Variable $variable
-     * @param string   $callId
+     * @param string $callId
      *
      * @return array
      */
@@ -508,10 +508,10 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     /**
      * Prepares data to be inserted in database.
      *
-     * @param string   $deliveryResultIdentifier
-     * @param string   $test
+     * @param string $deliveryResultIdentifier
+     * @param string $test
      * @param Variable $variable
-     * @param string   $callId
+     * @param string $callId
      *
      * @return array
      */
@@ -519,16 +519,17 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     {
         $variableData = $this->prepareVariableData($deliveryResultIdentifier, $test, $variable, $callId);
         $variableData[self::CALL_ID_TEST_COLUMN] = $callId;
+
         return $variableData;
     }
 
     /**
      * Prepares data to be inserted in database.
      *
-     * @param string   $deliveryResultIdentifier
-     * @param string   $test
+     * @param string $deliveryResultIdentifier
+     * @param string $test
      * @param Variable $variable
-     * @param string   $callId
+     * @param string $callId
      *
      * @return array
      */
@@ -545,10 +546,10 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     /**
      * Prepares data to be inserted in database according to a given schema.
      *
-     * @param string   $deliveryResultIdentifier
-     * @param string   $test
+     * @param string $deliveryResultIdentifier
+     * @param string $test
      * @param Variable $variable
-     * @param string   $callId
+     * @param string $callId
      *
      * @return array
      */
@@ -607,7 +608,22 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      */
     protected function unserializeVariableValue($value)
     {
-        return unserialize($value);
+        $unserializedValue = json_decode($value, true);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return Variable::fromData($unserializedValue);
+        }
+
+        return unserialize(
+            $value,
+            [
+                'allowed_classes' => [
+                    \taoResultServer_models_classes_ResponseVariable::class,
+                    \taoResultServer_models_classes_OutcomeVariable::class,
+                    \taoResultServer_models_classes_TraceVariable::class,
+                ],
+            ]
+        );
     }
 
     /**
@@ -617,7 +633,17 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      */
     protected function serializeVariableValue($value)
     {
-        return serialize($value);
+        if (!$value instanceof \taoResultServer_models_classes_Variable) {
+            throw new \LogicException(
+                sprintf(
+                    "Value cannot be serialized. Expected instance of '%s', '%s' received.",
+                    \taoResultServer_models_classes_Variable::class,
+                    gettype($value)
+                )
+            );
+        }
+
+        return json_encode($value);
     }
 
     /**
@@ -672,9 +698,9 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      */
     public static function sortTimeStamps($a, $b)
     {
-        list($usec, $sec) = explode(' ', $a);
+        [$usec, $sec] = explode(' ', $a);
         $floata = ((float)$usec + (float)$sec);
-        list($usec, $sec) = explode(' ', $b);
+        [$usec, $sec] = explode(' ', $b);
         $floatb = ((float)$usec + (float)$sec);
         //the callback is expecting an int returned, for the case where the difference is of less than a second
         if ((floatval($floata) - floatval($floatb)) > 0) {
@@ -710,7 +736,9 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
 
     /**
      * Creates the table for variables storage.
+     *
      * @param Schema $schema
+     *
      * @return Table
      * @throws SchemaException
      */
@@ -718,8 +746,10 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
 
     /**
      * Adds constraints for the tables.
+     *
      * @param Table $variablesTable
      * @param Table $resultsTable
+     *
      * @throws SchemaException
      */
     public function createTableConstraints(Table $variablesTable, Table $resultsTable)
