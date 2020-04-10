@@ -44,7 +44,7 @@ class KvToRdsMigration extends ScriptAction
     /** @var \taoResultServer_models_classes_ReadableResultStorage $kvStorageService */
     protected $kvStorage;
 
-    /** @var array  */
+    /** @var array */
     protected $deliveryExecutions = [];
 
     /** @var \common_report_Report */
@@ -65,7 +65,7 @@ class KvToRdsMigration extends ScriptAction
                 'default' => true,
                 'flag' => true,
                 'description' => 'Apply the migration to Result storage.',
-            ]
+            ],
         ];
     }
 
@@ -101,6 +101,7 @@ class KvToRdsMigration extends ScriptAction
                 'The migration has not been applied because of dryrun mode. Use --wet-run to really run the migration'
             ));
         }
+
         return $this->report;
     }
 
@@ -113,6 +114,7 @@ class KvToRdsMigration extends ScriptAction
      *
      * @param $callId
      * @param array $variables
+     *
      * @throws \common_exception_Error
      */
     protected function migrateDeliveryExecution($callId, array $variables)
@@ -145,6 +147,7 @@ class KvToRdsMigration extends ScriptAction
      * @param $callId
      * @param $deliveryExecutionIdentifier
      * @param array $variables
+     *
      * @return \common_report_Report
      */
     protected function migrateDeliveryExecutionVariables($callId, $deliveryExecutionIdentifier, array $variables)
@@ -153,10 +156,10 @@ class KvToRdsMigration extends ScriptAction
         $identifier = null;
 
         foreach ($variables as $variable) {
-            $identifier = $variable->variable->identifier;
+            $identifier = $variable->variable->getIdentifier();
 
-            foreach ($this->rdsStorage->getVariable($callId, $variable->variable->identifier) as $existingVariable) {
-                if ($variable->variable->epoch == $existingVariable->variable->epoch) {
+            foreach ($this->rdsStorage->getVariable($callId, $variable->variable->getIdentifier()) as $existingVariable) {
+                if ($variable->variable->getEpoch() == $existingVariable->variable->getEpoch()) {
                     continue 2;
                 }
             }
@@ -184,7 +187,7 @@ class KvToRdsMigration extends ScriptAction
         if ($count == 0) {
             $message = 'Already migrated.';
         } else {
-            $message =  $count . ' variables migrated';
+            $message = $count . ' variables migrated';
         }
 
         return \common_report_Report::createInfo('Migrating ' . $callId . ' : ' . $identifier . ' : ' . $message);
@@ -204,6 +207,7 @@ class KvToRdsMigration extends ScriptAction
         if ($resultStorageKey != 'taoAltResultStorage/KeyValueResultStorage') {
             throw new \common_Exception('Result storage is not on KeyValue storage mode.');
         }
+
         return $resultService->instantiateResultStorage($resultStorageKey);
     }
 
@@ -244,7 +248,7 @@ class KvToRdsMigration extends ScriptAction
         return [
             'prefix' => 'h',
             'longPrefix' => 'help',
-            'description' => 'Prints a help statement'
+            'description' => 'Prints a help statement',
         ];
     }
 
