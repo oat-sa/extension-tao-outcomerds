@@ -25,7 +25,7 @@ return [
     'label' => 'extension-tao-outcomerds',
     'description' => 'extension that allows a storage in relational database',
     'license' => 'GPL-2.0',
-    'version' => '7.0.0',
+    'version' => '7.1.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => [
         'taoResultServer' => '>=11.0.0',
@@ -42,7 +42,6 @@ return [
         ],
         'php' => [
             \oat\taoOutcomeRds\scripts\install\CreateTables::class,
-            dirname(__FILE__) . '/scripts/install/setDefault.php',
         ]
     ],
     'uninstall' => [
