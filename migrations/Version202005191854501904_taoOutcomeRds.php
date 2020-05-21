@@ -23,15 +23,11 @@ final class Version202005191854501904_taoOutcomeRds extends AbstractMigration im
 
     public function up(Schema $schema): void
     {
-        /** @var LoggerService $logger */
-        $logger = $this->getServiceLocator()->get(LoggerService::LOGGER_OPTION);
-        $logger->debug("taoOutcomeRds Migration 2 UP.");
+        $this->getLogger()->debug("taoOutcomeRds Migration 2 UP.");
     }
 
     public function down(Schema $schema): void
     {
-        /** @var LoggerService $logger */
-        $logger = $this->getServiceLocator()->get(LoggerService::LOGGER_OPTION);
-        $logger->debug("taoOutcomeRds Migration 2 DOWN.");
+        $this->getLogger()->debug("taoOutcomeRds Migration 2 DOWN.");
     }
 }
