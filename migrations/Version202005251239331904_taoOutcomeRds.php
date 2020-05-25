@@ -12,21 +12,18 @@ use oat\tao\scripts\tools\migrations\AbstractMigration;
  */
 final class Version202005251239331904_taoOutcomeRds extends AbstractMigration
 {
-
     public function getDescription(): string
     {
-        return '';
+        return 'A test migration for extension taoOutcomeRds (4).';
     }
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-
+        $this->getLogger()->debug("taoOutcomeRds Migration 4 UP.");
     }
 
     public function down(Schema $schema): void
     {
-        // this down() migration is auto-generated, please modify it to your needs
-
+        $this->getLogger()->debug("taoOutcomeRds Migration 4 DOWN.");
     }
 }
