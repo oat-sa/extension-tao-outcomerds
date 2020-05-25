@@ -165,10 +165,6 @@ class Updater extends \common_ext_ExtensionUpdater
 
         $this->skip('6.1.0', '7.1.0');
 
-        if ($this->isVersion('7.1.0')) {
-
-            $this->getLogger()->debug('taoOutcomeRds update!');
-            $this->setVersion('7.1.1');
-        }
+        $this->skip('7.1.0', '7.1.1');
     }
 }
