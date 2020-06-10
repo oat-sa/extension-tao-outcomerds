@@ -54,10 +54,12 @@ final class Version202006101217421904_taoOutcomeRds extends AbstractMigration
      */
     public function down(Schema $schema): void
     {
-        // this down() migration is auto-generated, please modify it to your needs
         /** @var DummyFeatureManager $dummyFeatureManager */
         $dummyFeatureManager = $this->getServiceLocator()->get(DummyFeatureManager::SERVICE_ID);
         $dummyFeatureManager->downgradeDatabase($schema);
+
+        // Unregister DummyFeatureManager service.
+        $this->getServiceLocator()->unregister(DummyFeatureManager::SERVICE_ID);
 
         /*
          * The Migration Manager will now take care of executing the appropriate

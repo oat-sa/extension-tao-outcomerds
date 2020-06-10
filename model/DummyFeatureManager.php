@@ -71,7 +71,7 @@ class DummyFeatureManager extends ConfigurableService
      *
      * @return common_persistence_SqlPersistence
      */
-    protected function getPersistence(): common_persistence_SqlPersistence
+    public function getPersistence(): common_persistence_SqlPersistence
     {
         $this->persistence = $this->getServiceLocator()
                                   ->get(PersistenceManager::SERVICE_ID)

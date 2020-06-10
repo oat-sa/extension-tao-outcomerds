@@ -42,11 +42,13 @@ return [
         ],
         'php' => [
             \oat\taoOutcomeRds\scripts\install\CreateTables::class,
+            \oat\taoOutcomeRds\scripts\install\CreateDummyFeatureTables::class
         ]
     ],
     'uninstall' => [
         'php' => [
-            \oat\taoOutcomeRds\scripts\uninstall\removeTables::class
+            \oat\taoOutcomeRds\scripts\uninstall\removeTables::class,
+            \oat\taoOutcomeRds\scripts\uninstall\RemoveDummyFeatureTables::class
         ]
     ],
     'update' => 'oat\\taoOutcomeRds\\scripts\\update\\Updater',
