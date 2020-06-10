@@ -109,6 +109,7 @@ class DummyFeatureManager extends ConfigurableService
     {
         $table = $schema->createTable(self::DUMMY_TABLE_NAME);
         $table->addColumn('dummycolumn', 'string', ['length' => 255]);
+        $this->getLogger()->debug('Schema upgrade done.');
     }
 
     /**
@@ -122,5 +123,6 @@ class DummyFeatureManager extends ConfigurableService
     public function downgradeDatabase(Schema $schema)
     {
         $schema->dropTable(self::DUMMY_TABLE_NAME);
+        $this->getLogger()->debug('Schema downgrade done.');
     }
 }
