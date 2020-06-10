@@ -61,5 +61,7 @@ class RemoveDummyFeatureTables extends AbstractAction
         foreach ($queries as $query) {
             $persistence->exec($query);
         }
+
+        $this->getLogger()->debug('Uninstall Schema upgrade done.');
     }
 }

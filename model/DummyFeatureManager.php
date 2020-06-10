@@ -105,11 +105,11 @@ class DummyFeatureManager extends ConfigurableService
      *
      * @param Schema $schema
      */
-    public function upgradeDatabase(Schema $schema)
+    public function upgradeDatabase(Schema $schema): void
     {
         $table = $schema->createTable(self::DUMMY_TABLE_NAME);
         $table->addColumn('dummycolumn', 'string', ['length' => 255]);
-        $this->getLogger()->debug('Schema upgrade done.');
+        $this->getLogger()->debug('Migration Schema upgrade done.');
     }
 
     /**
@@ -120,9 +120,9 @@ class DummyFeatureManager extends ConfigurableService
      *
      * @param Schema $schema
      */
-    public function downgradeDatabase(Schema $schema)
+    public function downgradeDatabase(Schema $schema): void
     {
         $schema->dropTable(self::DUMMY_TABLE_NAME);
-        $this->getLogger()->debug('Schema downgrade done.');
+        $this->getLogger()->debug('Migration Schema downgrade done.');
     }
 }

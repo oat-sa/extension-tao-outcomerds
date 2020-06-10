@@ -61,5 +61,7 @@ class CreateDummyFeatureTables extends AbstractAction
         foreach ($queries as $query) {
             $persistence->exec($query);
         }
+
+        $this->getLogger()->debug('Installation Schema upgrade done.');
     }
 }
