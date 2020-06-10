@@ -73,12 +73,9 @@ class DummyFeatureManager extends ConfigurableService
      */
     protected function getPersistence(): common_persistence_SqlPersistence
     {
-        if ($this->persistence === null) {
-            $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
-                $this->getOption(self::OPTION_PERSISTENCE)
-                : 'default';
-            $this->persistence = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID)->getPersistenceById($persistenceId);
-        }
+        $this->persistence = $this->getServiceLocator()
+                                  ->get(PersistenceManager::SERVICE_ID)
+                                  ->getPersistenceById('default');
 
         return $this->persistence;
     }
@@ -98,5 +95,32 @@ class DummyFeatureManager extends ConfigurableService
         } else {
             // Do something else...
         }
+    }
+
+    /**
+     * Upgrade Database.
+     *
+     * Implementation of the database upgrade consisting of creating
+     * a new 'dummytable' with a sinble 'dummycolumn' varchar(255) column.
+     *
+     * @param Schema $schema
+     */
+    public function upgradeDatabase(Schema $schema)
+    {
+        $table = $schema->createTable(self::DUMMY_TABLE_NAME);
+        $table->addColumn('dummycolumn', 'string', ['length' => 255]);
+    }
+
+    /**
+     * Downgrade Database.
+     *
+     * Implementation of the database downgrade consisting of dropping
+     * the 'dummytable'.
+     *
+     * @param Schema $schema
+     */
+    public function downgradeDatabase(Schema $schema)
+    {
+        $schema->dropTable(self::DUMMY_TABLE_NAME);
     }
 }
