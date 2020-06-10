@@ -41,7 +41,7 @@ class CreateDummyFeatureTables extends AbstractAction
     {
         /*
          * At installation time, the DummyFeatureManager Service is already registered thanks
-         * to its default configuration file.
+         * to its config/default configuration file.
          */
         /** @var DummyFeatureManager $dummyFeatureManager */
         $dummyFeatureManager = $this->getServiceLocator()->get(DummyFeatureManager::SERVICE_ID);
