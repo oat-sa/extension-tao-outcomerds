@@ -37,9 +37,6 @@ class DummyFeatureManager extends ConfigurableService
     /** @var string The DummyFeatureManager Service ID ('extensionName/className'). */
     public const SERVICE_ID = 'taoOutcomeRds/DummyFeatureManager';
 
-    /** @var string The 'persistence' key. This option enables integrators to specify a specific persistence ID.*/
-    public const OPTION_PERSISTENCE = 'persistence';
-
     /** @var string The 'dummy_option' key. */
     public const OPTION_DUMMY_OPTION = 'dummy';
 
