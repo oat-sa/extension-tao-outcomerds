@@ -10,7 +10,12 @@ use oat\tao\scripts\tools\migrations\AbstractMigration;
 use oat\taoOutcomeRds\model\DummyFeatureManager;
 
 /**
- * Auto-generated Migration: Please modify to your needs!
+ * Class Version202006101217421904_taoOutcomeRds.
+ *
+ * The Migration Class implementing the necessary changes to introduce/remove
+ * a Dummy Feature in extension taoOutcomeRds.
+ *
+ * @package oat\taoOutcomeRds\migrations
  */
 final class Version202006101217421904_taoOutcomeRds extends AbstractMigration
 {
