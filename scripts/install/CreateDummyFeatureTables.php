@@ -57,10 +57,7 @@ class CreateDummyFeatureTables extends AbstractAction
          * Contrary to the Migration classes we setup up for the Update Process,
          * the schema migration has to be performed manually.
          */
-        $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-        foreach ($queries as $query) {
-            $persistence->exec($query);
-        }
+        $persistence->getPlatForm()->migrateSchema($fromSchema, $schema);
 
         $this->getLogger()->debug('Installation Schema upgrade done.');
     }
