@@ -20,6 +20,8 @@
  *
  */
 
+use \oat\taoOutcomeRds\scripts\install\CreateTables;
+
 return [
     'name' => 'taoOutcomeRds',
     'label' => 'extension-tao-outcomerds',
@@ -31,17 +33,9 @@ return [
         'taoResultServer' => '>=11.0.0',
         'generis' => '>=12.15.0'
     ],
-    // for compatibility
-    'dependencies' => ['tao', 'taoResultServer'],
-    'models' => [
-        'http://www.tao.lu/Ontologies/taoOutcomeRds.rdf#'
-    ],
     'install' => [
-        'rdf' => [
-            dirname(__FILE__) . '/scripts/install/taoOutcomeRds.rdf'
-        ],
         'php' => [
-            \oat\taoOutcomeRds\scripts\install\CreateTables::class,
+            CreateTables::class,
         ]
     ],
     'uninstall' => [
@@ -50,18 +44,4 @@ return [
         ]
     ],
     'update' => 'oat\\taoOutcomeRds\\scripts\\update\\Updater',
-    'autoload' => [
-        'psr-4' => [
-            'oat\\taoOutcomeRds\\' => dirname(__FILE__) . DIRECTORY_SEPARATOR
-        ]
-    ],
-    'routes' => [
-        '/taoOutcomeRds' => 'oat\\taoOutcomeRds\\controller'
-    ],
-    'constants' => [
-        # views directory
-        "DIR_VIEWS" => dirname(__FILE__) . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR,
-        #BASE URL (usually the domain root)
-        'BASE_URL' => ROOT_URL . 'taoOutcomeRds/',
-    ],
 ];
