@@ -38,11 +38,13 @@ use Psr\Log\LoggerAwareInterface;
 use taoResultServer_models_classes_ReadableResultStorage as ReadableResultStorage;
 use taoResultServer_models_classes_Variable as Variable;
 use taoResultServer_models_classes_WritableResultStorage as WritableResultStorage;
+use oat\generis\persistence\sql\SchemaCollection;
+use oat\generis\persistence\sql\SchemaProviderInterface;
 
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
  */
-abstract class AbstractRdsResultStorage extends ConfigurableService implements WritableResultStorage, ReadableResultStorage, ResultManagement, LoggerAwareInterface
+abstract class AbstractRdsResultStorage extends ConfigurableService implements WritableResultStorage, ReadableResultStorage, ResultManagement, LoggerAwareInterface, SchemaProviderInterface
 {
     use LoggerAwareTrait;
     use ResultDeliveryExecutionDelete;
@@ -586,16 +588,21 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
         return $this->getPersistence()->getPlatform()->getQueryBuilder();
     }
 
+    private function getPersistenceId(): string
+    {
+        return $this->hasOption(self::OPTION_PERSISTENCE) ?
+            $this->getOption(self::OPTION_PERSISTENCE)
+            : 'default';
+    }
+
     /**
      * @return \common_persistence_SqlPersistence
      */
     public function getPersistence()
     {
         if ($this->persistence === null) {
-            $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
-                $this->getOption(self::OPTION_PERSISTENCE)
-                : 'default';
-            $this->persistence = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID)->getPersistenceById($persistenceId);
+            $persistenceManager = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID);
+            $this->persistence = $persistenceManager->getPersistenceById($this->getPersistenceId());
         }
 
         return $this->persistence;
@@ -732,6 +739,14 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
         $table->setPrimaryKey([self::RESULTS_TABLE_ID]);
 
         return $table;
+    }
+
+    public function provideSchema(SchemaCollection $schemaCollection)
+    {
+        $schema = $schemaCollection->getSchema($this->getPersistenceId());
+        $resultsTable = $this->createResultsTable($schema);
+        $variablesTable = $this->createVariablesTable($schema);
+        $this->createTableConstraints($variablesTable, $resultsTable);
     }
 
     /**
