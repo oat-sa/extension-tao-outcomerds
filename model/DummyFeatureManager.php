@@ -21,9 +21,9 @@ declare(strict_types=1);
 namespace oat\taoOutcomeRds\model;
 
 use common_persistence_SqlPersistence;
-use Doctrine\DBAL\Schema\Schema;
 use oat\generis\persistence\PersistenceManager;
 use oat\oatbox\service\ConfigurableService;
+use Doctrine\DBAL\DBALException;
 
 /**
  * Class DummyFeatureManager.
@@ -36,6 +36,9 @@ class DummyFeatureManager extends ConfigurableService
 {
     /** @var string The DummyFeatureManager Service ID ('extensionName/className'). */
     public const SERVICE_ID = 'taoOutcomeRds/DummyFeatureManager';
+
+    /** @var string It is a good practice to make the persistence configurable. */
+    public const OPTION_PERSISTENCE = 'persistence';
 
     /** @var string The 'dummy_option' key. */
     public const OPTION_DUMMY_OPTION = 'dummy';
@@ -70,9 +73,10 @@ class DummyFeatureManager extends ConfigurableService
      */
     public function getPersistence(): common_persistence_SqlPersistence
     {
+        $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ? $this->getOption(self::OPTION_PERSISTENCE) : 'default';
         $this->persistence = $this->getServiceLocator()
                                   ->get(PersistenceManager::SERVICE_ID)
-                                  ->getPersistenceById('default');
+                                  ->getPersistenceById($persistenceId);
 
         return $this->persistence;
     }
@@ -100,12 +104,22 @@ class DummyFeatureManager extends ConfigurableService
      * Implementation of the database upgrade consisting of creating
      * a new 'dummytable' with a sinble 'dummycolumn' varchar(255) column.
      *
-     * @param Schema $schema
+     * @throws DBALException
      */
-    public function upgradeDatabase(Schema $schema): void
+    public function upgradeDatabase(): void
     {
+        // Get the current schema and clone it.
+        $persistence = $this->getPersistence();
+        $schema = $persistence->getSchemaManager()->createSchema();
+        $fromSchema = clone $schema;
+
+        // Perform changes.
         $table = $schema->createTable(self::DUMMY_TABLE_NAME);
         $table->addColumn('dummycolumn', 'string', ['length' => 255]);
+
+        // Execute schema transformation.
+        $persistence->getPlatForm()->migrateSchema($fromSchema, $schema);
+
         $this->getLogger()->debug('Migration Schema upgrade done.');
     }
 
@@ -115,11 +129,19 @@ class DummyFeatureManager extends ConfigurableService
      * Implementation of the database downgrade consisting of dropping
      * the 'dummytable'.
      *
-     * @param Schema $schema
+     * @throws DBALException
      */
-    public function downgradeDatabase(Schema $schema): void
+    public function downgradeDatabase(): void
     {
+        // Get the current schema and clone it.
+        $persistence = $this->getPersistence();
+        $schema = $persistence->getSchemaManager()->createSchema();
+        $fromSchema = clone $schema;
+
         $schema->dropTable(self::DUMMY_TABLE_NAME);
+
+        // Execute schema transformation.
+        $persistence->getPlatForm()->migrateSchema($fromSchema, $schema);
         $this->getLogger()->debug('Migration Schema downgrade done.');
     }
 }

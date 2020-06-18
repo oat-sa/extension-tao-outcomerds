@@ -20,9 +20,9 @@ declare(strict_types=1);
 
 namespace oat\taoOutcomeRds\scripts\install;
 
+use Doctrine\DBAL\DBALException;
 use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\DummyFeatureManager;
-use common_persistence_sql_dbal_SchemaManager as SchemaManager;
 
 /**
  * Class CreateDummyFeatureTables.
@@ -36,6 +36,7 @@ class CreateDummyFeatureTables extends AbstractAction
 {
     /**
      * @param array $params
+     * @throws DBALException
      */
     public function __invoke($params): void
     {
@@ -45,19 +46,7 @@ class CreateDummyFeatureTables extends AbstractAction
          */
         /** @var DummyFeatureManager $dummyFeatureManager */
         $dummyFeatureManager = $this->getServiceLocator()->get(DummyFeatureManager::SERVICE_ID);
-        $persistence = $dummyFeatureManager->getPersistence();
-
-        /** @var SchemaManager $schemaManager */
-        $schema = $persistence->getSchemaManager()->createSchema();
-        $fromSchema = clone $schema;
-
-        $dummyFeatureManager->upgradeDatabase($schema);
-
-        /*
-         * Contrary to the Migration classes we setup up for the Update Process,
-         * the schema migration has to be performed manually.
-         */
-        $persistence->getPlatForm()->migrateSchema($fromSchema, $schema);
+        $dummyFeatureManager->upgradeDatabase();
 
         $this->getLogger()->debug('Installation Schema upgrade done.');
     }

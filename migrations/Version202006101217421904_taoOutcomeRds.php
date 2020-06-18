@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace oat\taoOutcomeRds\migrations;
 
 use common_Exception;
+use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Schema\Schema;
 use oat\tao\scripts\tools\migrations\AbstractMigration;
 use oat\taoOutcomeRds\model\DummyFeatureManager;
@@ -27,6 +28,7 @@ final class Version202006101217421904_taoOutcomeRds extends AbstractMigration
 
     /**
      * @param Schema $schema
+     * @throws DBALException
      * @throws common_Exception
      */
     public function up(Schema $schema): void
@@ -46,29 +48,20 @@ final class Version202006101217421904_taoOutcomeRds extends AbstractMigration
         );
 
         // Apply database upgrade.
-        $dummyFeatureManager->upgradeDatabase($schema);
-
-        /*
-         * The Migration Manager will now take care of executing the appropriate
-         * queries to perform the database upgrade.
-         */
+        $dummyFeatureManager->upgradeDatabase();
     }
 
     /**
      * @param Schema $schema
+     * @throws DBALException
      */
     public function down(Schema $schema): void
     {
         /** @var DummyFeatureManager $dummyFeatureManager */
         $dummyFeatureManager = $this->getServiceLocator()->get(DummyFeatureManager::SERVICE_ID);
-        $dummyFeatureManager->downgradeDatabase($schema);
+        $dummyFeatureManager->downgradeDatabase();
 
         // Unregister DummyFeatureManager service.
         $this->getServiceLocator()->unregister(DummyFeatureManager::SERVICE_ID);
-
-        /*
-         * The Migration Manager will now take care of executing the appropriate
-         * queries to perform the database downgrade.
-         */
     }
 }
