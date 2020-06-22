@@ -29,6 +29,9 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Schema;
 
+/**
+ * @deprecated use migrations instead. See https://github.com/oat-sa/generis/wiki/Tao-Update-Process
+ */
 class Updater extends \common_ext_ExtensionUpdater
 {
 
@@ -164,5 +167,10 @@ class Updater extends \common_ext_ExtensionUpdater
         }
 
         $this->skip('6.1.0', '7.2.1');
+        
+        //Updater files are deprecated. Please use migrations.
+        //See: https://github.com/oat-sa/generis/wiki/Tao-Update-Process
+
+        $this->setVersion($this->getExtension()->getManifest()->getVersion());
     }
 }
