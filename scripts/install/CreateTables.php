@@ -35,6 +35,6 @@ class CreateTables extends AbstractAction
         $persistenceManager = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID);
         /** @var AbstractRdsResultStorage $resultStorage */
         $resultStorage = $this->getServiceLocator()->get(AbstractRdsResultStorage::SERVICE_ID);
-        $persistenceManager->addSchema($resultStorage);
+        $persistenceManager->applySchemaProvider($resultStorage);
     }
 }
