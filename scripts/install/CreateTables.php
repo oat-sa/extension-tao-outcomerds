@@ -26,40 +26,15 @@ use common_persistence_SqlPersistence as Persistence;
 use Doctrine\DBAL\Schema\SchemaException;
 use oat\oatbox\extension\AbstractAction;
 use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
+use oat\generis\persistence\PersistenceManager;
 
 class CreateTables extends AbstractAction
 {
     public function __invoke($params)
     {
+        $persistenceManager = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID);
         /** @var AbstractRdsResultStorage $resultStorage */
         $resultStorage = $this->getServiceLocator()->get(AbstractRdsResultStorage::SERVICE_ID);
-        $persistence = $resultStorage->getPersistence();
-
-        $this->generateTables($persistence, $resultStorage);
-    }
-
-    /**
-     * @param Persistence $persistence
-     * @param AbstractRdsResultStorage $resultStorage
-     */
-    public function generateTables(Persistence $persistence, AbstractRdsResultStorage $resultStorage)
-    {
-        /** @var SchemaManager $schemaManager */
-        $schemaManager = $persistence->getSchemaManager();
-        $schema = $schemaManager->createSchema();
-        $fromSchema = clone $schema;
-
-        try {
-            $resultsTable = $resultStorage->createResultsTable($schema);
-            $variablesTable = $resultStorage->createVariablesTable($schema);
-            $resultStorage->createTableConstraints($variablesTable, $resultsTable);
-        } catch (SchemaException $e) {
-            common_Logger::i('Database Schema already up to date.');
-        }
-
-        $queries = $persistence->getPlatform()->getMigrateSchemaSql($fromSchema, $schema);
-        foreach ($queries as $query) {
-            $persistence->exec($query);
-        }
+        $persistenceManager->applySchemaProvider($resultStorage);
     }
 }
