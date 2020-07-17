@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: TAO 3.3.0-sprint107\n"
-"PO-Revision-Date: 2019-10-25T08:46:24\n"
+"Project-Id-Version: TAO 3.4.0-sprint131\n"
+"PO-Revision-Date: 2020-07-17T08:40:56\n"
 "Last-Translator: TAO Translation Team <translation@tao.lu>\n"
 "MIME-Version: 1.0\n"
 "Language: en-US\n"
@@ -12,4 +12,19 @@ msgstr ""
 "X-Poedit-Basepath: ../../\n"
 "X-Poedit-KeywordsList: __\n"
 "X-Poedit-SearchPath-0: .\n"
+
+msgid "A script to migrate result from KeyValue storage to RDS."
+msgstr ""
+
+msgid "No indexes to add"
+msgstr ""
+
+msgid "Something went wrong during indexes addition"
+msgstr ""
+
+msgid "Successfully added %s indexes"
+msgstr ""
+
+msgid "The table %s doesn\'t exist"
+msgstr ""
 
