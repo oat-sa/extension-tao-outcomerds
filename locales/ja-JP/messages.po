@@ -1,0 +1,30 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TAO 3.4.0-sprint131\n"
+"PO-Revision-Date: 2020-07-17T08:40:56\n"
+"Last-Translator: TAO Translation Team <translation@tao.lu>\n"
+"MIME-Version: 1.0\n"
+"Language: en-US\n"
+"sourceLanguage: en-US\n"
+"targetLanguage: en-US\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Basepath: ../../\n"
+"X-Poedit-KeywordsList: __\n"
+"X-Poedit-SearchPath-0: .\n"
+
+msgid "A script to migrate result from KeyValue storage to RDS."
+msgstr "KeyValueストレージからRDSに結果を移行するためのスクリプト"
+
+msgid "No indexes to add"
+msgstr "追加するインデックスはありません"
+
+msgid "Something went wrong during indexes addition"
+msgstr "インデック追加中に異常が発生しました"
+
+msgid "Successfully added %s indexes"
+msgstr "%s インデックスの追加が完了しました"
+
+msgid "The table %s doesn\'t exist"
+msgstr "テーブル %s は存在しません"
+
