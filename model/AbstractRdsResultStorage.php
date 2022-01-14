@@ -652,7 +652,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      * @param array $types
      * @throws DuplicateVariableException
      */
-    private function insertMultiple(array $data, array $types = [])
+    protected function insertMultiple(array $data, array $types = [])
     {
         if (empty($types)) {
             $types = $this->getTypes($data);
