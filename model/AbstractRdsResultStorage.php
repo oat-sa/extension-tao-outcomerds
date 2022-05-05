@@ -170,7 +170,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
             ->from(self::RESULTS_TABLENAME)
             ->andWhere(self::RESULTS_TABLE_ID . ' = :id')
             ->setParameter('id', $deliveryResultIdentifier);
-        if ((int)$qb->execute()->fetchColumn() === 0) {
+        if ((int)current($qb->execute()->fetchFirstColumn()) === 0) {
             $this->getPersistence()->insert(
                 self::RESULTS_TABLENAME,
                 [
@@ -395,11 +395,11 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
         if (count($delivery) > 0) {
             $qb
                 ->andWhere(self::DELIVERY_COLUMN . ' IN (:delivery)')
-                ->setParameter(':delivery', $delivery, Connection::PARAM_STR_ARRAY);
+                ->setParameter('delivery', $delivery, Connection::PARAM_STR_ARRAY);
         }
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $value) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $value) {
             $returnValue[] = [
                 self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
                 self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN],
@@ -461,7 +461,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
                 ->setParameter('delivery', $delivery, Connection::PARAM_STR_ARRAY);
         }
 
-        return $qb->execute()->fetchColumn();
+        return current($qb->executeQuery()->fetchFirstColumn());
     }
 
     public function deleteResult($deliveryResultIdentifier)
