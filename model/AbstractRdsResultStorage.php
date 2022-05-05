@@ -296,7 +296,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
             ->andWhere(self::RESULTS_TABLE_ID . ' = :id')
             ->setParameter('id', $deliveryResultIdentifier);
 
-        return $qb->execute()->fetchColumn();
+        return current($qb->executeQuery()->fetchFirstColumn());
     }
 
     /**
