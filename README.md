@@ -5,6 +5,7 @@
 ![GitHub](https://img.shields.io/github/license/oat-sa/extension-tao-outcomerds.svg)
 ![GitHub release](https://img.shields.io/github/release/oat-sa/extension-tao-outcomerds.svg)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/oat-sa/extension-tao-outcomerds.svg)
+[![codecov](https://codecov.io/gh/oat-sa/extension-tao-outcomerds/branch/master/graph/badge.svg)](https://codecov.io/gh/oat-sa/extension-tao-outcomerds)
 
 > Extension that allows a storage in relational database
 
