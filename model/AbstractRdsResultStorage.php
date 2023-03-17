@@ -146,6 +146,42 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
         $this->insertMultiple($dataToInsert);
     }
 
+    /**
+     * Force update existing variable
+     *
+     * @param array $itemVariables - [
+     *    '{{variable_id}}' => (Object variable)
+     * ]
+     * @return void
+     * @throws DuplicateVariableException
+     */
+    public function replaceItemVariables(
+        string $deliveryResultIdentifier,
+        string $testUri,
+        string $itemUri,
+        string $callIdItem,
+        array $itemVariables
+    ): void {
+        $update = [];
+
+        foreach ($itemVariables as $itemVariableId => $itemVariable) {
+            $update[] = [
+                'conditions' => [
+                    self::VARIABLES_TABLE_ID => $itemVariableId,
+                ],
+                'updateValues' => $this->prepareItemVariableData(
+                    $deliveryResultIdentifier,
+                    $testUri,
+                    $itemUri,
+                    $itemVariable,
+                    $callIdItem
+                )
+            ];
+        }
+
+        $this->getPersistence()->updateMultiple(self::VARIABLES_TABLENAME, $update);
+    }
+
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
     {
         $this->storeRelatedData($deliveryResultIdentifier, self::TEST_TAKER_COLUMN, $testTakerIdentifier);
