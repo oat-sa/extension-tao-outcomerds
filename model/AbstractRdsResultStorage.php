@@ -28,6 +28,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
+use Exception;
 use oat\generis\persistence\PersistenceManager;
 use oat\oatbox\log\LoggerAwareTrait;
 use oat\oatbox\service\ConfigurableService;
@@ -153,7 +154,6 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      *    '{{variable_id}}' => (Object of taoResultServer_models_classes_Variable)
      * ]
      * @return void
-     * @throws DuplicateVariableException
      */
     public function replaceItemVariables(
         string $deliveryResultIdentifier,
@@ -175,6 +175,39 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
                     $itemUri,
                     $itemVariable,
                     $callIdItem
+                )
+            ];
+        }
+
+        $this->getPersistence()->updateMultiple(self::VARIABLES_TABLENAME, $update);
+    }
+
+    /**
+     * Force update existing variable
+     *
+     * @param array $testVariables - [
+     *    '{{variable_id}}' => (Object of taoResultServer_models_classes_Variable)
+     * ]
+     * @return void
+     */
+    public function replaceTestVariables(
+        string $deliveryResultIdentifier,
+        string $testUri,
+        string $callIdTest,
+        array $testVariables
+    ): void {
+        $update = [];
+
+        foreach ($testVariables as $testVariableId => $testVariable) {
+            $update[] = [
+                'conditions' => [
+                    self::VARIABLES_TABLE_ID => $testVariableId,
+                ],
+                'updateValues' => $this->prepareTestVariableData(
+                    $deliveryResultIdentifier,
+                    $testUri,
+                    $testVariable,
+                    $callIdTest
                 )
             ];
         }
