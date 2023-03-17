@@ -150,7 +150,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      * Force update existing variable
      *
      * @param array $itemVariables - [
-     *    '{{variable_id}}' => (Object variable)
+     *    '{{variable_id}}' => (Object of taoResultServer_models_classes_Variable)
      * ]
      * @return void
      * @throws DuplicateVariableException
