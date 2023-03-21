@@ -26,6 +26,9 @@
         "oat-sa/tao-core" : ">=50.24.6",
         "oat-sa/extension-tao-outcome" : ">=13.0.0"
     },
+    "require-dev": {
+        "oat-sa/extension-tao-delivery": ">=15.10.0"
+    },
     "autoload": {
         "psr-4": {
             "oat\\taoOutcomeRds\\": ""
