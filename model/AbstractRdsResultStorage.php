@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- * Copyright (c) 2014-2020 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
+ * Copyright (c) 2014-2023 (original work) Open Assessment Technologies SA (under the project TAO-PRODUCT);
  *
  */
 
@@ -28,6 +28,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
+use Exception;
 use oat\generis\persistence\PersistenceManager;
 use oat\oatbox\log\LoggerAwareTrait;
 use oat\oatbox\service\ConfigurableService;
@@ -42,51 +43,55 @@ use taoResultServer_models_classes_WritableResultStorage as WritableResultStorag
 /**
  * Implements tao results storage using the configured persistence "taoOutcomeRds"
  */
-abstract class AbstractRdsResultStorage extends ConfigurableService implements WritableResultStorage, ReadableResultStorage, ResultManagement, LoggerAwareInterface
+abstract class AbstractRdsResultStorage extends ConfigurableService implements
+    WritableResultStorage,
+    ReadableResultStorage,
+    ResultManagement,
+    LoggerAwareInterface
 {
     use LoggerAwareTrait;
     use ResultDeliveryExecutionDelete;
 
-    const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
+    public const SERVICE_ID = 'taoOutcomeRds/RdsResultStorage';
     /**
      * Constants for the database creation and data access
      */
-    const RESULTS_TABLENAME = 'results_storage';
-    const RESULTS_TABLE_ID = 'result_id';
-    const TEST_TAKER_COLUMN = 'test_taker';
-    const DELIVERY_COLUMN = 'delivery';
-    const VARIABLES_TABLENAME = 'variables_storage';
-    const VARIABLES_TABLE_ID = 'variable_id';
-    const CALL_ID_ITEM_COLUMN = 'call_id_item';
-    const CALL_ID_TEST_COLUMN = 'call_id_test';
-    const TEST_COLUMN = 'test';
-    const ITEM_COLUMN = 'item';
-    const VARIABLE_VALUE = 'value';
-    const VARIABLE_IDENTIFIER = 'identifier';
-    const VARIABLE_HASH = 'variable_hash';
-    const CALL_ID_ITEM_INDEX = 'idx_variables_storage_call_id_item';
-    const CALL_ID_TEST_INDEX = 'idx_variables_storage_call_id_test';
-    const UNIQUE_VARIABLE_INDEX = 'idx_unique_variables_storage';
+    public const RESULTS_TABLENAME = 'results_storage';
+    public const RESULTS_TABLE_ID = 'result_id';
+    public const TEST_TAKER_COLUMN = 'test_taker';
+    public const DELIVERY_COLUMN = 'delivery';
+    public const VARIABLES_TABLENAME = 'variables_storage';
+    public const VARIABLES_TABLE_ID = 'variable_id';
+    public const CALL_ID_ITEM_COLUMN = 'call_id_item';
+    public const CALL_ID_TEST_COLUMN = 'call_id_test';
+    public const TEST_COLUMN = 'test';
+    public const ITEM_COLUMN = 'item';
+    public const VARIABLE_VALUE = 'value';
+    public const VARIABLE_IDENTIFIER = 'identifier';
+    public const VARIABLE_HASH = 'variable_hash';
+    public const CALL_ID_ITEM_INDEX = 'idx_variables_storage_call_id_item';
+    public const CALL_ID_TEST_INDEX = 'idx_variables_storage_call_id_test';
+    public const UNIQUE_VARIABLE_INDEX = 'idx_unique_variables_storage';
     /** @deprecated */
-    const VARIABLE_CLASS = 'class';
-    const VARIABLES_FK_COLUMN = 'results_result_id';
-    const VARIABLES_FK_NAME = 'fk_variables_results';
+    public const VARIABLE_CLASS = 'class';
+    public const VARIABLES_FK_COLUMN = 'results_result_id';
+    public const VARIABLES_FK_NAME = 'fk_variables_results';
     /** @deprecated */
-    const RESULT_KEY_VALUE_TABLE_NAME = 'results_kv_storage';
+    public const RESULT_KEY_VALUE_TABLE_NAME = 'results_kv_storage';
     /** @deprecated */
-    const KEY_COLUMN = 'result_key';
+    public const KEY_COLUMN = 'result_key';
     /** @deprecated */
-    const VALUE_COLUMN = 'result_value';
+    public const VALUE_COLUMN = 'result_value';
     /** @deprecated */
-    const RESULTSKV_FK_COLUMN = 'variables_variable_id';
+    public const RESULTSKV_FK_COLUMN = 'variables_variable_id';
     /** @deprecated */
-    const RESULTSKV_FK_NAME = 'fk_resultsKv_variables';
+    public const RESULTSKV_FK_NAME = 'fk_resultsKv_variables';
     /** result storage persistence identifier */
-    const OPTION_PERSISTENCE = 'persistence';
+    public const OPTION_PERSISTENCE = 'persistence';
     // Fields for results retrieval.
-    const FIELD_DELIVERY_RESULT = 'deliveryResultIdentifier';
-    const FIELD_TEST_TAKER = 'testTakerIdentifier';
-    const FIELD_DELIVERY = 'deliveryIdentifier';
+    public const FIELD_DELIVERY_RESULT = 'deliveryResultIdentifier';
+    public const FIELD_TEST_TAKER = 'testTakerIdentifier';
+    public const FIELD_DELIVERY = 'deliveryIdentifier';
 
     /** @var */
     protected $persistence;
@@ -146,6 +151,74 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
         $this->insertMultiple($dataToInsert);
     }
 
+    /**
+     * Force update existing variable
+     *
+     * @param array $itemVariables - [
+     *    '{{variable_id}}' => (Object of taoResultServer_models_classes_Variable)
+     * ]
+     * @return void
+     */
+    public function replaceItemVariables(
+        string $deliveryResultIdentifier,
+        string $testUri,
+        string $itemUri,
+        string $callIdItem,
+        array $itemVariables
+    ): void {
+        $update = [];
+
+        foreach ($itemVariables as $itemVariableId => $itemVariable) {
+            $update[] = [
+                'conditions' => [
+                    self::VARIABLES_TABLE_ID => $itemVariableId,
+                ],
+                'updateValues' => $this->prepareItemVariableData(
+                    $deliveryResultIdentifier,
+                    $testUri,
+                    $itemUri,
+                    $itemVariable,
+                    $callIdItem
+                )
+            ];
+        }
+
+        $this->getPersistence()->updateMultiple(self::VARIABLES_TABLENAME, $update);
+    }
+
+    /**
+     * Force update existing variable
+     *
+     * @param array $testVariables - [
+     *    '{{variable_id}}' => (Object of taoResultServer_models_classes_Variable)
+     * ]
+     * @return void
+     */
+    public function replaceTestVariables(
+        string $deliveryResultIdentifier,
+        string $testUri,
+        string $callIdTest,
+        array $testVariables
+    ): void {
+        $update = [];
+
+        foreach ($testVariables as $testVariableId => $testVariable) {
+            $update[] = [
+                'conditions' => [
+                    self::VARIABLES_TABLE_ID => $testVariableId,
+                ],
+                'updateValues' => $this->prepareTestVariableData(
+                    $deliveryResultIdentifier,
+                    $testUri,
+                    $testVariable,
+                    $callIdTest
+                )
+            ];
+        }
+
+        $this->getPersistence()->updateMultiple(self::VARIABLES_TABLENAME, $update);
+    }
+
     public function storeRelatedTestTaker($deliveryResultIdentifier, $testTakerIdentifier)
     {
         $this->storeRelatedData($deliveryResultIdentifier, self::TEST_TAKER_COLUMN, $testTakerIdentifier);
@@ -179,7 +252,8 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
                 ]
             );
         } else {
-            $sqlUpdate = 'UPDATE ' . self::RESULTS_TABLENAME . ' SET ' . $relatedField . ' = ? WHERE ' . self::RESULTS_TABLE_ID . ' = ?';
+            $sqlUpdate = 'UPDATE ' . self::RESULTS_TABLENAME . ' SET ' . $relatedField . ' = ? WHERE ' .
+                self::RESULTS_TABLE_ID . ' = ?';
             $paramsUpdate = [$relatedIdentifier, $deliveryResultIdentifier];
             $this->getPersistence()->exec($sqlUpdate, $paramsUpdate);
         }
@@ -306,7 +380,10 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
     public function getAllCallIds()
     {
         $qb = $this->getQueryBuilder()
-            ->select('DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' . self::CALL_ID_TEST_COLUMN . ', ' . self::VARIABLES_FK_COLUMN)
+            ->select(
+                'DISTINCT(' . self::CALL_ID_ITEM_COLUMN . '), ' .
+                self::CALL_ID_TEST_COLUMN . ', ' . self::VARIABLES_FK_COLUMN
+            )
             ->from(self::VARIABLES_TABLENAME);
 
         $returnValue = [];
@@ -553,7 +630,12 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
      *
      * @return array
      */
-    abstract protected function prepareVariableDataForSchema($deliveryResultIdentifier, $test, Variable $variable, $callId);
+    abstract protected function prepareVariableDataForSchema(
+        $deliveryResultIdentifier,
+        $test,
+        Variable $variable,
+        $callId
+    );
 
     /**
      * Builds a variable from database row.
@@ -595,7 +677,9 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements W
             $persistenceId = $this->hasOption(self::OPTION_PERSISTENCE) ?
                 $this->getOption(self::OPTION_PERSISTENCE)
                 : 'default';
-            $this->persistence = $this->getServiceLocator()->get(PersistenceManager::SERVICE_ID)->getPersistenceById($persistenceId);
+            $this->persistence = $this->getServiceLocator()
+                ->get(PersistenceManager::SERVICE_ID)
+                ->getPersistenceById($persistenceId);
         }
 
         return $this->persistence;
