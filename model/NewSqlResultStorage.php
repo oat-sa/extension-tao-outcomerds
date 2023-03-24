@@ -21,6 +21,7 @@
 namespace oat\taoOutcomeRds\model;
 
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Types\Types;
 use taoResultServer_models_classes_Variable as Variable;
 
 /**
@@ -57,6 +58,7 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
             self::CREATED_AT => $createdAt->format($persistence->getPlatform()->getDateTimeFormatString()),
+            self::IS_EXTERNALLY_GRADED => (int)$variable->isExternallyGraded(),
         ];
     }
 
@@ -79,16 +81,18 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $table = $schema->createtable(self::VARIABLES_TABLENAME);
         $table->addOption('engine', 'MyISAM');
 
-        $table->addColumn(self::VARIABLES_TABLE_ID, 'string', ['length' => 36]);
-        $table->addColumn(self::CALL_ID_TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-        $table->addColumn(self::CALL_ID_ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-        $table->addColumn(self::TEST_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-        $table->addColumn(self::ITEM_COLUMN, 'string', ['notnull' => false, 'length' => 255]);
-        $table->addColumn(self::VARIABLE_VALUE, 'text', ['notnull' => false]);
-        $table->addColumn(self::VARIABLE_IDENTIFIER, 'string', ['notnull' => false, 'length' => 255]);
-        $table->addColumn(self::VARIABLES_FK_COLUMN, 'string', ['length' => 255]);
-        $table->addColumn(self::VARIABLE_HASH, 'string', ['length' => 255, 'notnull' => false]);
-        $table->addColumn(self::CREATED_AT, 'datetime', []);
+        $table->addColumn(self::VARIABLES_TABLE_ID, Types::STRING, ['length' => 36]);
+        $table->addColumn(self::CALL_ID_TEST_COLUMN, Types::STRING, ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::CALL_ID_ITEM_COLUMN, Types::STRING, ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::TEST_COLUMN, Types::STRING, ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::ITEM_COLUMN, Types::STRING, ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::VARIABLE_VALUE, Types::TEXT, ['notnull' => false]);
+        $table->addColumn(self::VARIABLE_IDENTIFIER, Types::STRING, ['notnull' => false, 'length' => 255]);
+        $table->addColumn(self::VARIABLES_FK_COLUMN, Types::STRING, ['length' => 255]);
+        $table->addColumn(self::VARIABLE_HASH, Types::STRING, ['length' => 255, 'notnull' => false]);
+        $table->addColumn(self::CREATED_AT, Types::DATETIME_MUTABLE, []);
+
+        $table->addColumn(self::IS_EXTERNALLY_GRADED, Types::BOOLEAN, ['default' => false]);
 
         $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
         $table->addUniqueIndex([self::VARIABLE_HASH], self::UNIQUE_VARIABLE_INDEX);

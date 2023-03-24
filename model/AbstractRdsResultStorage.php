@@ -72,6 +72,8 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
     public const CALL_ID_ITEM_INDEX = 'idx_variables_storage_call_id_item';
     public const CALL_ID_TEST_INDEX = 'idx_variables_storage_call_id_test';
     public const UNIQUE_VARIABLE_INDEX = 'idx_unique_variables_storage';
+    public const IS_EXTERNALLY_GRADED = 'externally_graded';
+
     /** @deprecated */
     public const VARIABLE_CLASS = 'class';
     public const VARIABLES_FK_COLUMN = 'results_result_id';
@@ -656,6 +658,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
         $object->test = $variable[self::TEST_COLUMN];
         $object->item = $variable[self::ITEM_COLUMN];
         $object->variable = clone $resultVariable;
+        $object->isExternallyGraded = (bool)$variable[self::IS_EXTERNALLY_GRADED];
 
         return $object;
     }
