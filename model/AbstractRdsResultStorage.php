@@ -658,7 +658,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
         $object->test = $variable[self::TEST_COLUMN];
         $object->item = $variable[self::ITEM_COLUMN];
         $object->variable = clone $resultVariable;
-        $object->isExternallyGraded = (bool)$variable[self::IS_EXTERNALLY_GRADED];
+        $object->isExternallyGraded = (bool)($variable[self::IS_EXTERNALLY_GRADED] ?? false);
 
         return $object;
     }
