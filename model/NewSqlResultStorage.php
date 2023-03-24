@@ -58,7 +58,7 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
             self::CREATED_AT => $createdAt->format($persistence->getPlatform()->getDateTimeFormatString()),
-            self::IS_EXTERNALLY_GRADED => (int)$variable->isExternallyGraded(),
+            self::IS_EXTERNALLY_GRADED => (int)$variable->getExternallyGraded(),
         ];
     }
 

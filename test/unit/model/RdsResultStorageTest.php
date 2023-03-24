@@ -23,6 +23,8 @@
 namespace oat\taoOutcomeRds\test\unit\model;
 
 use oat\generis\persistence\PersistenceManager;
+use oat\generis\test\PersistenceManagerMockTrait;
+use oat\generis\test\ServiceManagerMockTrait;
 use oat\generis\test\TestCase;
 use oat\taoOutcomeRds\model\AbstractRdsResultStorage;
 use oat\taoOutcomeRds\model\RdsResultStorage;
@@ -35,6 +37,9 @@ use taoResultServer_models_classes_OutcomeVariable as OutcomeVariable;
  */
 class RdsResultStorageTest extends TestCase
 {
+    use ServiceManagerMockTrait;
+    use PersistenceManagerMockTrait;
+
     /**
      * @var RdsResultStorage
      */
@@ -43,12 +48,12 @@ class RdsResultStorageTest extends TestCase
     public function setUp(): void
     {
         $persistenceId = 'rds_result_storage_test';
-        $persistenceManager = $this->getSqlMock($persistenceId);
+        $persistenceManager = $this->getPersistenceManagerMock($persistenceId);
 
         $testedClass = $this->getTestedClass();
         $this->instance = new $testedClass([$testedClass::OPTION_PERSISTENCE => $persistenceId]);
 
-        $serviceManagerMock = $this->getServiceLocatorMock([
+        $serviceManagerMock = $this->getServiceManagerMock([
             PersistenceManager::SERVICE_ID => $persistenceManager,
             $testedClass::SERVICE_ID => $this->instance,
         ]);
