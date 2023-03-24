@@ -71,7 +71,6 @@ class RdsResultStorage extends AbstractRdsResultStorage
         $table->addColumn(self::VARIABLE_IDENTIFIER, Types::STRING, ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::VARIABLES_FK_COLUMN, Types::STRING, ['length' => 255]);
         $table->addColumn(self::VARIABLE_HASH, Types::STRING, ['length' => 255, 'notnull' => false]);
-
         $table->addColumn(self::IS_EXTERNALLY_GRADED, Types::BOOLEAN, ['default' => false]);
 
         $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
