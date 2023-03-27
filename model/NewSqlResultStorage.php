@@ -58,7 +58,6 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
             self::CREATED_AT => $createdAt->format($persistence->getPlatform()->getDateTimeFormatString()),
-            self::IS_EXTERNALLY_GRADED => (int)$variable->getExternallyGraded(),
         ];
     }
 
@@ -91,7 +90,6 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
         $table->addColumn(self::VARIABLES_FK_COLUMN, Types::STRING, ['length' => 255]);
         $table->addColumn(self::VARIABLE_HASH, Types::STRING, ['length' => 255, 'notnull' => false]);
         $table->addColumn(self::CREATED_AT, Types::DATETIME_MUTABLE, []);
-        $table->addColumn(self::IS_EXTERNALLY_GRADED, Types::BOOLEAN, ['default' => false]);
 
         $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
         $table->addUniqueIndex([self::VARIABLE_HASH], self::UNIQUE_VARIABLE_INDEX);

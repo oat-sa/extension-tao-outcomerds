@@ -50,7 +50,6 @@ class RdsResultStorage extends AbstractRdsResultStorage
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
             self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
-            self::IS_EXTERNALLY_GRADED => (int)$variable->getExternallyGraded(),
         ];
     }
 
@@ -71,7 +70,6 @@ class RdsResultStorage extends AbstractRdsResultStorage
         $table->addColumn(self::VARIABLE_IDENTIFIER, Types::STRING, ['notnull' => false, 'length' => 255]);
         $table->addColumn(self::VARIABLES_FK_COLUMN, Types::STRING, ['length' => 255]);
         $table->addColumn(self::VARIABLE_HASH, Types::STRING, ['length' => 255, 'notnull' => false]);
-        $table->addColumn(self::IS_EXTERNALLY_GRADED, Types::BOOLEAN, ['default' => false]);
 
         $table->setPrimaryKey([self::VARIABLES_TABLE_ID]);
         $table->addUniqueIndex([self::VARIABLE_HASH], self::UNIQUE_VARIABLE_INDEX);
