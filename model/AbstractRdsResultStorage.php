@@ -72,7 +72,6 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
     public const CALL_ID_ITEM_INDEX = 'idx_variables_storage_call_id_item';
     public const CALL_ID_TEST_INDEX = 'idx_variables_storage_call_id_test';
     public const UNIQUE_VARIABLE_INDEX = 'idx_unique_variables_storage';
-
     /** @deprecated */
     public const VARIABLE_CLASS = 'class';
     public const VARIABLES_FK_COLUMN = 'results_result_id';
