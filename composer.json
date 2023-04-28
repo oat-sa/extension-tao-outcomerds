@@ -27,7 +27,7 @@
         "oat-sa/extension-tao-outcome" : "dev-feature/AUT-2995"
     },
     "require-dev": {
-        "oat-sa/extension-tao-delivery": ">=15.10.0"
+        "oat-sa/extension-tao-delivery": "dev-feature/AUT-2995"
     },
     "autoload": {
         "psr-4": {
