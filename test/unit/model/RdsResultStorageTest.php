@@ -547,7 +547,8 @@ class RdsResultStorageTest extends TestCase
      * @param string $identifier
      * @param string $value
      */
-    protected function assertVariable( string $baseType, $object, string $cardinality, string $identifier, string $value ): void {
+    protected function assertVariable(string $baseType, $object, string $cardinality, string $identifier, string $value): void
+    {
         $this->assertEquals($baseType, $object->variable->getBaseType());
         $this->assertEquals($cardinality, $object->variable->getCardinality());
         $this->assertEquals($identifier, $object->variable->getIdentifier());

@@ -28,7 +28,7 @@ use taoResultServer_models_classes_Variable as Variable;
  */
 class NewSqlResultStorage extends AbstractRdsResultStorage
 {
-    const CREATED_AT = 'created_at';
+    public const CREATED_AT = 'created_at';
 
     /**
      * @inheritDoc

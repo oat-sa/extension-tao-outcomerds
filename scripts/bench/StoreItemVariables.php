@@ -30,7 +30,7 @@ class StoreItemVariables extends AbstractStoreItemVariable
         $startTime = microtime(true);
         $this->storage->storeItemVariables($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, $variables, $callIdItem);
         $endTime = microtime(true);
-        
+
         return ($endTime - $startTime);
     }
 }
