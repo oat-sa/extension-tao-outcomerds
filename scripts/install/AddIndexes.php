@@ -80,10 +80,7 @@ class AddIndexes extends AbstractAction
         }
 
         return \common_report_Report::createFailure(
-            __(
-                'The table %s doesn\'t exist',
-                AbstractRdsResultStorage::VARIABLES_TABLENAME
-            )
+            __('The table %s doesn\'t exist', AbstractRdsResultStorage::VARIABLES_TABLENAME)
         );
     }
 }
