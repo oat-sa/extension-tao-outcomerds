@@ -28,7 +28,7 @@ use taoResultServer_models_classes_Variable as Variable;
  */
 class NewSqlResultStorage extends AbstractRdsResultStorage
 {
-    const CREATED_AT = 'created_at';
+    public const CREATED_AT = 'created_at';
 
     /**
      * @inheritDoc
@@ -55,7 +55,8 @@ class NewSqlResultStorage extends AbstractRdsResultStorage
             self::TEST_COLUMN => 'deprecated',
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
-            self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
+            self::VARIABLE_HASH => $deliveryResultIdentifier
+                . md5($deliveryResultIdentifier . $serializedVariable . $callId),
             self::CREATED_AT => $createdAt->format($persistence->getPlatform()->getDateTimeFormatString()),
         ];
     }

@@ -48,7 +48,8 @@ class RdsResultStorage extends AbstractRdsResultStorage
             self::TEST_COLUMN => $test,
             self::VARIABLE_IDENTIFIER => $variable->getIdentifier(),
             self::VARIABLE_VALUE => $serializedVariable,
-            self::VARIABLE_HASH => $deliveryResultIdentifier . md5($deliveryResultIdentifier . $serializedVariable . $callId),
+            self::VARIABLE_HASH => $deliveryResultIdentifier
+                . md5($deliveryResultIdentifier . $serializedVariable . $callId),
         ];
     }
 

@@ -31,7 +31,6 @@ use oat\tao\model\extension\ExtensionModel;
 
 class removeTables extends AbstractAction
 {
-
     /**
      * @param $params
      * @throws \common_exception_InconsistentData

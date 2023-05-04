@@ -46,12 +46,18 @@ class AddIndexes extends AbstractAction
                 $tableVariables = $schema->getTable(AbstractRdsResultStorage::VARIABLES_TABLENAME);
                 $i = 0;
                 if (!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_ITEM_INDEX)) {
-                    $tableVariables->addIndex([AbstractRdsResultStorage::CALL_ID_ITEM_COLUMN], AbstractRdsResultStorage::CALL_ID_ITEM_INDEX);
+                    $tableVariables->addIndex(
+                        [AbstractRdsResultStorage::CALL_ID_ITEM_COLUMN],
+                        AbstractRdsResultStorage::CALL_ID_ITEM_INDEX
+                    );
                     $i++;
                 }
 
                 if (!$tableVariables->hasIndex(AbstractRdsResultStorage::CALL_ID_TEST_INDEX)) {
-                    $tableVariables->addIndex([AbstractRdsResultStorage::CALL_ID_TEST_COLUMN], AbstractRdsResultStorage::CALL_ID_TEST_INDEX);
+                    $tableVariables->addIndex(
+                        [AbstractRdsResultStorage::CALL_ID_TEST_COLUMN],
+                        AbstractRdsResultStorage::CALL_ID_TEST_INDEX
+                    );
                     $i++;
                 }
 
@@ -73,6 +79,11 @@ class AddIndexes extends AbstractAction
             }
         }
 
-        return \common_report_Report::createFailure(__('The table %s doesn\'t exist', AbstractRdsResultStorage::VARIABLES_TABLENAME));
+        return \common_report_Report::createFailure(
+            __(
+                'The table %s doesn\'t exist',
+                AbstractRdsResultStorage::VARIABLES_TABLENAME
+            )
+        );
     }
 }
