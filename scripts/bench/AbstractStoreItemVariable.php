@@ -29,7 +29,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
 {
     /** @var  AbstractRdsResultStorage */
     protected $storage;
-    
+
     public function __invoke($params)
     {
         // Arguments check.
@@ -39,35 +39,35 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 "Argument 1 - Delivery Execution Count must be provided."
             );
         }
-        
+
         if (empty($params[1])) {
             return new Report(
                 Report::TYPE_ERROR,
                 "Argument 2 - Attempt Count must be provided."
             );
         }
-        
-        
+
+
         $deliveryExecutionCount = intval($params[0]);
         $attemptCount = intval($params[1]);
         $purge = !empty($params[2]) && boolval($params[2]);
-        
+
         $report = new Report(
             Report::TYPE_INFO,
             "The script ended gracefully."
         );
-        
+
         $this->storage = $this->getServiceManager()->get(AbstractRdsResultStorage::SERVICE_ID);
-        
+
         $time = [];
-        
+
         for ($i = 0; $i < $deliveryExecutionCount; $i++) {
             $this->storage->storeRelatedTestTaker("deliveryResultIdentifier${i}", "testTakerIdentifier${i}");
             $this->storage->storeRelatedDelivery("deliveryResultIdentifier${i}", "deliveryIdentifier");
-            
+
             for ($j = 0; $j < $attemptCount; $j++) {
                 $itemVariables = [];
-                
+
                 $var = new \taoResultServer_models_classes_OutcomeVariable();
                 $var->setIdentifier('SCORE');
                 $var->setCardinality('single');
@@ -77,7 +77,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setNormalMinimum(0);
                 $var->setNormalMaximum(1);
                 $itemVariables[] = $var;
-                
+
                 $var = new \taoResultServer_models_classes_OutcomeVariable();
                 $var->setIdentifier('completionStatus');
                 $var->setCardinality('single');
@@ -85,7 +85,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setEpoch(microtime());
                 $var->setValue('completed');
                 $itemVariables[] = $var;
-                
+
                 $var = new \taoResultServer_models_classes_ResponseVariable();
                 $var->setIdentifier('RESPONSE');
                 $var->setCardinality('single');
@@ -94,7 +94,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setValue('choice1');
                 $var->setCorrectResponse(true);
                 $itemVariables[] = $var;
-                
+
                 $var = new \taoResultServer_models_classes_ResponseVariable();
                 $var->setIdentifier('numAttempts');
                 $var->setCardinality('single');
@@ -102,7 +102,7 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setEpoch(microtime());
                 $var->setValue(1);
                 $itemVariables[] = $var;
-                
+
                 $var = new \taoResultServer_models_classes_ResponseVariable();
                 $var->setIdentifier('duration');
                 $var->setCardinality('single');
@@ -110,42 +110,52 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setEpoch(microtime());
                 $var->setValue('PT10S');
                 $itemVariables[] = $var;
-                
-                $time[] = $this->storeItemVariableSet("deliveryResultIdentifier${i}", "test", "item${j}", $itemVariables, "callIdItem${j}");
+
+                $time[] = $this->storeItemVariableSet(
+                    "deliveryResultIdentifier${i}",
+                    "test",
+                    "item${j}",
+                    $itemVariables,
+                    "callIdItem${j}"
+                );
             }
         }
-        
+
         $report->add(
             new Report(
                 Report::TYPE_INFO,
-                "Simulation is composed of ${deliveryExecutionCount} delivery executions. ${attemptCount} candidate attempts are performed for each delivery execution."
+                "Simulation is composed of ${deliveryExecutionCount} delivery executions. ${attemptCount} "
+                    . "candidate attempts are performed for each delivery execution."
             )
         );
-        
+
         $report->add(
             new Report(
                 Report::TYPE_INFO,
                 'Total time spent in storing candidate attempts related variables: ' . array_sum($time) . ' seconds.'
             )
         );
-        
+
         $report->add(
             new Report(
                 Report::TYPE_INFO,
-                'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
+                'Average time spent in storing candidate attempts related variables: '
+                    . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
             )
         );
 
         if ($purge) {
             $sqlPersistence = $this->storage->getPersistence();
             $dbPlatform = $sqlPersistence->getPlatform();
-            
+
             if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {
-                foreach ([AbstractRdsResultStorage::VARIABLES_TABLENAME, AbstractRdsResultStorage::RESULTS_TABLENAME] as $tbl) {
+                $tables = [AbstractRdsResultStorage::VARIABLES_TABLENAME, AbstractRdsResultStorage::RESULTS_TABLENAME];
+
+                foreach ($tables as $tbl) {
                     $dbTruncateSql = $dbPlatform->getTruncateTableSql($tbl);
                     $sqlPersistence->exec($dbTruncateSql . " CASCADE");
                 }
-                
+
                 $report->add(
                     new Report(
                         Report::TYPE_WARNING,
@@ -161,9 +171,15 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 );
             }
         }
-        
+
         return $report;
     }
-    
-    abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem);
+
+    abstract protected function storeItemVariableSet(
+        $deliveryResultIdentifier,
+        $testIdentifier,
+        $itemIdentifier,
+        array $variables,
+        $callIdItem
+    );
 }

@@ -320,7 +320,16 @@ class RdsResultStorageTest extends TestCase
         $itemVariable->setIdentifier($identifier);
         $itemVariable->setValue($value);
 
-        $this->instance->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable, $itemVariable], $callId);
+        $this->instance->storeItemVariables(
+            $deliveryResultIdentifier,
+            $test,
+            $item,
+            [
+                $itemVariable,
+                $itemVariable,
+            ],
+            $callId
+        );
     }
 
     public function testStoreItemVariables()
@@ -354,7 +363,17 @@ class RdsResultStorageTest extends TestCase
 
         $duplicateExceptionThrown = false;
         try {
-            $this->instance->storeItemVariables($deliveryResultIdentifier, $test, $item, [$itemVariable1, $itemVariable1, $itemVariable2], $callId);
+            $this->instance->storeItemVariables(
+                $deliveryResultIdentifier,
+                $test,
+                $item,
+                [
+                    $itemVariable1,
+                    $itemVariable1,
+                    $itemVariable2,
+                ],
+                $callId
+            );
         } catch (DuplicateVariableException $e) {
             $duplicateExceptionThrown = true;
         }
@@ -429,7 +448,15 @@ class RdsResultStorageTest extends TestCase
 
         $this->instance->storeRelatedDelivery($deliveryResultIdentifier, 'delivery');
 
-        $this->instance->storeTestVariables($deliveryResultIdentifier, $test, [$itemVariable1, $itemVariable2], $callId);
+        $this->instance->storeTestVariables(
+            $deliveryResultIdentifier,
+            $test,
+            [
+                $itemVariable1,
+                $itemVariable2,
+            ],
+            $callId
+        );
         $variables = $this->instance->getDeliveryVariables($deliveryResultIdentifier);
 
         $object = array_shift($variables)[0];
@@ -547,7 +574,13 @@ class RdsResultStorageTest extends TestCase
      * @param string $identifier
      * @param string $value
      */
-    protected function assertVariable( string $baseType, $object, string $cardinality, string $identifier, string $value ): void {
+    protected function assertVariable(
+        string $baseType,
+        $object,
+        string $cardinality,
+        string $identifier,
+        string $value
+    ): void {
         $this->assertEquals($baseType, $object->variable->getBaseType());
         $this->assertEquals($cardinality, $object->variable->getCardinality());
         $this->assertEquals($identifier, $object->variable->getIdentifier());

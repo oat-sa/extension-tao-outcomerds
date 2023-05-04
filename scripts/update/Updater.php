@@ -34,7 +34,6 @@ use Doctrine\DBAL\Schema\Schema;
  */
 class Updater extends \common_ext_ExtensionUpdater
 {
-
     /**
      * @param $initialVersion
      * @return string|void
@@ -51,8 +50,10 @@ class Updater extends \common_ext_ExtensionUpdater
         if ($currentVersion == '1.0.3') {
             //get variables
             $persistence = \common_persistence_Manager::getPersistence('default');
-            $sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE ' . RdsResultStorage::VARIABLE_VALUE . ' IS NULL';
-            $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE ' . RdsResultStorage::VARIABLE_VALUE . ' IS NULL';
+            $sql = 'SELECT * FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '
+                . RdsResultStorage::VARIABLE_VALUE . ' IS NULL';
+            $countSql = 'SELECT count(*) FROM ' . RdsResultStorage::VARIABLES_TABLENAME . ' WHERE '
+                . RdsResultStorage::VARIABLE_VALUE . ' IS NULL';
 
             //update variable storage table schema
             $schema = $persistence->getDriver()->getSchemaManager()->createSchema();
@@ -98,7 +99,10 @@ class Updater extends \common_ext_ExtensionUpdater
                         $setter = 'set' . ucfirst($variableValue[RdsResultStorage::KEY_COLUMN]);
                         $value = $variableValue[RdsResultStorage::VALUE_COLUMN];
                         if (method_exists($resultVariable, $setter) && !is_null($value)) {
-                            if ($variableValue[RdsResultStorage::KEY_COLUMN] == 'value' || $variableValue[RdsResultStorage::KEY_COLUMN] == 'candidateResponse') {
+                            if (
+                                $variableValue[RdsResultStorage::KEY_COLUMN] == 'value'
+                                || $variableValue[RdsResultStorage::KEY_COLUMN] == 'candidateResponse'
+                            ) {
                                 $value = base64_decode($value);
                             }
 
@@ -106,7 +110,9 @@ class Updater extends \common_ext_ExtensionUpdater
                         }
                     }
 
-                    $sqlUpdate = 'UPDATE ' . RdsResultStorage::VARIABLES_TABLENAME . ' SET ' . RdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . RdsResultStorage::VARIABLES_TABLE_ID . ' = ?';
+                    $sqlUpdate = 'UPDATE ' . RdsResultStorage::VARIABLES_TABLENAME . ' SET '
+                        . RdsResultStorage::VARIABLE_VALUE . ' = ? WHERE ' . RdsResultStorage::VARIABLES_TABLE_ID
+                        . ' = ?';
                     $paramsUpdate = [serialize($resultVariable), $variable[RdsResultStorage::VARIABLES_TABLE_ID]];
                     $persistence->exec($sqlUpdate, $paramsUpdate);
                 }
@@ -162,12 +168,18 @@ class Updater extends \common_ext_ExtensionUpdater
             foreach ($queries as $query) {
                 $persistence->exec($query);
             }
-            $this->addReport(new Report(Report::TYPE_WARNING, 'Run `\oat\taoOutcomeRds\scripts\update\dbMigrations\v6_1_0\VariablesStorage_v1` migration script to move add unique index to variables storage.'));
+            $this->addReport(
+                new Report(
+                    Report::TYPE_WARNING,
+                    'Run `\oat\taoOutcomeRds\scripts\update\dbMigrations\v6_1_0\VariablesStorage_v1` migration '
+                        . 'script to move add unique index to variables storage.'
+                )
+            );
             $this->setVersion('6.1.0');
         }
 
         $this->skip('6.1.0', '7.2.1');
-        
+
         //Updater files are deprecated. Please use migrations.
         //See: https://github.com/oat-sa/generis/wiki/Tao-Update-Process
 

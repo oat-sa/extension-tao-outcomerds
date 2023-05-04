@@ -95,7 +95,9 @@ class KvToRdsMigration extends ScriptAction
 
         $this->setCurrentResultStorageToRdsStorage();
 
-        $this->report->add(\common_report_Report::createSuccess(count($this->deliveryExecutions) . ' delivery executions migrated.'));
+        $this->report->add(
+            \common_report_Report::createSuccess(count($this->deliveryExecutions) . ' delivery executions migrated.')
+        );
         if ($this->isDryrun()) {
             $this->report->add(\common_report_Report::createFailure(
                 'The migration has not been applied because of dryrun mode. Use --wet-run to really run the migration'
@@ -157,8 +159,9 @@ class KvToRdsMigration extends ScriptAction
 
         foreach ($variables as $variable) {
             $identifier = $variable->variable->getIdentifier();
+            $existingVariables = $this->rdsStorage->getVariable($callId, $variable->variable->getIdentifier());
 
-            foreach ($this->rdsStorage->getVariable($callId, $variable->variable->getIdentifier()) as $existingVariable) {
+            foreach ($existingVariables as $existingVariable) {
                 if ($variable->variable->getEpoch() == $existingVariable->variable->getEpoch()) {
                     continue 2;
                 }
@@ -259,8 +262,11 @@ class KvToRdsMigration extends ScriptAction
      */
     protected function provideDescription()
     {
-        return __('A script to migrate result from KeyValue storage to RDS.' . PHP_EOL .
-            ' It copies data from KeyValue to RdsStorage and switch config from taoResultServer/resultservice.conf.php.');
+        return __(
+            'A script to migrate result from KeyValue storage to RDS.' . PHP_EOL
+            . ' It copies data from KeyValue to RdsStorage and switch config from '
+            . 'taoResultServer/resultservice.conf.php.'
+        );
     }
 
     /**
