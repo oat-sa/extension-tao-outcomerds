@@ -25,12 +25,23 @@ use oat\oatbox\extension\AbstractAction;
 
 class StoreItemVariable extends AbstractStoreItemVariable
 {
-    protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem)
-    {
+    protected function storeItemVariableSet(
+        $deliveryResultIdentifier,
+        $testIdentifier,
+        $itemIdentifier,
+        array $variables,
+        $callIdItem
+    ) {
         $startTime = microtime(true);
 
         foreach ($variables as $variable) {
-            $this->storage->storeItemVariable($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, $variable, $callIdItem);
+            $this->storage->storeItemVariable(
+                $deliveryResultIdentifier,
+                $testIdentifier,
+                $itemIdentifier,
+                $variable,
+                $callIdItem
+            );
         }
 
         $endTime = microtime(true);

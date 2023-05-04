@@ -111,14 +111,21 @@ abstract class AbstractStoreItemVariable extends AbstractAction
                 $var->setValue('PT10S');
                 $itemVariables[] = $var;
 
-                $time[] = $this->storeItemVariableSet("deliveryResultIdentifier${i}", "test", "item${j}", $itemVariables, "callIdItem${j}");
+                $time[] = $this->storeItemVariableSet(
+                    "deliveryResultIdentifier${i}",
+                    "test",
+                    "item${j}",
+                    $itemVariables,
+                    "callIdItem${j}"
+                );
             }
         }
 
         $report->add(
             new Report(
                 Report::TYPE_INFO,
-                "Simulation is composed of ${deliveryExecutionCount} delivery executions. ${attemptCount} candidate attempts are performed for each delivery execution."
+                "Simulation is composed of ${deliveryExecutionCount} delivery executions. ${attemptCount} "
+                    . "candidate attempts are performed for each delivery execution."
             )
         );
 
@@ -132,7 +139,8 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         $report->add(
             new Report(
                 Report::TYPE_INFO,
-                'Average time spent in storing candidate attempts related variables: ' . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
+                'Average time spent in storing candidate attempts related variables: '
+                    . (array_sum($time) / ($attemptCount * $deliveryExecutionCount)) . ' seconds.'
             )
         );
 
@@ -141,7 +149,9 @@ abstract class AbstractStoreItemVariable extends AbstractAction
             $dbPlatform = $sqlPersistence->getPlatform();
 
             if (in_array($dbPlatform->getName(), ['postgresql', 'mysql'])) {
-                foreach ([AbstractRdsResultStorage::VARIABLES_TABLENAME, AbstractRdsResultStorage::RESULTS_TABLENAME] as $tbl) {
+                $tables = [AbstractRdsResultStorage::VARIABLES_TABLENAME, AbstractRdsResultStorage::RESULTS_TABLENAME];
+
+                foreach ($tables as $tbl) {
                     $dbTruncateSql = $dbPlatform->getTruncateTableSql($tbl);
                     $sqlPersistence->exec($dbTruncateSql . " CASCADE");
                 }
@@ -165,5 +175,11 @@ abstract class AbstractStoreItemVariable extends AbstractAction
         return $report;
     }
 
-    abstract protected function storeItemVariableSet($deliveryResultIdentifier, $testIdentifier, $itemIdentifier, array $variables, $callIdItem);
+    abstract protected function storeItemVariableSet(
+        $deliveryResultIdentifier,
+        $testIdentifier,
+        $itemIdentifier,
+        array $variables,
+        $callIdItem
+    );
 }
