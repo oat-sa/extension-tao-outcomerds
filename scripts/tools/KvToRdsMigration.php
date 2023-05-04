@@ -262,11 +262,10 @@ class KvToRdsMigration extends ScriptAction
      */
     protected function provideDescription()
     {
-        return __(
-            'A script to migrate result from KeyValue storage to RDS.' . PHP_EOL
-            . ' It copies data from KeyValue to RdsStorage and switch config from '
-            . 'taoResultServer/resultservice.conf.php.'
-        );
+        // phpcs:disable Generic.Files.LineLength
+        return __('A script to migrate result from KeyValue storage to RDS.' . PHP_EOL .
+            ' It copies data from KeyValue to RdsStorage and switch config from taoResultServer/resultservice.conf.php.');
+        // phpcs:enable Generic.Files.LineLength
     }
 
     /**
