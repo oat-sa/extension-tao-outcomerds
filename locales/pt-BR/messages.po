@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: tao-3x\n"
+"PO-Revision-Date: 2023-04-21 15:46\n"
+"Last-Translator: TAO Translation Team <translation@tao.lu>\n"
+"MIME-Version: 1.0\n"
+"Language: pt\n"
+"sourceLanguage: en-US\n"
+"targetLanguage: en-US\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Basepath: ../../\n"
+"X-Poedit-KeywordsList: __\n"
+"X-Poedit-SearchPath-0: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: tao-3x\n"
+"X-Crowdin-Project-ID: 582145\n"
+"X-Crowdin-Language: pt-BR\n"
+"X-Crowdin-File: /taoOutcomeRds/locales/en-US/messages.po\n"
+"X-Crowdin-File-ID: 1591\n"
+"Language-Team: Portuguese, Brazilian\n"
+
+msgid "A script to migrate result from KeyValue storage to RDS."
+msgstr "Um script para migrar resultado do armazenamento KeyValue para RDS."
+
+msgid "No indexes to add"
+msgstr "Sem índices para adicionar"
+
+msgid "Something went wrong during indexes addition"
+msgstr "Algo deu errado durante a adição dos índices"
+
+msgid "Successfully added %s indexes"
+msgstr "%s índices adicionados com sucesso"
+
+msgid "The table %s doesn\\'t exist"
+msgstr "A tabela %s não existe"
+
