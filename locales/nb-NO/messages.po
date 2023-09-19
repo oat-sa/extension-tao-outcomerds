@@ -23,7 +23,7 @@ msgid "Something went wrong during indexes addition"
 msgstr "Noe gikk galt under tillegg av indekser"
 
 msgid "Successfully added %s indexes"
-msgstr "%S indekser ble lagt til"
+msgstr "%s indekser ble lagt til"
 
 msgid "The table %s doesn\'t exist"
 msgstr ""
