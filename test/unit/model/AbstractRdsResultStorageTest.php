@@ -34,11 +34,9 @@ class AbstractRdsResultStorageTest extends TestCase
 {
     use ServiceManagerMockTrait;
 
-    /** @var AbstractRdsResultStorage|MockObject */
-    protected AbstractRdsResultStorage $instance;
-
-    /** @var common_persistence_SqlPersistence|MockObject */
-    protected common_persistence_SqlPersistence $persistence;
+    private AbstractRdsResultStorage|MockObject $instance;
+    private common_persistence_SqlPersistence|MockObject $persistence;
+    private PersistenceManager|MockObject $persistenceManager;
 
     public function setUp(): void
     {
