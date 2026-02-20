@@ -243,7 +243,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->from(self::RESULTS_TABLENAME)
             ->andWhere(self::RESULTS_TABLE_ID . ' = :id')
             ->setParameter('id', $deliveryResultIdentifier);
-        if ((int)$qb->execute()->fetchColumn() === 0) {
+        if ((int)$qb->executeQuery()->fetchOne() === 0) {
             $this->getPersistence()->insert(
                 self::RESULTS_TABLENAME,
                 [
@@ -273,7 +273,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->setParameter('ids', $callId, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $variable) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
 
@@ -294,7 +294,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->setParameter('ids', $deliveryResultIdentifier, Connection::PARAM_STR_ARRAY);
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $variable) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]][] = $this->getResultRow($variable);
         }
 
@@ -312,7 +312,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->setParameter('variableId', $variableIdentifier);
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $variable) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $variable) {
             $returnValue[$variable[self::VARIABLES_TABLE_ID]] = $this->getResultRow($variable);
         }
 
@@ -327,7 +327,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->andWhere(self::VARIABLES_TABLE_ID . ' = :variableId')
             ->setParameter('variableId', $variableId);
 
-        $variableValue = $qb->execute()->fetchColumn();
+        $variableValue = $qb->executeQuery()->fetchOne();
         $variableValue = $this->unserializeVariableValue($variableValue);
         $getter = 'get' . ucfirst($property);
         if (is_callable([$variableValue, $getter])) {
@@ -370,7 +370,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->andWhere(self::RESULTS_TABLE_ID . ' = :id')
             ->setParameter('id', $deliveryResultIdentifier);
 
-        return $qb->execute()->fetchColumn();
+        return $qb->executeQuery()->fetchOne();
     }
 
     /**
@@ -387,7 +387,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->from(self::VARIABLES_TABLENAME);
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $value) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $value) {
             $returnValue[] = ($value[self::CALL_ID_ITEM_COLUMN] != '')
                 ? $value[self::CALL_ID_ITEM_COLUMN]
                 : $value[self::CALL_ID_TEST_COLUMN];
@@ -416,7 +416,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->setParameter('field', '');
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $value) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $value) {
             if (isset($value[$field])) {
                 $returnValue[] = $value[$field];
             }
@@ -442,7 +442,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
             ->from(self::RESULTS_TABLENAME);
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $value) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $value) {
             $returnValue[] = [
                 self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
                 $fieldName => $value[$field],
@@ -472,11 +472,11 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
         if (count($delivery) > 0) {
             $qb
                 ->andWhere(self::DELIVERY_COLUMN . ' IN (:delivery)')
-                ->setParameter(':delivery', $delivery, Connection::PARAM_STR_ARRAY);
+                ->setParameter('delivery', $delivery, Connection::PARAM_STR_ARRAY);
         }
 
         $returnValue = [];
-        foreach ($qb->execute()->fetchAll() as $value) {
+        foreach ($qb->executeQuery()->fetchAllAssociative() as $value) {
             $returnValue[] = [
                 self::FIELD_DELIVERY_RESULT => $value[self::RESULTS_TABLE_ID],
                 self::FIELD_TEST_TAKER => $value[self::TEST_TAKER_COLUMN],
@@ -538,7 +538,7 @@ abstract class AbstractRdsResultStorage extends ConfigurableService implements
                 ->setParameter('delivery', $delivery, Connection::PARAM_STR_ARRAY);
         }
 
-        return $qb->execute()->fetchColumn();
+        return $qb->executeQuery()->fetchOne();
     }
 
     public function deleteResult($deliveryResultIdentifier)
